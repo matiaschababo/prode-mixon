@@ -58,6 +58,7 @@ export const participants = [
   // Productores
   { id: "nahuel-cantero", name: "Nahuel Cantero", role: "Productor", photo: "/assets/logo-mixon.png" },
   { id: "matias-chababo", name: "Matías Chababo", role: "Productor", photo: "/assets/logo-mixon.png" },
+  { id: "lucio-leyria", name: "Lucio Leyria", role: "Productor", photo: "/assets/logo-mixon.png" },
   { id: "el-edu", name: "El Edu", role: "Productor", photo: "/assets/logo-mixon.png" }
 ];
 
