@@ -1,23 +1,15 @@
 // src/services/api-football.js
+// Browser code should never receive the API-Football key.
+// Results are fetched through /api/results, a Vercel serverless function.
 
-const API_KEY = "YOUR_API_SPORTS_KEY"; // TODO: set real key
-const API_URL = "https://v3.football.api-sports.io";
+export async function fetchAutomaticResults() {
+  const response = await fetch('/api/results', {
+    headers: { accept: 'application/json' }
+  });
 
-export async function fetchLiveMatches() {
-  try {
-    const response = await fetch(`${API_URL}/fixtures?live=all`, {
-      headers: {
-        'x-rapidapi-host': 'v3.football.api-sports.io',
-        'x-rapidapi-key': API_KEY
-      }
-    });
-    
-    if (!response.ok) throw new Error('Network response was not ok');
-    
-    const data = await response.json();
-    return data.response;
-  } catch (error) {
-    console.error("Error fetching live matches:", error);
-    return [];
+  if (!response.ok) {
+    throw new Error('No se pudieron traer los resultados automáticos.');
   }
+
+  return response.json();
 }

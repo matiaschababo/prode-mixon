@@ -14,8 +14,10 @@ import { Puntajes } from './pages/Puntajes.js';
 import { matches } from './data/matches.js';
 import { participants } from './data/participants.js';
 import { getPredictions, getResults, savePrediction, saveResult, exportLocalData, importLocalData } from './services/prodeStore.js';
+import { syncRemoteResults } from './services/remoteResults.js';
 
 const app = document.getElementById('app');
+let remoteSyncStarted = false;
 
 const routes = {
   '/': Home,
@@ -37,6 +39,13 @@ function router() {
   `;
 
   attachPageEvents(path);
+
+  if (!remoteSyncStarted) {
+    remoteSyncStarted = true;
+    syncRemoteResults().then(changed => {
+      if (changed) router();
+    });
+  }
 }
 
 function renderPage(path) {

@@ -58,6 +58,22 @@ export function saveResult(matchId, home, away) {
   writeJSON(RESULTS_KEY, results);
 }
 
+export function mergeResults(nextResults) {
+  const current = getResults();
+  let changed = false;
+
+  Object.entries(nextResults || {}).forEach(([matchId, result]) => {
+    const previous = current[matchId];
+    if (!previous || previous.home !== result.home || previous.away !== result.away || previous.status !== result.status) {
+      current[matchId] = result;
+      changed = true;
+    }
+  });
+
+  if (changed) writeJSON(RESULTS_KEY, current);
+  return changed;
+}
+
 export function getMatchResult(match) {
   const saved = getResults()[String(match.id)];
   if (saved) return saved;

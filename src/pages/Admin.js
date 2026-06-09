@@ -52,7 +52,7 @@ export function Admin() {
 
       <div id="admin-dashboard" style="display: none; margin-top: 2rem;">
         <div class="admin-note">
-          Contraseña actual: <strong>mixon2026</strong>. Estos datos quedan guardados en este navegador. Para dejarlos como datos globales para todos, después conectamos una base real o los dejamos versionados en Git.
+          Contraseña actual: <strong>mixon2026</strong>. Las predicciones quedan guardadas en este navegador. Los resultados reales pueden sincronizarse automáticamente cuando estén configurados la API key y los IDs reales de partidos.
         </div>
 
         <div class="glass-card admin-editor">
