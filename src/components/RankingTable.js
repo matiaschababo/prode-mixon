@@ -23,7 +23,7 @@ export function RankingTable(participantsData) {
         <div class="ranking-pos">${medal}</div>
         <img src="${p.photo}" alt="${p.name}" class="avatar">
         <div class="ranking-info">
-          <div class="ranking-name">${p.name}</div>
+          <a href="/perfil/${p.id}" class="ranking-name" data-link>${p.name}</a>
           <div class="ranking-program" style="color: ${prog.theme.accent}">${prog.name}</div>
         </div>
         

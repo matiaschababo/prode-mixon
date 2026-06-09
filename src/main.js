@@ -11,13 +11,13 @@ import { Programas } from './pages/Programas.js';
 import { Predicciones } from './pages/Predicciones.js';
 import { Admin } from './pages/Admin.js';
 import { Puntajes } from './pages/Puntajes.js';
+import { Perfil } from './pages/Perfil.js';
 import { matches } from './data/matches.js';
 import { participants } from './data/participants.js';
 import { getPredictions, getResults, savePrediction, saveResult, exportLocalData, importLocalData } from './services/prodeStore.js';
-import { syncRemoteResults } from './services/remoteResults.js';
+import { loadSharedState, saveSharedState } from './services/sharedState.js';
 
 const app = document.getElementById('app');
-let remoteSyncStarted = false;
 
 const routes = {
   '/': Home,
@@ -40,12 +40,6 @@ function router() {
 
   attachPageEvents(path);
 
-  if (!remoteSyncStarted) {
-    remoteSyncStarted = true;
-    syncRemoteResults().then(changed => {
-      if (changed) router();
-    });
-  }
 }
 
 function renderPage(path) {
@@ -58,6 +52,11 @@ function renderPage(path) {
   if (path.startsWith('/programas/')) {
     const programId = path.split('/')[2];
     return Programas(programId);
+  }
+
+  if (path.startsWith('/perfil/')) {
+    const participantId = path.split('/')[2];
+    return Perfil(participantId);
   }
   
   const page = routes[path];
@@ -115,6 +114,7 @@ function attachAdminEvents() {
   btnLogin?.addEventListener('click', () => {
     if (passInput.value === 'mixon2026') {
       sessionStorage.setItem('prode-admin-auth', '1');
+      sessionStorage.setItem('prode-admin-password', passInput.value);
       openDashboard();
     } else {
       alert('Contraseña incorrecta');
@@ -128,10 +128,10 @@ function attachAdminEvents() {
   if (sessionStorage.getItem('prode-admin-auth') === '1') openDashboard();
 
   document.getElementById('admin-match-select')?.addEventListener('change', renderAdminMatchForm);
-  document.getElementById('save-result')?.addEventListener('click', () => {
+  document.getElementById('save-result')?.addEventListener('click', async () => {
     const matchId = document.getElementById('admin-match-select').value;
     saveResult(matchId, document.getElementById('result-home').value, document.getElementById('result-away').value);
-    alert('Resultado guardado');
+    await persistAdminState('Resultado guardado en la base compartida');
   });
   document.getElementById('save-predictions')?.addEventListener('click', saveAdminPredictions);
   document.getElementById('export-data')?.addEventListener('click', () => {
@@ -142,7 +142,7 @@ function attachAdminEvents() {
     if (!file) return;
     importLocalData(await file.text());
     renderAdminMatchForm();
-    alert('Datos importados');
+    await persistAdminState('Datos importados y guardados en la base compartida');
   });
 }
 
@@ -180,7 +180,7 @@ function renderAdminMatchForm() {
   }).join('');
 }
 
-function saveAdminPredictions() {
+async function saveAdminPredictions() {
   const matchId = document.getElementById('admin-match-select').value;
   document.querySelectorAll('.admin-prediction-row').forEach(row => {
     savePrediction(
@@ -190,7 +190,17 @@ function saveAdminPredictions() {
       row.querySelector('.prediction-away').value
     );
   });
-  alert('Predicciones guardadas');
+  await persistAdminState('Predicciones guardadas en la base compartida');
+}
+
+async function persistAdminState(message) {
+  try {
+    await saveSharedState(sessionStorage.getItem('prode-admin-password') || 'mixon2026', exportLocalData());
+    alert(message);
+    router();
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 // Intercept link clicks for SPA routing
@@ -207,4 +217,6 @@ document.body.addEventListener('click', e => {
 window.addEventListener('popstate', router);
 
 // Initial render
-router();
+loadSharedState()
+  .catch(error => console.warn(error))
+  .finally(router);

@@ -143,6 +143,7 @@
 .pos-num { color: var(--text-muted); font-size: 1.2rem; }
 .ranking-info { flex: 1; min-width: 150px; }
 .ranking-name { font-weight: 700; font-size: 1.1rem; }
+a.ranking-name:hover { color: var(--color-mixon-light); }
 .ranking-program { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 .ranking-bar-container {
   flex: 2;
@@ -480,6 +481,72 @@
   font-size: 1.4rem;
 }
 
+.profile-hero {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  align-items: center;
+  gap: 1.5rem;
+}
+.profile-photo {
+  width: 150px;
+  height: 150px;
+  border-radius: 24px;
+  object-fit: cover;
+  border: 2px solid var(--glass-border);
+}
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(110px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+.profile-stats div {
+  padding: 0.9rem;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.06);
+}
+.profile-stats strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+}
+.profile-stats span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+.history-table { padding: 0; overflow: hidden; }
+.history-row {
+  display: grid;
+  grid-template-columns: 1.6fr 0.6fr 0.6fr 90px;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+.history-row:last-child { border-bottom: none; }
+.history-row.pending { color: var(--text-secondary); }
+.history-row small,
+.history-score small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+.history-score span {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+.history-points {
+  justify-self: end;
+  min-width: 70px;
+  padding: 0.45rem 0.65rem;
+  border-radius: 10px;
+  background: rgba(0,230,118,0.12);
+  color: var(--color-exact);
+  font-weight: 900;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .program-detail-cover,
   .score-example,
@@ -499,4 +566,11 @@
   }
   .prediction-row { align-items: flex-start; }
   .score-formula { flex-wrap: wrap; }
+  .profile-hero,
+  .profile-stats,
+  .history-row {
+    grid-template-columns: 1fr;
+  }
+  .profile-photo { width: 120px; height: 120px; }
+  .history-points { justify-self: stretch; }
 }

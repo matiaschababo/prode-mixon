@@ -4,6 +4,10 @@ import { calculatePoints } from './scoring.js';
 
 const PREDICTIONS_KEY = 'prode-mixon-predictions-v1';
 const RESULTS_KEY = 'prode-mixon-results-v1';
+let prodeState = {
+  predictions: readJSON(PREDICTIONS_KEY, {}),
+  results: readJSON(RESULTS_KEY, {})
+};
 
 function readJSON(key, fallback) {
   try {
@@ -18,7 +22,7 @@ function writeJSON(key, value) {
 }
 
 export function getPredictions() {
-  return readJSON(PREDICTIONS_KEY, {});
+  return prodeState.predictions;
 }
 
 export function savePrediction(matchId, participantId, home, away) {
@@ -35,11 +39,11 @@ export function savePrediction(matchId, participantId, home, away) {
     };
   }
 
-  writeJSON(PREDICTIONS_KEY, predictions);
+  setProdeState({ predictions, results: getResults() });
 }
 
 export function getResults() {
-  return readJSON(RESULTS_KEY, {});
+  return prodeState.results;
 }
 
 export function saveResult(matchId, home, away) {
@@ -55,7 +59,7 @@ export function saveResult(matchId, home, away) {
     };
   }
 
-  writeJSON(RESULTS_KEY, results);
+  setProdeState({ predictions: getPredictions(), results });
 }
 
 export function mergeResults(nextResults) {
@@ -70,7 +74,7 @@ export function mergeResults(nextResults) {
     }
   });
 
-  if (changed) writeJSON(RESULTS_KEY, current);
+  if (changed) setProdeState({ predictions: getPredictions(), results: current });
   return changed;
 }
 
@@ -121,6 +125,17 @@ export function exportLocalData() {
 
 export function importLocalData(rawText) {
   const parsed = JSON.parse(rawText);
-  writeJSON(PREDICTIONS_KEY, parsed.predictions || {});
-  writeJSON(RESULTS_KEY, parsed.results || {});
+  setProdeState({
+    predictions: parsed.predictions || {},
+    results: parsed.results || {}
+  });
+}
+
+export function setProdeState(nextState) {
+  prodeState = {
+    predictions: nextState.predictions || {},
+    results: nextState.results || {}
+  };
+  writeJSON(PREDICTIONS_KEY, prodeState.predictions);
+  writeJSON(RESULTS_KEY, prodeState.results);
 }

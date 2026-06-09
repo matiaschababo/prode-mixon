@@ -22,3 +22,4 @@ HQG/
 # Local deployment scripts or secrets
 deploy.exp
 *.code-workspace
+.env*
