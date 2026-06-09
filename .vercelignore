@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.git/
+.DS_Store
+.vercel/
+
+Mix On 2.0/
+*.zip
+*.wav
+*.mp3
+*.psd
+*.psb
+deploy.exp

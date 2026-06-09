@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.DS_Store
+.vercel
+
+# Local/source assets that are not part of the deployed web app
+Mix On 2.0/
+/*.png
+/*.jpg
+/*.jpeg
+/*.JPG
+/*.JPEG
+*.zip
+*.wav
+*.mp3
+*.psd
+*.psb
+
+# Local deployment scripts or secrets
+deploy.exp
