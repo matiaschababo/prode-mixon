@@ -1,7 +1,7 @@
 // src/components/MatchCard.js
 import { teams } from '../data/teams.js';
 
-export function MatchCard(match) {
+export function MatchCard(match, resultOverride = null) {
   const home = teams[match.homeTeam] || { name: match.homeTeam, flag: "❓" };
   const away = teams[match.awayTeam] || { name: match.awayTeam, flag: "❓" };
   
@@ -19,12 +19,16 @@ export function MatchCard(match) {
     statusText = 'Finalizado';
   }
 
-  const scoreDisplay = match.status !== 'scheduled' && match.homeScore !== null 
-    ? `<div class="match-score">${match.homeScore} - ${match.awayScore}</div>`
+  const homeScore = resultOverride?.home ?? match.homeScore;
+  const awayScore = resultOverride?.away ?? match.awayScore;
+  const hasResult = homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined;
+
+  const scoreDisplay = hasResult
+    ? `<div class="match-score">${homeScore} - ${awayScore}</div>`
     : `<div class="match-time">${timeStr}</div>`;
 
   return `
-    <div class="glass-card match-card animate-slide-up">
+    <div class="glass-card match-card animate-slide-up" data-stage="${match.stage}" data-home="${match.homeTeam}" data-away="${match.awayTeam}">
       <div class="match-header">
         <span class="match-round">${match.round}</span>
         <span class="badge ${badgeClass}">${statusText}</span>

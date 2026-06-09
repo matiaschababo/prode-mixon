@@ -10,6 +10,10 @@ import { Fixture } from './pages/Fixture.js';
 import { Programas } from './pages/Programas.js';
 import { Predicciones } from './pages/Predicciones.js';
 import { Admin } from './pages/Admin.js';
+import { Puntajes } from './pages/Puntajes.js';
+import { matches } from './data/matches.js';
+import { participants } from './data/participants.js';
+import { getPredictions, getResults, savePrediction, saveResult, exportLocalData, importLocalData } from './services/prodeStore.js';
 
 const app = document.getElementById('app');
 
@@ -17,6 +21,7 @@ const routes = {
   '/': Home,
   '/fixture': Fixture,
   '/programas': Programas,
+  '/puntajes': Puntajes,
   '/admin': Admin
 };
 
@@ -31,21 +36,7 @@ function router() {
     </main>
   `;
 
-  // Attach event listeners for admin login if needed
-  if (path === '/admin') {
-    const btnLogin = document.getElementById('btn-login');
-    if (btnLogin) {
-      btnLogin.addEventListener('click', () => {
-        const pass = document.getElementById('admin-pass').value;
-        if (pass === 'mixon2026') { // TODO: use real auth or simple hash
-          document.getElementById('login-section').style.display = 'none';
-          document.getElementById('admin-dashboard').style.display = 'block';
-        } else {
-          alert('Contraseña incorrecta');
-        }
-      });
-    }
-  }
+  attachPageEvents(path);
 }
 
 function renderPage(path) {
@@ -54,9 +45,143 @@ function renderPage(path) {
     const matchId = path.split('/')[2];
     return Predicciones(matchId);
   }
+
+  if (path.startsWith('/programas/')) {
+    const programId = path.split('/')[2];
+    return Programas(programId);
+  }
   
   const page = routes[path];
   return page ? page() : `<h2>404 - Página no encontrada</h2>`;
+}
+
+function attachPageEvents(path) {
+  if (path === '/admin') attachAdminEvents();
+  if (path === '/fixture') attachFixtureFilters();
+}
+
+function attachFixtureFilters() {
+  const buttons = document.querySelectorAll('.fixture-filter');
+  const cards = document.querySelectorAll('.match-card');
+  const empty = document.getElementById('fixture-empty');
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const filter = button.dataset.filter;
+      let visibleCount = 0;
+
+      buttons.forEach(btn => {
+        btn.classList.toggle('btn-primary', btn === button);
+        btn.classList.toggle('btn-secondary', btn !== button);
+      });
+
+      cards.forEach(card => {
+        const stage = card.dataset.stage;
+        const isArgentina = card.dataset.home === 'ARG' || card.dataset.away === 'ARG';
+        const shouldShow =
+          filter === 'all' ||
+          (filter === 'groups' && stage === 'Group Stage') ||
+          (filter === 'knockout' && stage !== 'Group Stage') ||
+          (filter === 'argentina' && isArgentina);
+
+        card.style.display = shouldShow ? '' : 'none';
+        if (shouldShow) visibleCount += 1;
+      });
+
+      empty.style.display = visibleCount ? 'none' : 'block';
+    });
+  });
+}
+
+function attachAdminEvents() {
+  const btnLogin = document.getElementById('btn-login');
+  const passInput = document.getElementById('admin-pass');
+
+  const openDashboard = () => {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('admin-dashboard').style.display = 'block';
+    renderAdminMatchForm();
+  };
+
+  btnLogin?.addEventListener('click', () => {
+    if (passInput.value === 'mixon2026') {
+      sessionStorage.setItem('prode-admin-auth', '1');
+      openDashboard();
+    } else {
+      alert('Contraseña incorrecta');
+    }
+  });
+
+  passInput?.addEventListener('keydown', event => {
+    if (event.key === 'Enter') btnLogin.click();
+  });
+
+  if (sessionStorage.getItem('prode-admin-auth') === '1') openDashboard();
+
+  document.getElementById('admin-match-select')?.addEventListener('change', renderAdminMatchForm);
+  document.getElementById('save-result')?.addEventListener('click', () => {
+    const matchId = document.getElementById('admin-match-select').value;
+    saveResult(matchId, document.getElementById('result-home').value, document.getElementById('result-away').value);
+    alert('Resultado guardado');
+  });
+  document.getElementById('save-predictions')?.addEventListener('click', saveAdminPredictions);
+  document.getElementById('export-data')?.addEventListener('click', () => {
+    document.getElementById('export-output').value = JSON.stringify(exportLocalData(), null, 2);
+  });
+  document.getElementById('import-data')?.addEventListener('change', async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    importLocalData(await file.text());
+    renderAdminMatchForm();
+    alert('Datos importados');
+  });
+}
+
+function renderAdminMatchForm() {
+  const matchId = document.getElementById('admin-match-select')?.value || String(matches[0].id);
+  const predictions = getPredictions()[String(matchId)] || {};
+  const result = getResults()[String(matchId)] || {};
+
+  const resultHome = document.getElementById('result-home');
+  const resultAway = document.getElementById('result-away');
+  if (resultHome) resultHome.value = result.home ?? '';
+  if (resultAway) resultAway.value = result.away ?? '';
+
+  const list = document.getElementById('admin-predictions-list');
+  if (!list) return;
+
+  list.innerHTML = participants.map(participant => {
+    const prediction = predictions[participant.id] || {};
+    return `
+      <div class="admin-prediction-row" data-participant="${participant.id}">
+        <div class="admin-person">
+          <img src="${participant.photo}" class="avatar" alt="${participant.name}">
+          <div>
+            <strong>${participant.name}</strong>
+            <small>${participant.programId}</small>
+          </div>
+        </div>
+        <div class="score-inputs">
+          <input type="number" min="0" class="prediction-home" value="${prediction.home ?? ''}" aria-label="${participant.name} goles local">
+          <span>-</span>
+          <input type="number" min="0" class="prediction-away" value="${prediction.away ?? ''}" aria-label="${participant.name} goles visitante">
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function saveAdminPredictions() {
+  const matchId = document.getElementById('admin-match-select').value;
+  document.querySelectorAll('.admin-prediction-row').forEach(row => {
+    savePrediction(
+      matchId,
+      row.dataset.participant,
+      row.querySelector('.prediction-home').value,
+      row.querySelector('.prediction-away').value
+    );
+  });
+  alert('Predicciones guardadas');
 }
 
 // Intercept link clicks for SPA routing

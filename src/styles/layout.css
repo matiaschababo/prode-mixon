@@ -90,6 +90,9 @@
 }
 
 @media (max-width: 768px) {
-  .nav-links { display: none; } /* Mobile menu needed */
+  .nav-content { align-items: flex-start; flex-direction: column; gap: 0.9rem; }
+  .nav-links { width: 100%; gap: 0.9rem; overflow-x: auto; padding-bottom: 0.25rem; }
+  .nav-link { white-space: nowrap; font-size: 0.9rem; }
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .main-content { padding-top: 125px; }
 }

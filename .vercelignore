@@ -5,9 +5,13 @@ dist/
 .vercel/
 
 Mix On 2.0/
+Fuera De Foco/
+GP/
+HQG/
 *.zip
 *.wav
 *.mp3
 *.psd
 *.psb
 deploy.exp
+*.code-workspace

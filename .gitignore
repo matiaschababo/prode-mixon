@@ -5,6 +5,9 @@ dist/
 
 # Local/source assets that are not part of the deployed web app
 Mix On 2.0/
+Fuera De Foco/
+GP/
+HQG/
 /*.png
 /*.jpg
 /*.jpeg
@@ -18,3 +21,4 @@ Mix On 2.0/
 
 # Local deployment scripts or secrets
 deploy.exp
+*.code-workspace

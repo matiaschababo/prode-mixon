@@ -1,6 +1,6 @@
 // src/pages/Home.js
 import { RankingTable } from '../components/RankingTable.js';
-import { participants } from '../data/participants.js';
+import { getRankedParticipants } from '../services/prodeStore.js';
 
 export function Home() {
   return `
@@ -13,6 +13,7 @@ export function Home() {
         <div style="display: flex; gap: 1rem; justify-content: center;">
           <a href="/fixture" class="btn btn-primary" data-link>Ver Fixture</a>
           <a href="/programas" class="btn btn-secondary" data-link>Ver por Programa</a>
+          <a href="/puntajes" class="btn btn-secondary" data-link>Cómo se suma</a>
         </div>
       </section>
 
@@ -20,7 +21,7 @@ export function Home() {
         <h2 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem;">
           <span style="color: var(--color-mixon-light)">🏆</span> Ranking General
         </h2>
-        ${RankingTable(participants)}
+        ${RankingTable(getRankedParticipants())}
       </section>
     </div>
   `;

@@ -1,8 +1,43 @@
 // src/pages/Admin.js
+import { matches } from '../data/matches.js';
+import { participants } from '../data/participants.js';
+import { teams } from '../data/teams.js';
+import { getPredictions, getResults } from '../services/prodeStore.js';
 
 export function Admin() {
+  const predictions = getPredictions();
+  const results = getResults();
+
+  const matchOptions = matches.map(match => {
+    const home = teams[match.homeTeam] || { name: match.homeTeam };
+    const away = teams[match.awayTeam] || { name: match.awayTeam };
+    return `<option value="${match.id}">${match.id}. ${home.name} vs ${away.name} - ${match.round}</option>`;
+  }).join('');
+
+  const firstMatch = matches[0];
+  const firstResult = results[String(firstMatch.id)] || {};
+  const predictionRows = participants.map(participant => {
+    const prediction = predictions[String(firstMatch.id)]?.[participant.id] || {};
+    return `
+      <div class="admin-prediction-row" data-participant="${participant.id}">
+        <div class="admin-person">
+          <img src="${participant.photo}" class="avatar" alt="${participant.name}">
+          <div>
+            <strong>${participant.name}</strong>
+            <small>${participant.programId}</small>
+          </div>
+        </div>
+        <div class="score-inputs">
+          <input type="number" min="0" class="prediction-home" value="${prediction.home ?? ''}" aria-label="${participant.name} goles local">
+          <span>-</span>
+          <input type="number" min="0" class="prediction-away" value="${prediction.away ?? ''}" aria-label="${participant.name} goles visitante">
+        </div>
+      </div>
+    `;
+  }).join('');
+
   return `
-    <div class="admin-page animate-fade-in" style="max-width: 600px; margin: 0 auto;">
+    <div class="admin-page animate-fade-in" style="max-width: 980px; margin: 0 auto;">
       <h1 style="margin-bottom: 2rem; text-align: center;">Panel de Administración</h1>
       
       <div class="glass-card" id="login-section">
@@ -16,18 +51,47 @@ export function Admin() {
       </div>
 
       <div id="admin-dashboard" style="display: none; margin-top: 2rem;">
-        <div class="grid-2">
-          <div class="glass-card" style="text-align: center; border-color: var(--color-mixon-main);">
-            <h3>Cargar Predicciones</h3>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0 1rem;">Ingresar los resultados que dijo cada conductor.</p>
-            <button class="btn btn-secondary">Cargar</button>
+        <div class="admin-note">
+          Contraseña actual: <strong>mixon2026</strong>. Estos datos quedan guardados en este navegador. Para dejarlos como datos globales para todos, después conectamos una base real o los dejamos versionados en Git.
+        </div>
+
+        <div class="glass-card admin-editor">
+          <label class="admin-label" for="admin-match-select">Partido</label>
+          <select id="admin-match-select" class="admin-select">
+            ${matchOptions}
+          </select>
+
+          <div class="admin-result-box">
+            <div>
+              <h3>Resultado real</h3>
+              <p>Cuando cargás esto, los rankings ya pueden calcular puntos.</p>
+            </div>
+            <div class="score-inputs">
+              <input type="number" min="0" id="result-home" value="${firstResult.home ?? ''}" aria-label="Resultado local">
+              <span>-</span>
+              <input type="number" min="0" id="result-away" value="${firstResult.away ?? ''}" aria-label="Resultado visitante">
+            </div>
+            <button class="btn btn-primary" id="save-result">Guardar resultado</button>
           </div>
-          
-          <div class="glass-card" style="text-align: center; border-color: var(--color-exact);">
-            <h3>Forzar Update API</h3>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0 1rem;">Actualizar resultados reales desde API-Football.</p>
-            <button class="btn btn-secondary" style="color: var(--color-exact);">Actualizar</button>
+
+          <div class="admin-section-title">
+            <div>
+              <h3>Predicciones de conductores</h3>
+              <p>Cargá el marcador que dijo cada uno para el partido seleccionado.</p>
+            </div>
+            <button class="btn btn-secondary" id="save-predictions">Guardar predicciones</button>
           </div>
+
+          <div id="admin-predictions-list">
+            ${predictionRows}
+          </div>
+
+          <div class="admin-tools">
+            <button class="btn btn-secondary" id="export-data">Exportar datos</button>
+            <label class="btn btn-secondary" for="import-data">Importar datos</label>
+            <input type="file" id="import-data" accept="application/json" hidden>
+          </div>
+          <textarea id="export-output" class="admin-export" readonly placeholder="Acá aparece el JSON exportado para respaldo."></textarea>
         </div>
       </div>
     </div>

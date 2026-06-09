@@ -33,6 +33,7 @@ export function RankingTable(participantsData) {
         
         <div class="ranking-points">
           <strong>${points}</strong> pts
+          <small>${p.exacts || 0} exactos</small>
         </div>
       </div>
     `;
@@ -40,7 +41,7 @@ export function RankingTable(participantsData) {
 
   return `
     <div class="glass-card ranking-table">
-      ${rows}
+      ${rows || '<p class="empty-state">Todavía no hay participantes para mostrar.</p>'}
     </div>
   `;
 }
