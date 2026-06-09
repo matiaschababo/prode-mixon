@@ -1,5 +1,5 @@
 import { matches } from '../data/matches.js';
-import { participants } from '../data/participants.js';
+import { isParticipantInProgram, participants } from '../data/participants.js';
 import { calculatePoints } from './scoring.js';
 
 const PREDICTIONS_KEY = 'prode-mixon-predictions-v1';
@@ -108,7 +108,7 @@ export function getParticipantStats(participantId) {
 
 export function getRankedParticipants(programId = null) {
   return participants
-    .filter(participant => !programId || participant.programId === programId)
+    .filter(participant => !programId || isParticipantInProgram(participant, programId))
     .map(participant => ({
       ...participant,
       ...getParticipantStats(participant.id)
@@ -132,10 +132,26 @@ export function importLocalData(rawText) {
 }
 
 export function setProdeState(nextState) {
-  prodeState = {
+  prodeState = normalizeProdeState({
     predictions: nextState.predictions || {},
     results: nextState.results || {}
-  };
+  });
   writeJSON(PREDICTIONS_KEY, prodeState.predictions);
   writeJSON(RESULTS_KEY, prodeState.results);
+}
+
+export function normalizeProdeState(state) {
+  const predictions = { ...(state.predictions || {}) };
+
+  Object.values(predictions).forEach(matchPredictions => {
+    if (matchPredictions['dianela-fdf'] && !matchPredictions.dianela) {
+      matchPredictions.dianela = matchPredictions['dianela-fdf'];
+    }
+    delete matchPredictions['dianela-fdf'];
+  });
+
+  return {
+    predictions,
+    results: state.results || {}
+  };
 }

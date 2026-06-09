@@ -1,5 +1,5 @@
 import { matches } from '../data/matches.js';
-import { participants, programs } from '../data/participants.js';
+import { getParticipantProgramIds, getParticipantProgramLabel, getPrimaryProgram, participants } from '../data/participants.js';
 import { teams } from '../data/teams.js';
 import { calculatePoints } from '../services/scoring.js';
 import { getMatchResult, getPredictions, getParticipantStats } from '../services/prodeStore.js';
@@ -8,7 +8,8 @@ export function Perfil(participantId) {
   const participant = participants.find(item => item.id === participantId);
   if (!participant) return `<h2>Conductor no encontrado</h2>`;
 
-  const program = programs[participant.programId];
+  const program = getPrimaryProgram(participant);
+  const firstProgramId = getParticipantProgramIds(participant)[0];
   const predictions = getPredictions();
   const stats = getParticipantStats(participantId);
 
@@ -50,12 +51,12 @@ export function Perfil(participantId) {
 
   return `
     <div class="profile-page animate-fade-in">
-      <a href="/programas/${participant.programId}" class="btn btn-secondary btn-sm" data-link style="margin-bottom: 1rem;">Volver al programa</a>
+      <a href="${firstProgramId ? `/programas/${firstProgramId}` : '/programas'}" class="btn btn-secondary btn-sm" data-link style="margin-bottom: 1rem;">Volver</a>
 
       <section class="profile-hero glass-card" style="border-color: ${program.theme.main}">
         <img src="${participant.photo}" class="profile-photo" alt="${participant.name}">
         <div>
-          <p class="eyebrow">${program.name}</p>
+          <p class="eyebrow">${participant.role || 'Participante'} · ${getParticipantProgramLabel(participant)}</p>
           <h1>${participant.name}</h1>
           <div class="profile-stats">
             <div><strong>${stats.totalPoints}</strong><span>puntos</span></div>

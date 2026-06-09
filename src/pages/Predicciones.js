@@ -1,6 +1,6 @@
 // src/pages/Predicciones.js
 import { matches } from '../data/matches.js';
-import { participants } from '../data/participants.js';
+import { getParticipantProgramLabel, participants } from '../data/participants.js';
 import { getPredictions, getMatchResult } from '../services/prodeStore.js';
 import { calculatePoints } from '../services/scoring.js';
 
@@ -23,7 +23,7 @@ export function Predicciones(matchId) {
           <img src="${p.photo}" class="avatar" style="width: 40px; height: 40px;">
           <div>
             <div style="font-weight: 600;">${p.name}</div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary);">${p.programId}</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">${p.role || 'Participante'} · ${getParticipantProgramLabel(p)}</div>
           </div>
         </div>
         <div class="prediction-score">

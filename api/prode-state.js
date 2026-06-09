@@ -9,6 +9,23 @@ const DEFAULT_STATE = {
   results: {}
 };
 
+function normalizeState(state) {
+  const predictions = { ...(state.predictions || {}) };
+
+  Object.values(predictions).forEach(matchPredictions => {
+    if (matchPredictions['dianela-fdf'] && !matchPredictions.dianela) {
+      matchPredictions.dianela = matchPredictions['dianela-fdf'];
+    }
+    delete matchPredictions['dianela-fdf'];
+  });
+
+  return {
+    ...state,
+    predictions,
+    results: state.results || {}
+  };
+}
+
 async function readState() {
   const blob = await get(STATE_PATH, {
     access: 'private',
@@ -22,14 +39,15 @@ async function readState() {
 
   return {
     ...DEFAULT_STATE,
-    ...JSON.parse(text)
+    ...normalizeState(JSON.parse(text))
   };
 }
 
 async function writeState(state) {
+  const normalized = normalizeState(state);
   const cleanState = {
-    predictions: state.predictions || {},
-    results: state.results || {},
+    predictions: normalized.predictions,
+    results: normalized.results,
     updatedAt: new Date().toISOString()
   };
 

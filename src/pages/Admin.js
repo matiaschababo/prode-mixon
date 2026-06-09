@@ -1,6 +1,6 @@
 // src/pages/Admin.js
 import { matches } from '../data/matches.js';
-import { participants } from '../data/participants.js';
+import { getParticipantProgramLabel, participants } from '../data/participants.js';
 import { teams } from '../data/teams.js';
 import { getPredictions, getResults } from '../services/prodeStore.js';
 
@@ -24,7 +24,7 @@ export function Admin() {
           <img src="${participant.photo}" class="avatar" alt="${participant.name}">
           <div>
             <strong>${participant.name}</strong>
-            <small>${participant.programId}</small>
+            <small>${participant.role || 'Participante'} · ${getParticipantProgramLabel(participant)}</small>
           </div>
         </div>
         <div class="score-inputs">
@@ -52,7 +52,7 @@ export function Admin() {
 
       <div id="admin-dashboard" style="display: none; margin-top: 2rem;">
         <div class="admin-note">
-          Contraseña actual: <strong>mixon2026</strong>. Las predicciones quedan guardadas en este navegador. Los resultados reales pueden sincronizarse automáticamente cuando estén configurados la API key y los IDs reales de partidos.
+          Contraseña actual: <strong>mixon2026</strong>. Las predicciones y resultados quedan guardados en la base compartida de Vercel, visible desde cualquier navegador.
         </div>
 
         <div class="glass-card admin-editor">

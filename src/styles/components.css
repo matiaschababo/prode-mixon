@@ -203,6 +203,35 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   object-fit: contain;
   filter: drop-shadow(0 10px 24px rgba(0,0,0,0.45));
 }
+.team-section {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: 0.8fr 1.4fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+.team-section p:not(.eyebrow) {
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+.team-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+.team-person {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.8rem;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--glass-border);
+}
+.team-person small {
+  display: block;
+  color: var(--text-muted);
+}
 .eyebrow {
   color: var(--color-mixon-light);
   font-size: 0.78rem;
@@ -561,6 +590,8 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   .score-hero,
   .score-grid,
   .score-cases,
+  .team-section,
+  .team-list,
   .score-phases {
     grid-template-columns: 1fr;
   }

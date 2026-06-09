@@ -1,5 +1,5 @@
 // src/pages/Programas.js
-import { programs } from '../data/participants.js';
+import { participants, programs } from '../data/participants.js';
 import { ProgramCard } from '../components/ProgramCard.js';
 import { RankingTable } from '../components/RankingTable.js';
 import { getRankedParticipants } from '../services/prodeStore.js';
@@ -33,6 +33,16 @@ export function Programas(programId = null) {
   const programCardsHTML = Object.values(programs)
     .map(prog => ProgramCard(prog))
     .join('');
+  const staff = participants.filter(participant => !participant.programIds?.length);
+  const staffHTML = staff.map(person => `
+    <a href="/perfil/${person.id}" class="team-person" data-link>
+      <img src="${person.photo}" class="avatar" alt="${person.name}">
+      <div>
+        <strong>${person.name}</strong>
+        <small>${person.role}</small>
+      </div>
+    </a>
+  `).join('');
 
   return `
     <div class="programas-page animate-fade-in">
@@ -45,6 +55,17 @@ export function Programas(programId = null) {
       <p style="text-align: center; color: var(--text-secondary);">
         Seleccioná un programa para ver el ranking interno entre sus conductores.
       </p>
+
+      <section class="glass-card team-section">
+        <div>
+          <p class="eyebrow">Ranking general</p>
+          <h2>Productores y operadores</h2>
+          <p>Compiten en la tabla general, pero no entran en rankings internos de un programa específico.</p>
+        </div>
+        <div class="team-list">
+          ${staffHTML}
+        </div>
+      </section>
     </div>
   `;
 }

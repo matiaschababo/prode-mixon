@@ -13,7 +13,7 @@ import { Admin } from './pages/Admin.js';
 import { Puntajes } from './pages/Puntajes.js';
 import { Perfil } from './pages/Perfil.js';
 import { matches } from './data/matches.js';
-import { participants } from './data/participants.js';
+import { getParticipantProgramLabel, participants } from './data/participants.js';
 import { getPredictions, getResults, savePrediction, saveResult, exportLocalData, importLocalData } from './services/prodeStore.js';
 import { loadSharedState, saveSharedState } from './services/sharedState.js';
 
@@ -167,7 +167,7 @@ function renderAdminMatchForm() {
           <img src="${participant.photo}" class="avatar" alt="${participant.name}">
           <div>
             <strong>${participant.name}</strong>
-            <small>${participant.programId}</small>
+            <small>${participant.role || 'Participante'} · ${getParticipantProgramLabel(participant)}</small>
           </div>
         </div>
         <div class="score-inputs">

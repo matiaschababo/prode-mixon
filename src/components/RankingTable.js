@@ -1,5 +1,5 @@
 // src/components/RankingTable.js
-import { programs } from '../data/participants.js';
+import { getParticipantProgramLabel, getPrimaryProgram } from '../data/participants.js';
 
 export function RankingTable(participantsData) {
   // Sort participants by points descending
@@ -7,7 +7,7 @@ export function RankingTable(participantsData) {
 
   let rows = '';
   sorted.forEach((p, index) => {
-    const prog = programs[p.programId];
+    const prog = getPrimaryProgram(p);
     const points = p.totalPoints || 0;
     const pos = index + 1;
     
@@ -24,7 +24,7 @@ export function RankingTable(participantsData) {
         <img src="${p.photo}" alt="${p.name}" class="avatar">
         <div class="ranking-info">
           <a href="/perfil/${p.id}" class="ranking-name" data-link>${p.name}</a>
-          <div class="ranking-program" style="color: ${prog.theme.accent}">${prog.name}</div>
+          <div class="ranking-program" style="color: ${prog.theme.accent}">${p.role || 'Participante'} · ${getParticipantProgramLabel(p)}</div>
         </div>
         
         <div class="ranking-bar-container">
