@@ -1,4 +1,3 @@
-// src/main.js
 import './styles/index.css';
 import './styles/components.css';
 import './styles/layout.css';
@@ -6,11 +5,10 @@ import './styles/animations.css';
 
 import { Navbar } from './components/Navbar.js';
 import { Home } from './pages/Home.js';
-import { Fixture } from './pages/Fixture.js';
+import { Fixture, attachFixtureEvents } from './pages/Fixture.js';
 import { Programas } from './pages/Programas.js';
 import { Predicciones } from './pages/Predicciones.js';
-import { MisPredicciones, attachMisPrediccionesEvents } from './pages/MisPredicciones.js';
-import { Admin } from './pages/Admin.js';
+import { Admin, attachAdminEvents } from './pages/Admin.js';
 import { Puntajes } from './pages/Puntajes.js';
 import { Perfil } from './pages/Perfil.js';
 import { Llaves } from './pages/Llaves.js';
@@ -28,8 +26,7 @@ const routes = {
   '/llaves': Llaves,
   '/programas': Programas,
   '/puntajes': Puntajes,
-  '/admin': Admin,
-  '/mis-predicciones': MisPredicciones
+  '/admin': Admin
 };
 
 function router() {
@@ -47,7 +44,6 @@ function router() {
 }
 
 function renderPage(path) {
-  // Handle dynamic routes like /predicciones/:id
   if (path.startsWith('/predicciones/')) {
     const matchId = path.split('/')[2];
     return Predicciones(matchId);
@@ -69,8 +65,10 @@ function renderPage(path) {
 
 function attachPageEvents(path) {
   if (path === '/admin') attachAdminEvents();
-  if (path === '/fixture') attachFixtureFilters();
-  if (path === '/mis-predicciones') attachMisPrediccionesEvents();
+  if (path === '/fixture') {
+    attachFixtureFilters();
+    attachFixtureEvents();
+  }
 }
 
 function attachFixtureFilters() {
@@ -102,7 +100,6 @@ function attachFixtureFilters() {
         if (shouldShow) visibleCount += 1;
       });
 
-      // Hide empty day containers
       days.forEach(day => {
         const visibleCards = day.querySelectorAll('.match-card:not([style*="display: none"])');
         day.style.display = visibleCards.length ? '' : 'none';
@@ -120,7 +117,7 @@ function updateNavbarAuthUI() {
 
   const user = auth.currentUser;
   if (user) {
-    if (myPredsLink) myPredsLink.style.display = 'inline-block';
+    if (myPredsLink) myPredsLink.style.display = 'none'; // We don't need the link anymore
     container.innerHTML = `
       <div class="user-profile">
         <img src="${user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid}" alt="Avatar" class="avatar-small">
@@ -149,56 +146,8 @@ function updateNavbarAuthUI() {
   }
 }
 
-function attachAdminEvents() {
-  const btnLogin = document.getElementById('btn-login');
-  const passInput = document.getElementById('admin-pass');
 
-  const openDashboard = () => {
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('admin-dashboard').style.display = 'block';
-    renderAdminMatchForm();
-  };
 
-  btnLogin?.addEventListener('click', () => {
-    if (passInput.value === 'mixon2026') {
-      sessionStorage.setItem('prode-admin-auth', '1');
-      openDashboard();
-    } else {
-      alert('Contraseña incorrecta');
-    }
-  });
-
-  passInput?.addEventListener('keydown', event => {
-    if (event.key === 'Enter') btnLogin.click();
-  });
-
-  if (sessionStorage.getItem('prode-admin-auth') === '1') openDashboard();
-
-  document.getElementById('admin-match-select')?.addEventListener('change', renderAdminMatchForm);
-  document.getElementById('save-result')?.addEventListener('click', async () => {
-    const matchId = document.getElementById('admin-match-select').value;
-    const { saveResult } = await import('./services/prodeStore.js');
-    try {
-      await saveResult(matchId, document.getElementById('result-home').value, document.getElementById('result-away').value);
-      alert('Resultado oficial guardado en Firebase');
-      router();
-    } catch (e) {
-      alert('Error guardando resultado: ' + e.message);
-    }
-  });
-}
-
-function renderAdminMatchForm() {
-  const matchId = document.getElementById('admin-match-select')?.value || String(matches[0].id);
-  const result = getResults()[String(matchId)] || {};
-
-  const resultHome = document.getElementById('result-home');
-  const resultAway = document.getElementById('result-away');
-  if (resultHome) resultHome.value = result.home ?? '';
-  if (resultAway) resultAway.value = result.away ?? '';
-}
-
-// Intercept link clicks for SPA routing
 document.body.addEventListener('click', e => {
   if (e.target.matches('[data-link]') || e.target.closest('[data-link]')) {
     e.preventDefault();
@@ -208,10 +157,8 @@ document.body.addEventListener('click', e => {
   }
 });
 
-// Handle back/forward buttons
 window.addEventListener('popstate', router);
 
-// Initialize App
 onAuthStateChanged(auth, (user) => {
   if (!isInitialized) {
     initializeFirebaseSync(() => {

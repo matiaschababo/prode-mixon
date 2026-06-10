@@ -106,6 +106,22 @@ export function getMatchResult(match) {
   return null;
 }
 
+export function getDynamicUsers() {
+  return Object.values(prodeState.users).map(u => ({
+    id: u.uid,
+    name: u.displayName || 'Usuario',
+    email: u.email || '',
+    photo: u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
+    program: u.program || 'viewers',
+    role: u.role || 'Espectador'
+  }));
+}
+
+export async function updateUserRole(uid, program, role) {
+  const userRef = doc(db, 'users', uid);
+  await setDoc(userRef, { program, role }, { merge: true });
+}
+
 export function getParticipantStats(participantId) {
   const predictions = getPredictions();
 
@@ -126,7 +142,6 @@ export function getParticipantStats(participantId) {
 }
 
 export function getRankedParticipants(programId = null) {
-  // Merge hardcoded participants with dynamic Firebase users
   const dynamicUsers = Object.values(prodeState.users).map(u => ({
     id: u.uid,
     name: u.displayName || 'Usuario',
@@ -135,12 +150,7 @@ export function getRankedParticipants(programId = null) {
     role: u.role || 'Espectador'
   }));
 
-  const allParticipants = [...participants, ...dynamicUsers];
-
-  // Remove duplicates just in case
-  const uniqueParticipants = Array.from(new Map(allParticipants.map(item => [item.id, item])).values());
-
-  return uniqueParticipants
+  return dynamicUsers
     .filter(participant => !programId || isParticipantInProgram(participant, programId))
     .map(participant => ({
       ...participant,
