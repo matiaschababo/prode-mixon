@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Resultados globales
+    match /global/results {
+      allow read: if true;
+      // Solo el admin puede escribir (podemos restringirlo por UID, por ahora true para testing)
+      allow write: if true; 
+    }
+
+    // Predicciones
+    match /predictions/{userId} {
+      allow read: if true;
+      // Solo el dueño puede modificar sus predicciones
+      allow write: if request.auth != null && request.auth.uid == userId;
+      // TODO: Añadir validación de horario de partido contra Firestore
+    }
+
+    // Usuarios
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

@@ -1,81 +1,100 @@
 import { matches } from '../data/matches.js';
 import { isParticipantInProgram, participants } from '../data/participants.js';
 import { calculatePoints } from './scoring.js';
+import { db, doc, getDoc, setDoc, onSnapshot, collection, query } from './firebase.js';
+import { getAuth } from 'firebase/auth';
 
-const PREDICTIONS_KEY = 'prode-mixon-predictions-v1';
-const RESULTS_KEY = 'prode-mixon-results-v1';
 let prodeState = {
-  predictions: readJSON(PREDICTIONS_KEY, {}),
-  results: readJSON(RESULTS_KEY, {})
+  predictions: {},
+  results: {},
+  users: {}
 };
 
-function readJSON(key, fallback) {
-  try {
-    return JSON.parse(localStorage.getItem(key)) || fallback;
-  } catch {
-    return fallback;
-  }
-}
+// Start listening to Firebase data
+export function initializeFirebaseSync(onUpdateCallback) {
+  // Listen to results
+  onSnapshot(doc(db, "global", "results"), (docSnap) => {
+    if (docSnap.exists()) {
+      prodeState.results = docSnap.data();
+    }
+    onUpdateCallback();
+  });
 
-function writeJSON(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+  // Listen to all predictions (scalable for staff, we will need pagination/functions for 50k users later)
+  onSnapshot(collection(db, "predictions"), (snapshot) => {
+    const newPredictions = {};
+    snapshot.forEach(docSnap => {
+      const userId = docSnap.id;
+      const userPreds = docSnap.data();
+      
+      // Convert from { matchId: {home, away} } to { matchId: { userId: {home, away} } }
+      Object.entries(userPreds).forEach(([matchId, pred]) => {
+        if (!newPredictions[matchId]) newPredictions[matchId] = {};
+        newPredictions[matchId][userId] = pred;
+      });
+    });
+    prodeState.predictions = newPredictions;
+    onUpdateCallback();
+  });
+
+  // Listen to users
+  onSnapshot(collection(db, "users"), (snapshot) => {
+    const users = {};
+    snapshot.forEach(docSnap => {
+      users[docSnap.id] = docSnap.data();
+    });
+    prodeState.users = users;
+    onUpdateCallback();
+  });
 }
 
 export function getPredictions() {
   return prodeState.predictions;
 }
 
-export function savePrediction(matchId, participantId, home, away) {
-  const predictions = getPredictions();
-  const key = String(matchId);
-  predictions[key] = predictions[key] || {};
-
-  if (home === '' || away === '') {
-    delete predictions[key][participantId];
-  } else {
-    predictions[key][participantId] = {
-      home: Number(home),
-      away: Number(away)
-    };
-  }
-
-  setProdeState({ predictions, results: getResults() });
-}
-
 export function getResults() {
   return prodeState.results;
 }
 
-export function saveResult(matchId, home, away) {
-  const results = getResults();
-  const key = String(matchId);
+// User-facing save function (only saves for the logged-in user)
+export async function saveMyPrediction(matchId, home, away) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) throw new Error("Debes iniciar sesión para predecir.");
 
-  if (home === '' || away === '') {
-    delete results[key];
-  } else {
-    results[key] = {
-      home: Number(home),
-      away: Number(away)
-    };
+  // Verificar que el partido no haya empezado
+  const match = matches.find(m => m.id == matchId);
+  if (!match) throw new Error("Partido no encontrado");
+  if (new Date() >= new Date(match.date)) {
+    throw new Error("El partido ya comenzó, no se pueden modificar las predicciones.");
   }
 
-  setProdeState({ predictions: getPredictions(), results });
+  const userDocRef = doc(db, 'predictions', user.uid);
+  
+  if (home === '' || away === '') {
+    // We would need to use FieldValue.delete() to remove it, but for simplicity we can just set it to null or update the whole doc
+    const currentPreds = (await getDoc(userDocRef)).data() || {};
+    delete currentPreds[matchId];
+    await setDoc(userDocRef, currentPreds);
+  } else {
+    await setDoc(userDocRef, {
+      [matchId]: { home: Number(home), away: Number(away) }
+    }, { merge: true });
+  }
 }
 
-export function mergeResults(nextResults) {
-  const current = getResults();
-  let changed = false;
-
-  Object.entries(nextResults || {}).forEach(([matchId, result]) => {
-    const previous = current[matchId];
-    if (!previous || previous.home !== result.home || previous.away !== result.away || previous.status !== result.status) {
-      current[matchId] = result;
-      changed = true;
-    }
-  });
-
-  if (changed) setProdeState({ predictions: getPredictions(), results: current });
-  return changed;
+// Admin save result function
+export async function saveResult(matchId, home, away) {
+  const resultsRef = doc(db, "global", "results");
+  const currentResults = (await getDoc(resultsRef)).data() || {};
+  
+  if (home === '' || away === '') {
+    delete currentResults[matchId];
+  } else {
+    currentResults[matchId] = { home: Number(home), away: Number(away) };
+  }
+  
+  await setDoc(resultsRef, currentResults);
 }
 
 export function getMatchResult(match) {
@@ -107,7 +126,21 @@ export function getParticipantStats(participantId) {
 }
 
 export function getRankedParticipants(programId = null) {
-  return participants
+  // Merge hardcoded participants with dynamic Firebase users
+  const dynamicUsers = Object.values(prodeState.users).map(u => ({
+    id: u.uid,
+    name: u.displayName || 'Usuario',
+    photo: u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
+    program: u.program || 'viewers',
+    role: u.role || 'Espectador'
+  }));
+
+  const allParticipants = [...participants, ...dynamicUsers];
+
+  // Remove duplicates just in case
+  const uniqueParticipants = Array.from(new Map(allParticipants.map(item => [item.id, item])).values());
+
+  return uniqueParticipants
     .filter(participant => !programId || isParticipantInProgram(participant, programId))
     .map(participant => ({
       ...participant,
@@ -116,42 +149,17 @@ export function getRankedParticipants(programId = null) {
     .sort((a, b) => b.totalPoints - a.totalPoints || b.exacts - a.exacts || a.name.localeCompare(b.name));
 }
 
-export function exportLocalData() {
-  return {
-    predictions: getPredictions(),
-    results: getResults()
-  };
-}
-
-export function importLocalData(rawText) {
-  const parsed = JSON.parse(rawText);
-  setProdeState({
-    predictions: parsed.predictions || {},
-    results: parsed.results || {}
-  });
-}
-
-export function setProdeState(nextState) {
-  prodeState = normalizeProdeState({
-    predictions: nextState.predictions || {},
-    results: nextState.results || {}
-  });
-  writeJSON(PREDICTIONS_KEY, prodeState.predictions);
-  writeJSON(RESULTS_KEY, prodeState.results);
-}
-
-export function normalizeProdeState(state) {
-  const predictions = { ...(state.predictions || {}) };
-
-  Object.values(predictions).forEach(matchPredictions => {
-    if (matchPredictions['dianela-fdf'] && !matchPredictions.dianela) {
-      matchPredictions.dianela = matchPredictions['dianela-fdf'];
-    }
-    delete matchPredictions['dianela-fdf'];
-  });
-
-  return {
-    predictions,
-    results: state.results || {}
-  };
+export async function ensureUserExists(user) {
+  const userRef = doc(db, "users", user.uid);
+  const snap = await getDoc(userRef);
+  if (!snap.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      displayName: user.displayName,
+      email: user.email,
+      photoURL: user.photoURL,
+      program: 'viewers',
+      role: 'Espectador'
+    });
+  }
 }

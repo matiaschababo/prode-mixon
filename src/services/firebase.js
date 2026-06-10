@@ -1,16 +1,20 @@
-// src/services/firebase.js
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, writeBatch, query } from 'firebase/firestore';
 
-// TODO: Replace with real Firebase config from the user
 const firebaseConfig = {
-  apiKey: "API_KEY",
-  authDomain: "prode-mixon.firebaseapp.com",
-  projectId: "prode-mixon",
-  storageBucket: "prode-mixon.appspot.com",
-  messagingSenderId: "SENDER_ID",
-  appId: "APP_ID"
+  projectId: "prode-mixon-2026-36579",
+  appId: "1:1003346295215:web:be1eddfb80a52b1f98575a",
+  storageBucket: "prode-mixon-2026-36579.firebasestorage.app",
+  apiKey: "AIzaSyDpndAAWTWZiAZbb6tQfzgjbXazaVlukXA",
+  authDomain: "prode-mixon-2026-36579.firebaseapp.com",
+  messagingSenderId: "1003346295215",
+  measurementId: "G-YSBZZLELPX",
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+export { auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged, doc, setDoc, getDoc, collection, getDocs, writeBatch, query };

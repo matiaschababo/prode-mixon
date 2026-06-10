@@ -14,7 +14,11 @@ export function Navbar() {
           <a href="/llaves" class="nav-link" data-link>Llaves</a>
           <a href="/programas" class="nav-link" data-link>Por Programa</a>
           <a href="/puntajes" class="nav-link" data-link>Puntajes</a>
-          <a href="/admin" class="nav-link" data-link>Admin</a>
+          <a href="/mis-predicciones" class="nav-link" data-link id="nav-my-predictions" style="display:none;">Mis Predicciones</a>
+          <a href="/admin" class="nav-link" data-link id="nav-admin" style="display:none;">Admin</a>
+        </div>
+        <div class="nav-auth" id="auth-container">
+          <!-- Auth state will be injected here by main.js -->
         </div>
       </div>
     </nav>

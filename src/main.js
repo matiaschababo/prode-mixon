@@ -9,16 +9,18 @@ import { Home } from './pages/Home.js';
 import { Fixture } from './pages/Fixture.js';
 import { Programas } from './pages/Programas.js';
 import { Predicciones } from './pages/Predicciones.js';
+import { MisPredicciones, attachMisPrediccionesEvents } from './pages/MisPredicciones.js';
 import { Admin } from './pages/Admin.js';
 import { Puntajes } from './pages/Puntajes.js';
 import { Perfil } from './pages/Perfil.js';
 import { Llaves } from './pages/Llaves.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, savePrediction, saveResult, exportLocalData, importLocalData } from './services/prodeStore.js';
-import { loadSharedState, saveSharedState } from './services/sharedState.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists } from './services/prodeStore.js';
+import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
 
 const app = document.getElementById('app');
+let isInitialized = false;
 
 const routes = {
   '/': Home,
@@ -26,13 +28,13 @@ const routes = {
   '/llaves': Llaves,
   '/programas': Programas,
   '/puntajes': Puntajes,
-  '/admin': Admin
+  '/admin': Admin,
+  '/mis-predicciones': MisPredicciones
 };
 
 function router() {
   const path = window.location.pathname;
   
-  // Basic layout: Navbar + Main Content container
   app.innerHTML = `
     ${Navbar()}
     <main class="main-content container">
@@ -41,7 +43,7 @@ function router() {
   `;
 
   attachPageEvents(path);
-
+  updateNavbarAuthUI();
 }
 
 function renderPage(path) {
@@ -68,6 +70,7 @@ function renderPage(path) {
 function attachPageEvents(path) {
   if (path === '/admin') attachAdminEvents();
   if (path === '/fixture') attachFixtureFilters();
+  if (path === '/mis-predicciones') attachMisPrediccionesEvents();
 }
 
 function attachFixtureFilters() {
@@ -110,6 +113,42 @@ function attachFixtureFilters() {
   });
 }
 
+function updateNavbarAuthUI() {
+  const container = document.getElementById('auth-container');
+  const myPredsLink = document.getElementById('nav-my-predictions');
+  if (!container) return;
+
+  const user = auth.currentUser;
+  if (user) {
+    if (myPredsLink) myPredsLink.style.display = 'inline-block';
+    container.innerHTML = `
+      <div class="user-profile">
+        <img src="${user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid}" alt="Avatar" class="avatar-small">
+        <span class="user-name">${user.displayName}</span>
+        <button id="btn-logout" class="btn btn-secondary btn-small">Salir</button>
+      </div>
+    `;
+    document.getElementById('btn-logout')?.addEventListener('click', () => {
+      signOut(auth).then(() => router());
+    });
+  } else {
+    if (myPredsLink) myPredsLink.style.display = 'none';
+    container.innerHTML = `
+      <button id="btn-login-google" class="btn btn-primary btn-small">Ingresar con Google</button>
+    `;
+    document.getElementById('btn-login-google')?.addEventListener('click', async () => {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        await ensureUserExists(result.user);
+        router();
+      } catch (error) {
+        console.error("Login falló", error);
+        alert("Ocurrió un error al iniciar sesión.");
+      }
+    });
+  }
+}
+
 function attachAdminEvents() {
   const btnLogin = document.getElementById('btn-login');
   const passInput = document.getElementById('admin-pass');
@@ -123,7 +162,6 @@ function attachAdminEvents() {
   btnLogin?.addEventListener('click', () => {
     if (passInput.value === 'mixon2026') {
       sessionStorage.setItem('prode-admin-auth', '1');
-      sessionStorage.setItem('prode-admin-password', passInput.value);
       openDashboard();
     } else {
       alert('Contraseña incorrecta');
@@ -139,77 +177,25 @@ function attachAdminEvents() {
   document.getElementById('admin-match-select')?.addEventListener('change', renderAdminMatchForm);
   document.getElementById('save-result')?.addEventListener('click', async () => {
     const matchId = document.getElementById('admin-match-select').value;
-    saveResult(matchId, document.getElementById('result-home').value, document.getElementById('result-away').value);
-    await persistAdminState('Resultado guardado en la base compartida');
-  });
-  document.getElementById('save-predictions')?.addEventListener('click', saveAdminPredictions);
-  document.getElementById('export-data')?.addEventListener('click', () => {
-    document.getElementById('export-output').value = JSON.stringify(exportLocalData(), null, 2);
-  });
-  document.getElementById('import-data')?.addEventListener('change', async event => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    importLocalData(await file.text());
-    renderAdminMatchForm();
-    await persistAdminState('Datos importados y guardados en la base compartida');
+    const { saveResult } = await import('./services/prodeStore.js');
+    try {
+      await saveResult(matchId, document.getElementById('result-home').value, document.getElementById('result-away').value);
+      alert('Resultado oficial guardado en Firebase');
+      router();
+    } catch (e) {
+      alert('Error guardando resultado: ' + e.message);
+    }
   });
 }
 
 function renderAdminMatchForm() {
   const matchId = document.getElementById('admin-match-select')?.value || String(matches[0].id);
-  const predictions = getPredictions()[String(matchId)] || {};
   const result = getResults()[String(matchId)] || {};
 
   const resultHome = document.getElementById('result-home');
   const resultAway = document.getElementById('result-away');
   if (resultHome) resultHome.value = result.home ?? '';
   if (resultAway) resultAway.value = result.away ?? '';
-
-  const list = document.getElementById('admin-predictions-list');
-  if (!list) return;
-
-  list.innerHTML = participants.map(participant => {
-    const prediction = predictions[participant.id] || {};
-    return `
-      <div class="admin-prediction-row" data-participant="${participant.id}">
-        <div class="admin-person">
-          <img src="${participant.photo}" class="avatar" alt="${participant.name}">
-          <div>
-            <strong>${participant.name}</strong>
-            <small>${participant.role || 'Participante'} · ${getParticipantProgramLabel(participant)}</small>
-          </div>
-        </div>
-        <div class="score-inputs">
-          <input type="number" min="0" class="prediction-home" value="${prediction.home ?? ''}" aria-label="${participant.name} goles local">
-          <span>-</span>
-          <input type="number" min="0" class="prediction-away" value="${prediction.away ?? ''}" aria-label="${participant.name} goles visitante">
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-async function saveAdminPredictions() {
-  const matchId = document.getElementById('admin-match-select').value;
-  document.querySelectorAll('.admin-prediction-row').forEach(row => {
-    savePrediction(
-      matchId,
-      row.dataset.participant,
-      row.querySelector('.prediction-home').value,
-      row.querySelector('.prediction-away').value
-    );
-  });
-  await persistAdminState('Predicciones guardadas en la base compartida');
-}
-
-async function persistAdminState(message) {
-  try {
-    await saveSharedState(sessionStorage.getItem('prode-admin-password') || 'mixon2026', exportLocalData());
-    alert(message);
-    router();
-  } catch (error) {
-    alert(error.message);
-  }
 }
 
 // Intercept link clicks for SPA routing
@@ -225,7 +211,14 @@ document.body.addEventListener('click', e => {
 // Handle back/forward buttons
 window.addEventListener('popstate', router);
 
-// Initial render
-loadSharedState()
-  .catch(error => console.warn(error))
-  .finally(router);
+// Initialize App
+onAuthStateChanged(auth, (user) => {
+  if (!isInitialized) {
+    initializeFirebaseSync(() => {
+      router();
+    });
+    isInitialized = true;
+  } else {
+    router();
+  }
+});
