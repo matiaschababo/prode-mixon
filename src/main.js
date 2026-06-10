@@ -12,6 +12,7 @@ import { Predicciones } from './pages/Predicciones.js';
 import { Admin } from './pages/Admin.js';
 import { Puntajes } from './pages/Puntajes.js';
 import { Perfil } from './pages/Perfil.js';
+import { Llaves } from './pages/Llaves.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
 import { getPredictions, getResults, savePrediction, saveResult, exportLocalData, importLocalData } from './services/prodeStore.js';
@@ -22,6 +23,7 @@ const app = document.getElementById('app');
 const routes = {
   '/': Home,
   '/fixture': Fixture,
+  '/llaves': Llaves,
   '/programas': Programas,
   '/puntajes': Puntajes,
   '/admin': Admin
@@ -71,6 +73,7 @@ function attachPageEvents(path) {
 function attachFixtureFilters() {
   const buttons = document.querySelectorAll('.fixture-filter');
   const cards = document.querySelectorAll('.match-card');
+  const days = document.querySelectorAll('.fixture-day');
   const empty = document.getElementById('fixture-empty');
 
   buttons.forEach(button => {
@@ -96,7 +99,13 @@ function attachFixtureFilters() {
         if (shouldShow) visibleCount += 1;
       });
 
-      empty.style.display = visibleCount ? 'none' : 'block';
+      // Hide empty day containers
+      days.forEach(day => {
+        const visibleCards = day.querySelectorAll('.match-card:not([style*="display: none"])');
+        day.style.display = visibleCards.length ? '' : 'none';
+      });
+
+      if (empty) empty.style.display = visibleCount ? 'none' : 'block';
     });
   });
 }

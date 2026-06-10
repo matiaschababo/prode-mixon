@@ -36,7 +36,8 @@ export function MatchCard(match, resultOverride = null) {
       
       <div class="match-teams">
         <div class="team home">
-          <span class="flag">${home.flag}</span>
+          <img src="${home.flagUrl}" alt="${home.name}" class="flag-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+          <span class="flag-emoji" style="display:none">${home.flag}</span>
           <span class="name">${home.name}</span>
         </div>
         
@@ -46,7 +47,8 @@ export function MatchCard(match, resultOverride = null) {
         </div>
         
         <div class="team away">
-          <span class="flag">${away.flag}</span>
+          <img src="${away.flagUrl}" alt="${away.name}" class="flag-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+          <span class="flag-emoji" style="display:none">${away.flag}</span>
           <span class="name">${away.name}</span>
         </div>
       </div>
