@@ -1,6 +1,4 @@
-// src/components/RankingTable.js
 import { getParticipantProgramLabel, getPrimaryProgram } from '../data/participants.js';
-import { MASTER_ADMINS } from '../services/prodeStore.js';
 
 export function RankingTable(participantsData) {
   // Sort participants by points descending
@@ -17,13 +15,10 @@ export function RankingTable(participantsData) {
     if (pos === 1) medal = '🥇';
     else if (pos === 2) medal = '🥈';
     else if (pos === 3) medal = '🥉';
-    else medal = `<span class="pos-num">${pos}</span>`;
-
-    const isMaster = MASTER_ADMINS.includes(p.email);
     const roleIcon = p.role === 'Conductor' ? '🎙️ ' : 
                      p.role === 'Productor' ? '🎬 ' : 
                      p.role === 'Operador' ? '🎛️ ' : '';
-    const roleDisplay = isMaster ? '⭐ MASTER ADMIN' : `${roleIcon}${(p.role || 'Viewer').toUpperCase()}`;
+    const roleDisplay = `${roleIcon}${(p.role || 'Viewer').toUpperCase()}`;
     
     rows += `
       <div class="ranking-row animate-slide-up stagger-${(index % 5) + 1}" style="--target-width: ${Math.max(5, (points / (sorted[0]?.totalPoints || 1)) * 100)}%;">
@@ -31,7 +26,7 @@ export function RankingTable(participantsData) {
         <img src="${p.photo}" alt="${p.name}" class="avatar">
         <div class="ranking-info">
           <a href="/perfil/${p.id}" class="ranking-name" data-link>${p.name}</a>
-          <div class="ranking-program" style="color: ${isMaster ? 'var(--color-mixon-light)' : prog.theme.accent}">${roleDisplay} · ${getParticipantProgramLabel(p)}</div>
+          <div class="ranking-program" style="color: ${prog.theme.accent}">${roleDisplay} · ${getParticipantProgramLabel(p)}</div>
         </div>
         
         <div class="ranking-bar-container">

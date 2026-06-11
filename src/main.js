@@ -14,7 +14,7 @@ import { Perfil } from './pages/Perfil.js';
 import { Llaves } from './pages/Llaves.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS } from './services/prodeStore.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists } from './services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
 
 const app = document.getElementById('app');
@@ -121,9 +121,7 @@ function updateNavbarAuthUI() {
     const roleIcon = user.role === 'Conductor' ? '🎙️ ' : 
                      user.role === 'Productor' ? '🎬 ' : 
                      user.role === 'Operador' ? '🎛️ ' : '';
-    const badgeHtml = MASTER_ADMINS.includes(user.email) 
-      ? '<span class="user-role-badge user-role-master">⭐ MASTER ADMIN</span>'
-      : `<span class="user-role-badge">${roleIcon}${(user.role || 'Viewer').toUpperCase()} ${user.program ? '· ' + user.program.toUpperCase() : ''}</span>`;
+    const badgeHtml = `<span class="user-role-badge">${roleIcon}${(user.role || 'Viewer').toUpperCase()} ${user.program ? '· ' + user.program.toUpperCase() : ''}</span>`;
 
     container.innerHTML = `
       <div class="user-profile">
