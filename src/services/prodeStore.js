@@ -129,7 +129,7 @@ export function getDynamicUsers() {
     id: u.uid,
     name: u.displayName || 'Usuario',
     email: u.email || '',
-    photo: u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
+    photo: u.photo || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
     program: u.program || 'viewers',
     role: u.role || 'Viewer'
   }));
@@ -163,7 +163,7 @@ export function getRankedParticipants(programId = null) {
   const dynamicUsers = Object.values(prodeState.users).map(u => ({
     id: u.uid,
     name: u.displayName || 'Usuario',
-    photo: u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
+    photo: u.photo || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
     program: u.program || 'viewers',
     role: u.role || 'Viewer'
   }));
@@ -197,6 +197,21 @@ export const MASTER_ADMINS = [
   'manzo.coinary@gmail.com',
   'Pitta.visual.garden@gmail.com'
 ];
+
+export async function updateUserPhoto(userId, photoUrl) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  
+  if (!user) throw new Error("Debes iniciar sesión");
+  
+  // Only the user themselves or a master admin can change the photo
+  if (user.uid !== userId && !isMasterAdmin(user.email)) {
+    throw new Error("No tienes permisos para cambiar esta foto");
+  }
+
+  const userRef = doc(db, 'users', userId);
+  await setDoc(userRef, { photo: photoUrl || null }, { merge: true });
+}
 
 export function isMasterAdmin(email) {
   if (!email) return false;

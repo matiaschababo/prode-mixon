@@ -14,7 +14,7 @@ import { Perfil, attachPerfilEvents } from './pages/Perfil.js';
 import { Llaves, attachLlavesEvents } from './pages/Llaves.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS } from './services/prodeStore.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers } from './services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
 
 const app = document.getElementById('app');
@@ -123,6 +123,12 @@ function updateNavbarAuthUI() {
   const user = auth.currentUser;
   if (user) {
     if (myPredsLink) myPredsLink.style.display = 'none'; // We don't need the link anymore
+    
+    // Check if there is a dynamic user to use custom photo
+    const dynamicUsers = getDynamicUsers();
+    const currentUserDynamic = dynamicUsers.find(u => u.id === user.uid);
+    const customPhoto = currentUserDynamic?.photo || user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid;
+
     const roleIcon = user.role === 'Conductor' ? '🎙️ ' : 
                      user.role === 'Productor' ? '🎬 ' : 
                      user.role === 'Operador' ? '🎛️ ' : '';
@@ -134,7 +140,7 @@ function updateNavbarAuthUI() {
           <span class="user-name">${user.displayName}</span>
           ${badgeHtml}
         </div>
-        <img src="${user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid}" alt="Avatar" class="avatar-small">
+        <img src="${customPhoto}" alt="Avatar" class="avatar-small">
         ${MASTER_ADMINS.includes(user.email) ? '<a href="/admin" class="btn btn-secondary btn-small" data-link style="margin-left: 1rem;">ADMIN</a>' : ''}
         <button id="btn-logout" class="btn btn-secondary btn-small" style="margin-left: 1rem;">SALIR</button>
       </div>

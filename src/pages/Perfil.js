@@ -2,7 +2,7 @@ import { matches } from '../data/matches.js';
 import { getParticipantProgramIds, getParticipantProgramLabel, getPrimaryProgram } from '../data/participants.js';
 import { teams } from '../data/teams.js';
 import { calculatePoints } from '../services/scoring.js';
-import { getMatchResult, getPredictions, getParticipantStats, getDynamicUsers, isMasterAdmin, adminSavePrediction } from '../services/prodeStore.js';
+import { getMatchResult, getPredictions, getParticipantStats, getDynamicUsers, isMasterAdmin, adminSavePrediction, updateUserPhoto } from '../services/prodeStore.js';
 import { auth } from '../services/firebase.js';
 
 export function Perfil(participantId) {
@@ -74,7 +74,12 @@ export function Perfil(participantId) {
       <a href="${firstProgramId ? `/programas/${firstProgramId}` : '/programas'}" class="btn btn-secondary btn-sm" data-link style="margin-bottom: 1rem;">Volver</a>
 
       <section class="profile-hero glass-card" style="border-color: ${program.theme.main}">
-        <img src="${participant.photo}" class="profile-photo" alt="${participant.name}">
+        <div style="position: relative; display: inline-block;">
+          <img src="${participant.photo}" class="profile-photo" alt="${participant.name}">
+          ${isAdmin || (loggedInUser && loggedInUser.uid === participantId) ? `
+            <button class="btn btn-secondary btn-sm change-photo-btn" data-uid="${participantId}" style="position: absolute; bottom: 0; left: 50%; transform: translate(-50%, 50%); padding: 0.2rem 0.5rem; font-size: 0.7rem; white-space: nowrap; border-radius: 20px;">✏️ Cambiar foto</button>
+          ` : ''}
+        </div>
         <div>
           <p class="eyebrow">${participant.role || 'Participante'} · ${getParticipantProgramLabel(participant)}</p>
           <h1>${participant.name}</h1>
@@ -115,4 +120,21 @@ export function attachPerfilEvents() {
       }
     });
   });
+
+  const changePhotoBtn = document.querySelector('.change-photo-btn');
+  if (changePhotoBtn) {
+    changePhotoBtn.addEventListener('click', async (e) => {
+      const uid = e.target.dataset.uid;
+      const url = prompt("Pegá el enlace (URL) de la nueva foto.\\nDejá el espacio en blanco si querés restaurar la foto original.");
+      if (url !== null) { // User didn't click Cancel
+        try {
+          await updateUserPhoto(uid, url.trim());
+          alert("¡Foto actualizada! Los cambios pueden tardar unos segundos en reflejarse.");
+          window.location.reload();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      }
+    });
+  }
 }
