@@ -717,13 +717,17 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
 .user-name {
   font-weight: 600;
   color: var(--color-mixon-light);
+  white-space: nowrap;
+  font-size: 0.9rem;
 }
 .user-role-badge {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   color: var(--text-secondary);
   background: rgba(255,255,255,0.1);
-  padding: 0.2rem 0.5rem;
+  padding: 0.15rem 0.4rem;
   border-radius: 4px;
+  white-space: nowrap;
+  margin-top: 0.1rem;
 }
 .user-role-master {
   background: linear-gradient(135deg, var(--color-mixon-light), var(--color-mixon));

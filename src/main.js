@@ -139,8 +139,10 @@ function updateNavbarAuthUI() {
           ${badgeHtml}
         </div>
         <img src="${customPhoto}" alt="Avatar" class="avatar-small">
-        ${MASTER_ADMINS.includes(user.email) ? '<a href="/admin" class="btn btn-secondary btn-small" data-link style="margin-left: 1rem;">ADMIN</a>' : ''}
-        <button id="btn-logout" class="btn btn-secondary btn-small" style="margin-left: 1rem;">SALIR</button>
+        <div class="user-actions" style="display: flex; gap: 0.5rem; margin-left: 0.5rem;">
+          ${MASTER_ADMINS.includes(user.email) ? '<a href="/admin" class="btn btn-secondary btn-small" data-link>ADMIN</a>' : ''}
+          <button id="btn-logout" class="btn btn-secondary btn-small">SALIR</button>
+        </div>
       </div>
     `;
     document.getElementById('btn-logout')?.addEventListener('click', () => {
