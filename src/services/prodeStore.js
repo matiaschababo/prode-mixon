@@ -297,16 +297,41 @@ export function startLiveMatchEngine() {
             let minuteStr = apiMatch.status.displayClock || "0";
             minuteStr = minuteStr.replace("'", "");
 
+            const apiDetails = apiMatch.competitions[0].details || [];
+            let matchEvents = [];
+            
+            apiDetails.forEach(detail => {
+              const isGoal = (detail.type && detail.type.text && detail.type.text.toLowerCase().includes('goal')) || detail.scoringPlay;
+              const isRed = (detail.type && detail.type.text && detail.type.text.toLowerCase().includes('red card')) || detail.redCard;
+              
+              if (isGoal || isRed) {
+                const player = detail.athletesInvolved && detail.athletesInvolved.length > 0 ? detail.athletesInvolved[0].shortName : '';
+                const teamData = apiMatch.competitions[0].competitors.find(c => c.team.id === detail.team.id);
+                const team = teamData ? teamData.team.abbreviation : '';
+                
+                matchEvents.push({
+                  min: detail.clock ? detail.clock.displayValue : '',
+                  type: isGoal ? 'goal' : 'red',
+                  team: team,
+                  player: player
+                });
+              }
+            });
+
             const saved = currentResults[localMatch.id];
             
+            // To check if changed we can JSON stringify
+            const newPayloadLive = { home: homeGoals, away: awayGoals, live: true, minute: minuteStr, events: matchEvents };
+            const newPayloadDone = { home: homeGoals, away: awayGoals, events: matchEvents };
+            
             if (isLive) {
-              if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.minute !== minuteStr) {
-                currentResults[localMatch.id] = { home: homeGoals, away: awayGoals, live: true, minute: minuteStr };
+              if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.minute !== minuteStr || JSON.stringify(saved.events) !== JSON.stringify(matchEvents)) {
+                currentResults[localMatch.id] = newPayloadLive;
                 changed = true;
               }
             } else if (isFinished) {
-              if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.live) {
-                currentResults[localMatch.id] = { home: homeGoals, away: awayGoals };
+              if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.live || JSON.stringify(saved.events) !== JSON.stringify(matchEvents)) {
+                currentResults[localMatch.id] = newPayloadDone;
                 changed = true;
               }
             }

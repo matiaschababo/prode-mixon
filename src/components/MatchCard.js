@@ -124,6 +124,27 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
         </div>
       </div>
 
+      ${(() => {
+        const events = resultOverride?.events || [];
+        if (events.length === 0) return '';
+        
+        const homeEvents = events.filter(e => e.team.toLowerCase() === match.homeTeam.toLowerCase());
+        const awayEvents = events.filter(e => e.team.toLowerCase() === match.awayTeam.toLowerCase());
+        
+        const renderEvs = (evs) => evs.map(e => `
+          <div class="event-item">
+            ${e.type === 'goal' ? '⚽' : '🟥'} ${e.player} <span class="event-min">${e.min}</span>
+          </div>
+        `).join('');
+
+        return `
+          <div class="match-events-timeline">
+            <div class="events-home">${renderEvs(homeEvents)}</div>
+            <div class="events-away">${renderEvs(awayEvents)}</div>
+          </div>
+        `;
+      })()}
+
       ${predictionArea}
       
       <div class="match-footer">
