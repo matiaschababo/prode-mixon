@@ -129,12 +129,21 @@ function capitalizeName(name) {
   return name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
+function getCustomLocalPhoto(name) {
+  const n = name ? name.toLowerCase() : '';
+  if (n.includes('matias') && n.includes('chababo')) return '/assets/matias.jpg';
+  if (n.includes('abril') && n.includes('zabaleta')) return '/assets/abril.jpg';
+  if (n.includes('dianela') && n.includes('caracchi')) return '/assets/dianela.jpg';
+  if (n.includes('tomas') && n.includes('holder')) return '/assets/tomas.jpg';
+  return null;
+}
+
 export function getDynamicUsers() {
   return Object.values(prodeState.users).map(u => ({
     id: u.uid,
     name: capitalizeName(u.displayName),
     email: u.email || '',
-    photo: u.photo || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
+    photo: u.photo || getCustomLocalPhoto(u.displayName) || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
     program: u.program || 'viewers',
     role: u.role || 'Viewer'
   }));
@@ -168,7 +177,7 @@ export function getRankedParticipants(programId = null) {
   const dynamicUsers = Object.values(prodeState.users).map(u => ({
     id: u.uid,
     name: capitalizeName(u.displayName),
-    photo: u.photo || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
+    photo: u.photo || getCustomLocalPhoto(u.displayName) || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
     program: u.program || 'viewers',
     role: u.role || 'Viewer'
   }));
