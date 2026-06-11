@@ -1,8 +1,9 @@
 import { matches } from '../data/matches.js';
 import { isParticipantInProgram } from '../data/participants.js';
 import { calculatePoints } from './scoring.js';
-import { db, doc, getDoc, setDoc, onSnapshot, collection, query } from './firebase.js';
+import { db, doc, getDoc, setDoc, onSnapshot, collection, query, storage } from './firebase.js';
 import { getAuth } from 'firebase/auth';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 let prodeState = {
   predictions: {},
@@ -211,6 +212,24 @@ export async function updateUserPhoto(userId, photoUrl) {
 
   const userRef = doc(db, 'users', userId);
   await setDoc(userRef, { photo: photoUrl || null }, { merge: true });
+}
+
+export async function uploadProfilePicture(file, userId) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  
+  if (!user) throw new Error("Debes iniciar sesión");
+  if (user.uid !== userId && !isMasterAdmin(user.email)) {
+    throw new Error("No tienes permisos para cambiar esta foto");
+  }
+
+  // Compress/Upload logic
+  const fileRef = ref(storage, `avatars/${userId}_${Date.now()}`);
+  await uploadBytes(fileRef, file);
+  const downloadUrl = await getDownloadURL(fileRef);
+  
+  await updateUserPhoto(userId, downloadUrl);
+  return downloadUrl;
 }
 
 export function isMasterAdmin(email) {

@@ -2,7 +2,7 @@ import { matches } from '../data/matches.js';
 import { getParticipantProgramIds, getParticipantProgramLabel, getPrimaryProgram } from '../data/participants.js';
 import { teams } from '../data/teams.js';
 import { calculatePoints } from '../services/scoring.js';
-import { getMatchResult, getPredictions, getParticipantStats, getDynamicUsers, isMasterAdmin, adminSavePrediction, updateUserPhoto } from '../services/prodeStore.js';
+import { getMatchResult, getPredictions, getParticipantStats, getDynamicUsers, isMasterAdmin, adminSavePrediction, updateUserPhoto, uploadProfilePicture } from '../services/prodeStore.js';
 import { auth } from '../services/firebase.js';
 
 export function Perfil(participantId) {
@@ -77,6 +77,7 @@ export function Perfil(participantId) {
         <div style="position: relative; display: inline-block;">
           <img src="${participant.photo}" class="profile-photo" alt="${participant.name}">
           ${isAdmin || (loggedInUser && loggedInUser.uid === participantId) ? `
+            <input type="file" id="profile-photo-input-${participantId}" accept="image/*" style="display: none;">
             <button class="btn btn-secondary btn-sm change-photo-btn" data-uid="${participantId}" style="position: absolute; bottom: 0; left: 50%; transform: translate(-50%, 50%); padding: 0.2rem 0.5rem; font-size: 0.7rem; white-space: nowrap; border-radius: 20px;">✏️ Cambiar foto</button>
           ` : ''}
         </div>
@@ -123,17 +124,29 @@ export function attachPerfilEvents() {
 
   const changePhotoBtn = document.querySelector('.change-photo-btn');
   if (changePhotoBtn) {
-    changePhotoBtn.addEventListener('click', async (e) => {
-      const uid = e.target.dataset.uid;
-      const url = prompt("Pegá el enlace (URL) de la nueva foto.\\nDejá el espacio en blanco si querés restaurar la foto original.");
-      if (url !== null) { // User didn't click Cancel
-        try {
-          await updateUserPhoto(uid, url.trim());
-          alert("¡Foto actualizada! Los cambios pueden tardar unos segundos en reflejarse.");
-          window.location.reload();
-        } catch (err) {
-          alert("Error: " + err.message);
-        }
+    const uid = changePhotoBtn.dataset.uid;
+    const fileInput = document.getElementById(`profile-photo-input-${uid}`);
+    
+    changePhotoBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const originalText = changePhotoBtn.innerHTML;
+      changePhotoBtn.innerHTML = 'Subiendo...';
+      changePhotoBtn.disabled = true;
+
+      try {
+        await uploadProfilePicture(file, uid);
+        changePhotoBtn.innerHTML = '¡Actualizado!';
+        setTimeout(() => window.location.reload(), 1000);
+      } catch (err) {
+        alert("Error al subir foto: " + err.message);
+        changePhotoBtn.innerHTML = originalText;
+        changePhotoBtn.disabled = false;
       }
     });
   }
