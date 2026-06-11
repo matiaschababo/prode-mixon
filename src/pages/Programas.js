@@ -47,16 +47,42 @@ export function Programas(programId = null) {
       <h2 style="margin-bottom: 1.5rem; text-align: center;">Competencia Global</h2>
       <div class="program-chart">
         ${programTotals.map(prog => {
-          const percentage = maxPoints > 0 ? (prog.totalPoints / maxPoints) * 100 : 5;
+          const maxP = maxPoints > 0 ? maxPoints : 1;
+          const ratio = prog.totalPoints / maxP;
+          const percentage = ratio * 100;
+          
+          const logoSize = 40 + (ratio * 50); 
+          const fontSize = 1 + (ratio * 0.6); 
+          const glowOpacity = 0.2 + (ratio * 0.8);
+          
           return `
             <div class="program-chart-col">
-              <div class="program-chart-points">${prog.totalPoints} pts</div>
-              <div class="program-chart-bar-container" style="height: 100%;">
-                <div class="program-chart-bar-fill" style="height: ${percentage === 0 ? 5 : percentage}%; background: linear-gradient(0deg, ${prog.theme.main}, ${prog.theme.accent});">
+              <div class="program-chart-points" style="font-size: ${fontSize}rem; text-shadow: 0 0 ${ratio * 20}px ${prog.theme.main}; color: ${ratio === 1 ? '#fff' : 'var(--text-primary)'};">
+                ${prog.totalPoints} <span style="font-size: 0.6em; opacity: 0.8;">pts</span>
+              </div>
+              
+              <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 100%; margin: 1rem 0;">
+                <img src="${prog.logo}" alt="${prog.name}" class="program-chart-logo" 
+                     style="width: ${logoSize}px; height: ${logoSize}px; 
+                            border-color: ${prog.theme.main}; 
+                            box-shadow: 0 0 ${ratio * 25}px ${prog.theme.main}; 
+                            z-index: 2; margin-bottom: -${logoSize * 0.15}px;">
+                            
+                <div class="program-chart-pedestal" 
+                     style="height: ${percentage === 0 ? 5 : percentage}%; 
+                            width: ${logoSize * 0.75}px; 
+                            background: linear-gradient(to top, rgba(0,0,0,0), ${prog.theme.main}); 
+                            opacity: ${glowOpacity}; 
+                            border-top: 3px solid ${prog.theme.accent}; 
+                            box-shadow: 0 -10px 30px ${prog.theme.main}; 
+                            border-radius: 4px 4px 0 0; 
+                            transition: height 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);">
                 </div>
               </div>
-              <img src="${prog.logo}" alt="${prog.name}" class="program-chart-logo" style="border-color: ${prog.theme.main}">
-              <div class="program-chart-name">${prog.name}</div>
+              
+              <div class="program-chart-name" style="font-size: ${0.75 + (ratio * 0.15)}rem; color: ${ratio === 1 ? '#fff' : 'var(--text-secondary)'}; font-weight: ${ratio === 1 ? '900' : '700'};">
+                ${prog.name}
+              </div>
             </div>
           `;
         }).join('')}
