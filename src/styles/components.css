@@ -246,7 +246,7 @@
   color: var(--color-mixon-light);
   margin-bottom: 0.75rem;
   text-align: center;
-  animation: pulse-glow 2s ease-in-out infinite;
+  animation: pred-pulse-glow 2s ease-in-out infinite;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -254,7 +254,7 @@
   width: 100%;
 }
 
-@keyframes pulse-glow {
+@keyframes pred-pulse-glow {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
 }
