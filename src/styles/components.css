@@ -632,6 +632,12 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   gap: 1rem;
 }
 
+@media (max-width: 768px) {
+  .fixture-day-matches {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* === Llaves / Bracket === */
 .llaves-page .page-title {
   font-size: clamp(1.8rem, 4vw, 3rem);

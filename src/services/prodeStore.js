@@ -177,7 +177,7 @@ export async function ensureUserExists(user) {
 export const MASTER_ADMINS = [
   'matiaschababo@gmail.com', // Correo real de Matías
   'edu.mixon@gmail.com',      // Reemplazar con el correo real del Edu
-  'manzo.mixon@gmail.com'     // Reemplazar con el correo real de Manzo
+  'manzo.coinary@gmail.com'   // Correo real de Manzo
 ];
 
 export function isMasterAdmin(email) {
