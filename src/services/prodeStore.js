@@ -260,7 +260,7 @@ export function startLiveMatchEngine() {
 
   console.log("🟢 Live Match Engine (ESPN Free API Mode) Started");
 
-  liveEngineInterval = setInterval(async () => {
+  const runEngine = async () => {
     try {
       // Obtenemos la fecha en formato YYYYMMDD para la API de ESPN
       const todayDate = new Date();
@@ -322,5 +322,11 @@ export function startLiveMatchEngine() {
     } catch (e) {
       console.error("Error fetching live real data:", e);
     }
-  }, 60000); // Check every 60 seconds
+  };
+
+  // Ejecutamos inmediatamente
+  runEngine();
+  
+  // Y luego cada 60 segundos
+  liveEngineInterval = setInterval(runEngine, 60000);
 }
