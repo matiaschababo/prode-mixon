@@ -5,15 +5,15 @@ import { getRankedParticipants } from '../services/prodeStore.js';
 export function Home() {
   return `
     <div class="home-page animate-fade-in">
-      <section class="hero" style="text-align: center; padding: 4rem 0;">
-        <h1 style="font-size: 3rem; margin-bottom: 1rem; background: linear-gradient(135deg, var(--color-mixon-main), var(--color-mixon-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRODE MUNDIAL 2026</h1>
-        <p style="font-size: 1.25rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 2rem;">
+      <section class="hero">
+        <h1 class="hero-title">PRODE MUNDIAL 2026</h1>
+        <p class="hero-subtitle">
           Seguí en vivo el torneo de predicciones entre todos los conductores de Mix On.
         </p>
-        <div style="display: flex; gap: 1rem; justify-content: center;">
-          <a href="/fixture" class="btn btn-primary" data-link>Ver Fixture</a>
-          <a href="/programas" class="btn btn-secondary" data-link>Ver por Programa</a>
-          <a href="/puntajes" class="btn btn-secondary" data-link>Cómo se suma</a>
+        <div class="hero-actions">
+          <a href="/fixture" class="btn btn-primary btn-sm" data-link>Ver Fixture</a>
+          <a href="/programas" class="btn btn-secondary btn-sm" data-link>Por Programa</a>
+          <a href="/puntajes" class="btn btn-secondary btn-sm" data-link>Puntajes</a>
         </div>
       </section>
 
@@ -22,7 +22,7 @@ export function Home() {
           <span style="color: var(--color-mixon-light)">🏆</span> Rankings
         </h2>
         
-        <div class="filter-tabs" style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap;">
+        <div class="filter-tabs">
           <button class="btn btn-primary home-filter" data-filter="general">General</button>
           <button class="btn btn-secondary home-filter" data-filter="conductores">Conductores</button>
           <button class="btn btn-secondary home-filter" data-filter="staff">Staff</button>
