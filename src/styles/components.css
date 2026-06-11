@@ -1,19 +1,19 @@
 /* src/styles/components.css */
 
 .glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  background: rgba(18, 18, 26, 0.45);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease;
 }
 
 .glass-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
   border-color: rgba(255, 255, 255, 0.15);
 }
 
@@ -21,38 +21,55 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem;
+  padding: 0.8rem 1.8rem;
   border-radius: 99px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   border: none;
   outline: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary {
   background: linear-gradient(135deg, var(--color-mixon-main), var(--color-mixon-light));
   color: white;
-  box-shadow: 0 4px 15px rgba(123, 45, 142, 0.3);
+  box-shadow: 0 4px 15px rgba(123, 45, 142, 0.4);
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-primary:hover::before {
+  left: 100%;
 }
 
 .btn-primary:hover {
-  box-shadow: 0 6px 20px rgba(123, 45, 142, 0.5);
-  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(123, 45, 142, 0.6);
+  transform: translateY(-3px) scale(1.02);
 }
 
 .btn-secondary {
-  background: var(--bg-tertiary);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
   border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
 }
 
 .badge {
@@ -293,11 +310,20 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
 .admin-export,
 .admin-page input {
   width: 100%;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: rgba(0,0,0,0.24);
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.3);
   color: white;
+  font-family: var(--font-sans);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.admin-select:focus,
+.admin-export:focus,
+.admin-page input:focus {
+  outline: none;
+  border-color: var(--color-mixon-light);
+  box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
 }
 .admin-select { margin-bottom: 1.5rem; }
 .admin-result-box,
@@ -923,9 +949,10 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   flex: 1;
   background: rgba(255,255,255,0.05);
   border-radius: 12px;
-  height: 24px;
+  height: 28px;
   position: relative;
   overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
 .program-chart-bar-fill {
   height: 100%;
@@ -935,11 +962,22 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-right: 0.75rem;
-  font-weight: 700;
-  font-size: 0.85rem;
+  padding-right: 1rem;
+  font-weight: 800;
+  font-size: 0.9rem;
   color: #fff;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,1);
+  position: relative;
+  z-index: 1;
+}
+.program-chart-bar-fill::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: auto;
+  width: 150px;
+  background: linear-gradient(to right, transparent, rgba(0,0,0,0.6));
+  border-radius: 0 12px 12px 0;
+  z-index: -1;
 }
 .program-chart-points {
   font-weight: 800;
