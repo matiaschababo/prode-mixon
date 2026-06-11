@@ -258,65 +258,50 @@ export function startLiveMatchEngine() {
   const auth = getAuth();
   if (!auth.currentUser || !isMasterAdmin(auth.currentUser.email)) return;
 
-  // The Master Admin's browser will act as the cron job to fetch real data
-  console.log("🟢 Live Match Engine (Real API Mode) Started");
+  console.log("🟢 Live Match Engine (ESPN Free API Mode) Started");
 
   liveEngineInterval = setInterval(async () => {
     try {
-      // Intentamos obtener la key de las variables de entorno, o usamos la proporcionada
-      const apiKey = import.meta.env.VITE_API_FOOTBALL_KEY || 'c38b76d13ded6b2115b090a72d2581b2';
+      // Obtenemos la fecha en formato YYYYMMDD para la API de ESPN
+      const todayDate = new Date();
+      const yyyy = todayDate.getFullYear();
+      const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(todayDate.getDate()).padStart(2, '0');
       
-      // Si no hay key, no hacemos nada (el usuario debe configurarla)
-      if (!apiKey) {
-        console.warn("⚠️ Falta VITE_API_FOOTBALL_KEY en .env. El motor de datos reales está pausado.");
-        return;
-      }
-
-      const today = new Date().toISOString().split('T')[0];
-      // Buscamos los partidos de la Copa Mundial 2026 (League ID = 1) para el día de hoy
-      const res = await fetch(`https://v3.football.api-sports.io/fixtures?date=${today}&league=1&season=2026`, {
-        headers: {
-          'x-rapidapi-host': 'v3.football.api-sports.io',
-          'x-rapidapi-key': apiKey
-        }
-      });
+      const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${yyyy}${mm}${dd}`);
       const data = await res.json();
       
-      if (data.response && data.response.length > 0) {
+      if (data.events && data.events.length > 0) {
         const currentResults = { ...getResults() };
         let changed = false;
 
-        data.response.forEach(apiMatch => {
-          // Buscamos en nuestra base local un partido que coincida en equipos
+        data.events.forEach(apiMatch => {
+          const homeTeamData = apiMatch.competitions[0].competitors.find(c => c.homeAway === 'home');
+          const awayTeamData = apiMatch.competitions[0].competitors.find(c => c.homeAway === 'away');
+          
+          if (!homeTeamData || !awayTeamData) return;
+
           const localMatch = matches.find(m => {
-            const apiHome = apiMatch.teams.home.name.toLowerCase();
-            const apiAway = apiMatch.teams.away.name.toLowerCase();
-            // Esto asume que los nombres o al menos los primeros caracteres coinciden
-            // Para un proyecto en producción real, se armaría un diccionario de mapeo de IDs
-            return apiHome.includes(m.homeTeam.toLowerCase()) || 
-                   m.homeTeam.toLowerCase().includes(apiHome.substring(0, 3));
+            return m.homeTeam.toLowerCase() === homeTeamData.team.abbreviation.toLowerCase() ||
+                   m.awayTeam.toLowerCase() === awayTeamData.team.abbreviation.toLowerCase();
           });
 
           if (localMatch) {
-            const isLive = apiMatch.fixture.status.short === '1H' || 
-                           apiMatch.fixture.status.short === '2H' ||
-                           apiMatch.fixture.status.short === 'HT' ||
-                           apiMatch.fixture.status.short === 'ET' ||
-                           apiMatch.fixture.status.short === 'P';
-                           
-            const isFinished = apiMatch.fixture.status.short === 'FT' || 
-                               apiMatch.fixture.status.short === 'AET' || 
-                               apiMatch.fixture.status.short === 'PEN';
+            const state = apiMatch.status.type.state; // 'pre', 'in', 'post'
+            const isLive = state === 'in';
+            const isFinished = state === 'post';
 
-            const homeGoals = apiMatch.goals.home ?? 0;
-            const awayGoals = apiMatch.goals.away ?? 0;
-            const minute = apiMatch.fixture.status.elapsed;
+            const homeGoals = parseInt(homeTeamData.score) || 0;
+            const awayGoals = parseInt(awayTeamData.score) || 0;
+            // ESPN displayClock gives things like "75'" or "45+2'". We'll strip the quote.
+            let minuteStr = apiMatch.status.displayClock || "0";
+            minuteStr = minuteStr.replace("'", "");
 
             const saved = currentResults[localMatch.id];
             
             if (isLive) {
-              if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.minute !== minute) {
-                currentResults[localMatch.id] = { home: homeGoals, away: awayGoals, live: true, minute: minute };
+              if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.minute !== minuteStr) {
+                currentResults[localMatch.id] = { home: homeGoals, away: awayGoals, live: true, minute: minuteStr };
                 changed = true;
               }
             } else if (isFinished) {
@@ -331,7 +316,7 @@ export function startLiveMatchEngine() {
         if (changed) {
           const resultsRef = doc(db, 'global', 'results');
           await setDoc(resultsRef, currentResults);
-          console.log("✅ Resultados reales sincronizados con la API");
+          console.log("✅ Resultados reales sincronizados con ESPN API");
         }
       }
     } catch (e) {
