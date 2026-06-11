@@ -19,8 +19,8 @@ service cloud.firestore {
     // Predicciones
     match /predictions/{userId} {
       allow read: if true;
-      // Solo el dueño o un admin puede modificar sus predicciones (opcional, dejamos solo dueño)
-      allow write: if request.auth != null && request.auth.uid == userId;
+      // Solo el dueño o un admin puede modificar sus predicciones
+      allow write: if request.auth != null && (request.auth.uid == userId || isMasterAdmin());
     }
 
     // Usuarios (Perfiles, Roles)
