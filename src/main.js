@@ -26,6 +26,7 @@ const routes = {
   '/llaves': Llaves,
   '/programas': Programas,
   '/puntajes': Puntajes,
+  '/perfil': Perfil,
   '/admin': Admin
 };
 

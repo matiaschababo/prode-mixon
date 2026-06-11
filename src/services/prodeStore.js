@@ -258,47 +258,84 @@ export function startLiveMatchEngine() {
   const auth = getAuth();
   if (!auth.currentUser || !isMasterAdmin(auth.currentUser.email)) return;
 
-  console.log("🟢 Live Match Engine Started (Master Admin Mode)");
+  // The Master Admin's browser will act as the cron job to fetch real data
+  console.log("🟢 Live Match Engine (Real API Mode) Started");
 
   liveEngineInterval = setInterval(async () => {
-    const now = new Date();
-    const currentResults = { ...getResults() };
-    let changed = false;
-
-    for (const match of matches) {
-      const matchStart = new Date(match.date);
-      const diffMs = now - matchStart;
+    try {
+      // Intentamos obtener la key de las variables de entorno
+      const apiKey = import.meta.env.VITE_API_FOOTBALL_KEY;
       
-      if (diffMs >= 0 && diffMs <= 115 * 60 * 1000) {
-        const elapsedMinutes = Math.floor(diffMs / 60000);
-        
-        let homeGoals = 0;
-        let awayGoals = 0;
-        
-        for (let m = 1; m <= elapsedMinutes; m++) {
-          if ((match.id * m) % 103 === 0) homeGoals++;
-          if ((match.id * m) % 137 === 0) awayGoals++;
-        }
+      // Si no hay key, no hacemos nada (el usuario debe configurarla)
+      if (!apiKey) {
+        console.warn("⚠️ Falta VITE_API_FOOTBALL_KEY en .env. El motor de datos reales está pausado.");
+        return;
+      }
 
-        const saved = currentResults[match.id];
-        if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.minute !== elapsedMinutes) {
-          currentResults[match.id] = { home: homeGoals, away: awayGoals, live: true, minute: elapsedMinutes };
-          changed = true;
+      const today = new Date().toISOString().split('T')[0];
+      // Buscamos los partidos de la Copa Mundial 2026 (League ID = 1) para el día de hoy
+      const res = await fetch(`https://v3.football.api-sports.io/fixtures?date=${today}&league=1&season=2026`, {
+        headers: {
+          'x-rapidapi-host': 'v3.football.api-sports.io',
+          'x-rapidapi-key': apiKey
         }
-      } 
-      else if (diffMs > 115 * 60 * 1000) {
-        const saved = currentResults[match.id];
-        if (saved && saved.live) {
-          delete saved.live;
-          delete saved.minute;
-          changed = true;
+      });
+      const data = await res.json();
+      
+      if (data.response && data.response.length > 0) {
+        const currentResults = { ...getResults() };
+        let changed = false;
+
+        data.response.forEach(apiMatch => {
+          // Buscamos en nuestra base local un partido que coincida en equipos
+          const localMatch = matches.find(m => {
+            const apiHome = apiMatch.teams.home.name.toLowerCase();
+            const apiAway = apiMatch.teams.away.name.toLowerCase();
+            // Esto asume que los nombres o al menos los primeros caracteres coinciden
+            // Para un proyecto en producción real, se armaría un diccionario de mapeo de IDs
+            return apiHome.includes(m.homeTeam.toLowerCase()) || 
+                   m.homeTeam.toLowerCase().includes(apiHome.substring(0, 3));
+          });
+
+          if (localMatch) {
+            const isLive = apiMatch.fixture.status.short === '1H' || 
+                           apiMatch.fixture.status.short === '2H' ||
+                           apiMatch.fixture.status.short === 'HT' ||
+                           apiMatch.fixture.status.short === 'ET' ||
+                           apiMatch.fixture.status.short === 'P';
+                           
+            const isFinished = apiMatch.fixture.status.short === 'FT' || 
+                               apiMatch.fixture.status.short === 'AET' || 
+                               apiMatch.fixture.status.short === 'PEN';
+
+            const homeGoals = apiMatch.goals.home ?? 0;
+            const awayGoals = apiMatch.goals.away ?? 0;
+            const minute = apiMatch.fixture.status.elapsed;
+
+            const saved = currentResults[localMatch.id];
+            
+            if (isLive) {
+              if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.minute !== minute) {
+                currentResults[localMatch.id] = { home: homeGoals, away: awayGoals, live: true, minute: minute };
+                changed = true;
+              }
+            } else if (isFinished) {
+              if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.live) {
+                currentResults[localMatch.id] = { home: homeGoals, away: awayGoals };
+                changed = true;
+              }
+            }
+          }
+        });
+
+        if (changed) {
+          const resultsRef = doc(db, 'global', 'results');
+          await setDoc(resultsRef, currentResults);
+          console.log("✅ Resultados reales sincronizados con la API");
         }
       }
+    } catch (e) {
+      console.error("Error fetching live real data:", e);
     }
-
-    if (changed) {
-      const resultsRef = doc(db, 'global', 'results');
-      await setDoc(resultsRef, currentResults);
-    }
-  }, 10000);
+  }, 60000); // Check every 60 seconds
 }
