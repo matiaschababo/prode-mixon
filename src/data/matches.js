@@ -16,7 +16,7 @@ export const matches = [
     "id": 2,
     "homeTeam": "KOR",
     "awayTeam": "CZE",
-    "date": "2026-06-11T23:00:00Z",
+    "date": "2026-06-12T02:00:00Z",
     "venue": "Estadio Akron, Guadalajara",
     "round": "Grupo A",
     "stage": "Group Stage",
