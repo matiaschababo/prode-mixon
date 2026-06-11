@@ -2,7 +2,8 @@ import { matches } from '../data/matches.js';
 import { getParticipantProgramIds, getParticipantProgramLabel, getPrimaryProgram } from '../data/participants.js';
 import { teams } from '../data/teams.js';
 import { calculatePoints } from '../services/scoring.js';
-import { getMatchResult, getPredictions, getParticipantStats, getDynamicUsers } from '../services/prodeStore.js';
+import { getMatchResult, getPredictions, getParticipantStats, getDynamicUsers, isMasterAdmin, adminSavePrediction } from '../services/prodeStore.js';
+import { auth } from '../services/firebase.js';
 
 export function Perfil(participantId) {
   const dynamicUsers = getDynamicUsers();
@@ -32,23 +33,41 @@ export function Perfil(participantId) {
     };
   });
 
-  const rows = history.map(item => `
-    <div class="history-row ${item.points === null ? 'pending' : ''}">
-      <div>
-        <strong>${item.label}</strong>
-        <small>${item.match.round}</small>
+  const loggedInUser = auth.currentUser;
+  const isAdmin = loggedInUser && isMasterAdmin(loggedInUser.email);
+
+  const rows = history.map(item => {
+    let predictionHtml;
+    if (isAdmin) {
+      predictionHtml = `
+        <div class="prediction-inputs" style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="number" min="0" class="admin-pred-input admin-pred-home" data-match="${item.match.id}" data-uid="${participantId}" value="${item.prediction?.home ?? ''}" placeholder="-" style="width: 40px; text-align: center; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; padding: 0.25rem;">
+          <span>-</span>
+          <input type="number" min="0" class="admin-pred-input admin-pred-away" data-match="${item.match.id}" data-uid="${participantId}" value="${item.prediction?.away ?? ''}" placeholder="-" style="width: 40px; text-align: center; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; padding: 0.25rem;">
+        </div>
+      `;
+    } else {
+      predictionHtml = `<span>${item.prediction ? `${item.prediction.home}-${item.prediction.away}` : 'Sin predicción'}</span>`;
+    }
+
+    return `
+      <div class="history-row ${item.points === null ? 'pending' : ''}">
+        <div>
+          <strong>${item.label}</strong>
+          <small>${item.match.round}</small>
+        </div>
+        <div class="history-score">
+          ${predictionHtml}
+          <small>Predicción</small>
+        </div>
+        <div class="history-score">
+          <span>${item.result ? `${item.result.home}-${item.result.away}` : 'Pendiente'}</span>
+          <small>Resultado</small>
+        </div>
+        <div class="history-points">${item.points ?? '-'} pts</div>
       </div>
-      <div class="history-score">
-        <span>${item.prediction ? `${item.prediction.home}-${item.prediction.away}` : 'Sin predicción'}</span>
-        <small>Predicción</small>
-      </div>
-      <div class="history-score">
-        <span>${item.result ? `${item.result.home}-${item.result.away}` : 'Pendiente'}</span>
-        <small>Resultado</small>
-      </div>
-      <div class="history-points">${item.points ?? '-'} pts</div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   return `
     <div class="profile-page animate-fade-in">
@@ -76,4 +95,24 @@ export function Perfil(participantId) {
       </section>
     </div>
   `;
+}
+
+export function attachPerfilEvents() {
+  document.querySelectorAll('.admin-pred-input').forEach(input => {
+    input.addEventListener('change', async (e) => {
+      const matchId = e.target.dataset.match;
+      const userId = e.target.dataset.uid;
+      const row = e.target.closest('.history-row');
+      const home = row.querySelector('.admin-pred-home').value;
+      const away = row.querySelector('.admin-pred-away').value;
+      
+      try {
+        await adminSavePrediction(userId, matchId, home, away);
+        e.target.style.borderColor = '#2ed573';
+        setTimeout(() => e.target.style.borderColor = 'rgba(255,255,255,0.2)', 1000);
+      } catch (err) {
+        alert("Error al guardar: " + err.message);
+      }
+    });
+  });
 }

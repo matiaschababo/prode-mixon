@@ -83,6 +83,24 @@ export async function saveMyPrediction(matchId, home, away) {
   }
 }
 
+export async function adminSavePrediction(userId, matchId, home, away) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user || !isMasterAdmin(user.email)) throw new Error("Acceso denegado.");
+
+  const userDocRef = doc(db, 'predictions', userId);
+  
+  if (home === '' || away === '') {
+    const currentPreds = (await getDoc(userDocRef)).data() || {};
+    delete currentPreds[matchId];
+    await setDoc(userDocRef, currentPreds);
+  } else {
+    await setDoc(userDocRef, {
+      [matchId]: { home: Number(home), away: Number(away) }
+    }, { merge: true });
+  }
+}
+
 // Admin save result function
 export async function saveResult(matchId, home, away) {
   const resultsRef = doc(db, "global", "results");
