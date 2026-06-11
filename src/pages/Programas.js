@@ -33,17 +33,6 @@ export function Programas(programId = null) {
   const programCardsHTML = Object.values(programs)
     .map(prog => ProgramCard(prog))
     .join('');
-  const dynamicUsers = getDynamicUsers();
-  const staff = dynamicUsers.filter(u => ['Productor', 'Operador'].includes(u.role));
-  const staffHTML = staff.map(person => `
-    <a href="/perfil/${person.id}" class="team-person" data-link>
-      <img src="${person.photo}" class="avatar" alt="${person.name}">
-      <div>
-        <strong>${person.name}</strong>
-        <small>${person.role}</small>
-      </div>
-    </a>
-  `).join('');
 
   const programTotals = Object.values(programs).map(prog => {
     const participants = getRankedParticipants(prog.id);
@@ -88,17 +77,6 @@ export function Programas(programId = null) {
       <p style="text-align: center; color: var(--text-secondary);">
         Seleccioná un programa para ver el ranking interno entre sus conductores.
       </p>
-
-      <section class="glass-card team-section">
-        <div>
-          <p class="eyebrow">Ranking general</p>
-          <h2>Productores y operadores</h2>
-          <p>Compiten en la tabla general, pero no entran en rankings internos de un programa específico.</p>
-        </div>
-        <div class="team-list">
-          ${staffHTML}
-        </div>
-      </section>
     </div>
   `;
 }

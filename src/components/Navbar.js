@@ -9,7 +9,7 @@ export function Navbar() {
           <span>PRODE 2026</span>
         </a>
         <div class="nav-links">
-          <a href="/" class="nav-link" data-link>Ranking General</a>
+          <a href="/" class="nav-link" data-link>Rankings</a>
           <a href="/fixture" class="nav-link" data-link>Fixture</a>
           <a href="/llaves" class="nav-link" data-link>Llaves</a>
           <a href="/programas" class="nav-link" data-link>Por Programa</a>

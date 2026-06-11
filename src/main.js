@@ -4,7 +4,7 @@ import './styles/layout.css';
 import './styles/animations.css';
 
 import { Navbar } from './components/Navbar.js';
-import { Home } from './pages/Home.js';
+import { Home, attachHomeEvents } from './pages/Home.js';
 import { Fixture, attachFixtureEvents } from './pages/Fixture.js';
 import { Programas } from './pages/Programas.js';
 import { Predicciones } from './pages/Predicciones.js';
@@ -64,7 +64,9 @@ function renderPage(path) {
 }
 
 function attachPageEvents(path) {
-  if (path === '/admin') {
+  if (path === '/') {
+    attachHomeEvents();
+  } else if (path === '/admin') {
     attachAdminEvents();
   } else if (path === '/fixture') {
     attachFixtureFilters();
