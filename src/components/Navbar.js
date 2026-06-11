@@ -6,9 +6,9 @@ export function Navbar() {
       <div class="container nav-content">
         <a href="/" class="nav-brand" data-link>
           <img src="/assets/logo-mixon.png" alt="Mix On Logo">
-          <span style="font-size: 1rem; margin: 0 0.2rem; opacity: 0.5;">✕</span>
+          <span class="nav-x" style="font-size: 1rem; margin: 0 0.2rem; opacity: 0.5;">✕</span>
           <img src="/assets/logo-mundial.webp" alt="Mundial 2026 Logo">
-          <span style="margin-left: 0.25rem;">PRODE 2026</span>
+          <span class="nav-title" style="margin-left: 0.25rem;">PRODE 2026</span>
         </a>
         <div class="nav-links">
           <a href="/" class="nav-link" data-link>Rankings</a>

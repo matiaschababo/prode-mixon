@@ -121,7 +121,8 @@
     grid-column: 1;
     grid-row: 1;
   }
-  .nav-brand span { font-size: 1.1rem; }
+  .nav-brand span.nav-title { display: none; }
+  .nav-brand span.nav-x { font-size: 1.1rem; }
   .nav-brand img { height: 24px; }
   .nav-auth {
     grid-column: 2;
