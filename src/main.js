@@ -11,7 +11,7 @@ import { Predicciones } from './pages/Predicciones.js';
 import { Admin, attachAdminEvents } from './pages/Admin.js';
 import { Puntajes } from './pages/Puntajes.js';
 import { Perfil, attachPerfilEvents } from './pages/Perfil.js';
-import { Llaves, attachLlavesEvents } from './pages/Llaves.js';
+import { Llaves } from './pages/Llaves.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
 import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers } from './services/prodeStore.js';
@@ -69,8 +69,6 @@ function attachPageEvents(path) {
   } else if (path === '/fixture') {
     attachFixtureFilters();
     attachFixtureEvents();
-  } else if (path === '/llaves') {
-    attachLlavesEvents();
   } else if (path.startsWith('/perfil/')) {
     attachPerfilEvents();
   }
