@@ -21,8 +21,10 @@ export function RankingTable(participantsData) {
                      p.role === 'Operador' ? '🎛️ ' : '';
     const roleDisplay = `${roleIcon}${(p.role || 'Viewer').toUpperCase()}`;
     
+    const topClass = pos <= 3 ? `top-${pos}` : '';
+
     rows += `
-      <div class="ranking-row animate-slide-up stagger-${(index % 5) + 1}" style="--target-width: ${Math.max(5, (points / (sorted[0]?.totalPoints || 1)) * 100)}%;">
+      <div class="ranking-row ${topClass} animate-slide-up stagger-${(index % 5) + 1}" style="--target-width: ${Math.max(5, (points / (sorted[0]?.totalPoints || 1)) * 100)}%;">
         <div class="ranking-pos">${medal}</div>
         <img src="${p.photo}" alt="${p.name}" class="avatar">
         <div class="ranking-info">
