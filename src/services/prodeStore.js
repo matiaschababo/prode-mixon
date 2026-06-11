@@ -263,8 +263,8 @@ export function startLiveMatchEngine() {
 
   liveEngineInterval = setInterval(async () => {
     try {
-      // Intentamos obtener la key de las variables de entorno
-      const apiKey = import.meta.env.VITE_API_FOOTBALL_KEY;
+      // Intentamos obtener la key de las variables de entorno, o usamos la proporcionada
+      const apiKey = import.meta.env.VITE_API_FOOTBALL_KEY || 'c38b76d13ded6b2115b090a72d2581b2';
       
       // Si no hay key, no hacemos nada (el usuario debe configurarla)
       if (!apiKey) {
