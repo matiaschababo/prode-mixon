@@ -34,6 +34,7 @@ export function Admin() {
 
   const programOptions = `
     <option value="viewers">Viewers (Espectador)</option>
+    <option value="MIXON">Equipo Mix On (Staff)</option>
     ${Object.values(programs).map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
   `;
 
