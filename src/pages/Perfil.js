@@ -76,7 +76,7 @@ export function Perfil(participantId) {
       <section class="profile-hero glass-card" style="border-color: ${program.theme.main}">
         <div style="position: relative; display: inline-block;">
           <img src="${participant.photo}" class="profile-photo" alt="${participant.name}">
-          ${isAdmin || (loggedInUser && loggedInUser.uid === participantId) ? `
+          ${isAdmin ? `
             <button class="btn btn-secondary btn-sm change-photo-btn" data-uid="${participantId}" style="position: absolute; bottom: 0; left: 50%; transform: translate(-50%, 50%); padding: 0.2rem 0.5rem; font-size: 0.7rem; white-space: nowrap; border-radius: 20px;">✏️ Cambiar foto</button>
           ` : ''}
         </div>

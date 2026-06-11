@@ -204,9 +204,9 @@ export async function updateUserPhoto(userId, photoUrl) {
   
   if (!user) throw new Error("Debes iniciar sesión");
   
-  // Only the user themselves or a master admin can change the photo
-  if (user.uid !== userId && !isMasterAdmin(user.email)) {
-    throw new Error("No tienes permisos para cambiar esta foto");
+  // Only Master Admins can change photos to prevent inappropriate links
+  if (!isMasterAdmin(user.email)) {
+    throw new Error("Solo los Master Admins pueden cambiar las fotos de perfil");
   }
 
   const userRef = doc(db, 'users', userId);
