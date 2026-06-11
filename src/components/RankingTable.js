@@ -20,7 +20,10 @@ export function RankingTable(participantsData) {
     else medal = `<span class="pos-num">${pos}</span>`;
 
     const isMaster = MASTER_ADMINS.includes(p.email);
-    const roleDisplay = isMaster ? '⭐ MASTER ADMIN' : (p.role || 'Espectador').toUpperCase();
+    const roleIcon = p.role === 'Conductor' ? '🎙️ ' : 
+                     p.role === 'Productor' ? '🎬 ' : 
+                     p.role === 'Operador' ? '🎛️ ' : '';
+    const roleDisplay = isMaster ? '⭐ MASTER ADMIN' : `${roleIcon}${(p.role || 'Viewer').toUpperCase()}`;
     
     rows += `
       <div class="ranking-row animate-slide-up stagger-${(index % 5) + 1}" style="--target-width: ${Math.max(5, (points / (sorted[0]?.totalPoints || 1)) * 100)}%;">

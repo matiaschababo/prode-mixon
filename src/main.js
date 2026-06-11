@@ -118,9 +118,12 @@ function updateNavbarAuthUI() {
   const user = auth.currentUser;
   if (user) {
     if (myPredsLink) myPredsLink.style.display = 'none'; // We don't need the link anymore
+    const roleIcon = user.role === 'Conductor' ? '🎙️ ' : 
+                     user.role === 'Productor' ? '🎬 ' : 
+                     user.role === 'Operador' ? '🎛️ ' : '';
     const badgeHtml = MASTER_ADMINS.includes(user.email) 
       ? '<span class="user-role-badge user-role-master">⭐ MASTER ADMIN</span>'
-      : '';
+      : `<span class="user-role-badge">${roleIcon}${(user.role || 'Viewer').toUpperCase()} ${user.program ? '· ' + user.program.toUpperCase() : ''}</span>`;
 
     container.innerHTML = `
       <div class="user-profile">
