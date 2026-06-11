@@ -173,3 +173,14 @@ export async function ensureUserExists(user) {
     });
   }
 }
+
+export const MASTER_ADMINS = [
+  'matias.chababo@gmail.com', // Reemplazar con el correo real de Matías
+  'edu.mixon@gmail.com',      // Reemplazar con el correo real del Edu
+  'manzo.mixon@gmail.com'     // Reemplazar con el correo real de Manzo
+];
+
+export function isMasterAdmin(email) {
+  if (!email) return false;
+  return MASTER_ADMINS.map(e => e.toLowerCase()).includes(email.toLowerCase());
+}

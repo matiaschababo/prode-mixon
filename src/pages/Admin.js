@@ -1,8 +1,25 @@
 import { matches } from '../data/matches.js';
 import { teams } from '../data/teams.js';
-import { getResults, getDynamicUsers, updateUserRole } from '../services/prodeStore.js';
+import { programs } from '../data/participants.js';
+import { getResults, getDynamicUsers, updateUserRole, isMasterAdmin } from '../services/prodeStore.js';
+import { auth } from '../services/firebase.js';
 
 export function Admin() {
+  const user = auth.currentUser;
+  
+  // Si no está logueado o no es master admin
+  if (!user || !isMasterAdmin(user.email)) {
+    return `
+      <div class="admin-page animate-fade-in" style="max-width: 600px; margin: 4rem auto; text-align: center;">
+        <div class="glass-card">
+          <h1 style="margin-bottom: 1rem; color: #E21B3C;">Acceso Denegado</h1>
+          <p style="color: var(--text-secondary);">Esta sección es exclusiva para los Master Admins de Mix On.</p>
+          ${!user ? '<p style="margin-top: 1rem;">Iniciá sesión con tu cuenta de Google autorizada.</p>' : ''}
+        </div>
+      </div>
+    `;
+  }
+
   const results = getResults();
   const users = getDynamicUsers();
 
@@ -17,29 +34,24 @@ export function Admin() {
 
   const programOptions = `
     <option value="viewers">Viewers (Espectador)</option>
-    <option value="aqn">Antes que Nadie</option>
-    <option value="updr">Un Poco de Ruido</option>
-    <option value="tkm">Tarde de Tertulia</option>
-    <option value="ndn">Nadie Dice Nada</option>
-    <option value="efqf">El Fin de la Metáfora</option>
-    <option value="luzu">Luzu TV Staff</option>
+    ${Object.values(programs).map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
   `;
 
-  const userRows = users.map(user => `
+  const userRows = users.map(u => `
     <div class="glass-card" style="margin-bottom: 1rem; padding: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
       <div style="display: flex; align-items: center; gap: 1rem;">
-        <img src="${user.photo}" class="avatar" alt="${user.name}">
+        <img src="${u.photo}" class="avatar" alt="${u.name}">
         <div>
-          <strong style="display:block;">${user.name}</strong>
-          <small style="color:var(--text-secondary);">${user.email}</small>
+          <strong style="display:block;">${u.name}</strong>
+          <small style="color:var(--text-secondary);">${u.email}</small>
         </div>
       </div>
       <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <input type="text" class="user-role-input" data-uid="${user.id}" value="${user.role}" placeholder="Rol (ej. Conductor)" style="padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
-        <select class="user-program-input" data-uid="${user.id}" style="padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
-          ${programOptions.replace(`value="${user.program}"`, `value="${user.program}" selected`)}
+        <input type="text" class="user-role-input" data-uid="${u.id}" value="${u.role}" placeholder="Rol (ej. Conductor)" style="padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+        <select class="user-program-input" data-uid="${u.id}" style="padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+          ${programOptions.replace(`value="${u.program}"`, `value="${u.program}" selected`)}
         </select>
-        <button class="btn btn-secondary btn-sm save-user-role" data-uid="${user.id}">Guardar</button>
+        <button class="btn btn-secondary btn-sm save-user-role" data-uid="${u.id}">Guardar</button>
       </div>
     </div>
   `).join('');
@@ -48,19 +60,9 @@ export function Admin() {
     <div class="admin-page animate-fade-in" style="max-width: 980px; margin: 0 auto;">
       <h1 style="margin-bottom: 2rem; text-align: center;">Panel de Administración</h1>
       
-      <div class="glass-card" id="login-section">
-        <h3 style="margin-bottom: 1rem;">Acceso Restringido</h3>
-        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Ingresá la contraseña para administrar el Prode.</p>
-        
-        <div style="display: flex; gap: 1rem;">
-          <input type="password" id="admin-pass" placeholder="Contraseña" style="flex: 1; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
-          <button class="btn btn-primary" id="btn-login">Ingresar</button>
-        </div>
-      </div>
-
-      <div id="admin-dashboard" style="display: none; margin-top: 2rem;">
+      <div id="admin-dashboard">
         <div class="admin-note" style="margin-bottom: 2rem;">
-          Contraseña actual: <strong>mixon2026</strong>
+          Autenticado como Master Admin: <strong>${user.email}</strong>
         </div>
 
         <div class="glass-card admin-editor" style="margin-bottom: 2rem;">
@@ -86,43 +88,22 @@ export function Admin() {
 
         <div class="admin-users-manager">
           <h2 style="margin-bottom: 1rem;">Gestión de Roles (Staff)</h2>
-          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Acá aparecen todas las personas que iniciaron sesión. Podés ascenderlos a Conductores, Productores, etc. y asignarlos a un programa.</p>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Acá aparecen todas las personas que iniciaron sesión en la app. Podés ascenderlos a Conductores, Productores, etc. y asignarlos a un programa de Mix On.</p>
           <div id="admin-users-list">
             ${userRows || '<p>Nadie inició sesión todavía.</p>'}
           </div>
         </div>
-
       </div>
     </div>
   `;
 }
 
 export function attachAdminEvents() {
-  const btnLogin = document.getElementById('btn-login');
-  const passInput = document.getElementById('admin-pass');
-
-  const openDashboard = () => {
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('admin-dashboard').style.display = 'block';
-    renderAdminMatchForm();
-  };
-
-  btnLogin?.addEventListener('click', () => {
-    if (passInput.value === 'mixon2026') {
-      sessionStorage.setItem('prode-admin-auth', '1');
-      openDashboard();
-    } else {
-      alert('Contraseña incorrecta');
-    }
-  });
-
-  passInput?.addEventListener('keydown', event => {
-    if (event.key === 'Enter') btnLogin.click();
-  });
-
-  if (sessionStorage.getItem('prode-admin-auth') === '1') openDashboard();
-
-  document.getElementById('admin-match-select')?.addEventListener('change', renderAdminMatchForm);
+  const matchSelect = document.getElementById('admin-match-select');
+  if (matchSelect) {
+    matchSelect.addEventListener('change', renderAdminMatchForm);
+    renderAdminMatchForm(); // Populate on initial load
+  }
   
   document.getElementById('save-result')?.addEventListener('click', async () => {
     const matchId = document.getElementById('admin-match-select').value;
