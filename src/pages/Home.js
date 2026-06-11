@@ -16,7 +16,7 @@ export function Home() {
 
         <h1 class="hero-title">EL TORNEO DEFINITIVO</h1>
         <p class="hero-subtitle">
-          Seguí en vivo el torneo de predicciones entre todos los conductores y staff de Mix On.
+          Seguí en vivo el torneo de predicciones entre todos los conductores, staff y viewers de Mix On.
         </p>
         <div class="hero-actions">
           <a href="/fixture" class="btn btn-primary glass-btn" data-link>VER FIXTURE</a>

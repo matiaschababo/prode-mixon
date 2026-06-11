@@ -47,16 +47,16 @@ export function Programas(programId = null) {
       <h2 style="margin-bottom: 1.5rem; text-align: center;">Competencia Global</h2>
       <div class="program-chart">
         ${programTotals.map(prog => {
-          const percentage = (prog.totalPoints / maxPoints) * 100;
+          const percentage = maxPoints > 0 ? (prog.totalPoints / maxPoints) * 100 : 5;
           return `
-            <div class="program-chart-row">
-              <img src="${prog.logo}" alt="${prog.name}" class="program-chart-logo" style="border-color: ${prog.theme.main}">
-              <div class="program-chart-bar-container">
-                <div class="program-chart-bar-fill" style="width: ${percentage === 0 ? 5 : percentage}%; background: linear-gradient(90deg, ${prog.theme.main}, ${prog.theme.accent});">
-                  ${prog.name}
+            <div class="program-chart-col">
+              <div class="program-chart-points">${prog.totalPoints} pts</div>
+              <div class="program-chart-bar-container" style="height: 100%;">
+                <div class="program-chart-bar-fill" style="height: ${percentage === 0 ? 5 : percentage}%; background: linear-gradient(0deg, ${prog.theme.main}, ${prog.theme.accent});">
                 </div>
               </div>
-              <div class="program-chart-points">${prog.totalPoints} pts</div>
+              <img src="${prog.logo}" alt="${prog.name}" class="program-chart-logo" style="border-color: ${prog.theme.main}">
+              <div class="program-chart-name">${prog.name}</div>
             </div>
           `;
         }).join('')}
