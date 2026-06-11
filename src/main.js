@@ -127,10 +127,13 @@ function updateNavbarAuthUI() {
     const currentUserDynamic = dynamicUsers.find(u => u.id === user.uid);
     const customPhoto = currentUserDynamic?.photo || user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid;
 
-    const roleIcon = user.role === 'Conductor' ? '🎙️ ' : 
-                     user.role === 'Productor' ? '🎬 ' : 
-                     user.role === 'Operador' ? '🎛️ ' : '';
-    const badgeHtml = `<span class="user-role-badge">${roleIcon}${(user.role || 'Viewer').toUpperCase()} ${user.program ? '· ' + user.program.toUpperCase() : ''}</span>`;
+    const currentRole = currentUserDynamic?.role || 'Viewer';
+    const currentProgram = currentUserDynamic?.program || '';
+
+    const roleIcon = currentRole === 'Conductor' ? '🎙️ ' : 
+                     currentRole === 'Productor' ? '🎬 ' : 
+                     currentRole === 'Operador' ? '🎛️ ' : '';
+    const badgeHtml = `<span class="user-role-badge">${roleIcon}${currentRole.toUpperCase()} ${currentProgram && currentProgram !== 'viewers' ? '· ' + currentProgram.toUpperCase() : ''}</span>`;
 
     container.innerHTML = `
       <div class="user-profile">
