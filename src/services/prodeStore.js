@@ -1,5 +1,5 @@
 import { matches } from '../data/matches.js';
-import { isParticipantInProgram, participants } from '../data/participants.js';
+import { isParticipantInProgram } from '../data/participants.js';
 import { calculatePoints } from './scoring.js';
 import { db, doc, getDoc, setDoc, onSnapshot, collection, query } from './firebase.js';
 import { getAuth } from 'firebase/auth';
@@ -175,9 +175,9 @@ export async function ensureUserExists(user) {
 }
 
 export const MASTER_ADMINS = [
-  'matiaschababo@gmail.com', // Correo real de Matías
-  'edu.mixon@gmail.com',      // Reemplazar con el correo real del Edu
-  'manzo.coinary@gmail.com'   // Correo real de Manzo
+  'matiaschababo@gmail.com',
+  'manzo.coinary@gmail.com',
+  'Pitta.visual.garden@gmail.com'
 ];
 
 export function isMasterAdmin(email) {

@@ -1,8 +1,8 @@
 // src/pages/Programas.js
-import { participants, programs } from '../data/participants.js';
+import { programs } from '../data/participants.js';
 import { ProgramCard } from '../components/ProgramCard.js';
 import { RankingTable } from '../components/RankingTable.js';
-import { getRankedParticipants } from '../services/prodeStore.js';
+import { getRankedParticipants, getDynamicUsers } from '../services/prodeStore.js';
 
 export function Programas(programId = null) {
   if (programId) {
@@ -33,7 +33,8 @@ export function Programas(programId = null) {
   const programCardsHTML = Object.values(programs)
     .map(prog => ProgramCard(prog))
     .join('');
-  const staff = participants.filter(participant => !participant.programIds?.length);
+  const dynamicUsers = getDynamicUsers();
+  const staff = dynamicUsers.filter(u => ['Productor', 'Operador'].includes(u.role));
   const staffHTML = staff.map(person => `
     <a href="/perfil/${person.id}" class="team-person" data-link>
       <img src="${person.photo}" class="avatar" alt="${person.name}">

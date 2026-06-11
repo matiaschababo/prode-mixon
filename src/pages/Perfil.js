@@ -1,11 +1,12 @@
 import { matches } from '../data/matches.js';
-import { getParticipantProgramIds, getParticipantProgramLabel, getPrimaryProgram, participants } from '../data/participants.js';
+import { getParticipantProgramIds, getParticipantProgramLabel, getPrimaryProgram } from '../data/participants.js';
 import { teams } from '../data/teams.js';
 import { calculatePoints } from '../services/scoring.js';
-import { getMatchResult, getPredictions, getParticipantStats } from '../services/prodeStore.js';
+import { getMatchResult, getPredictions, getParticipantStats, getDynamicUsers } from '../services/prodeStore.js';
 
 export function Perfil(participantId) {
-  const participant = participants.find(item => item.id === participantId);
+  const dynamicUsers = getDynamicUsers();
+  const participant = dynamicUsers.find(item => item.id === participantId);
   if (!participant) return `<h2>Conductor no encontrado</h2>`;
 
   const program = getPrimaryProgram(participant);
