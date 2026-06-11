@@ -1,3 +1,4 @@
+import morphdom from 'morphdom';
 import './styles/index.css';
 import './styles/components.css';
 import './styles/layout.css';
@@ -33,12 +34,29 @@ const routes = {
 function router() {
   const path = window.location.pathname;
   
-  app.innerHTML = `
+  const newHtml = `
     ${Navbar()}
     <main class="main-content container">
       ${renderPage(path)}
     </main>
   `;
+
+  if (!app.hasChildNodes()) {
+    app.innerHTML = newHtml;
+  } else {
+    const tempEl = document.createElement('div');
+    tempEl.id = 'app';
+    tempEl.innerHTML = newHtml;
+    morphdom(app, tempEl, {
+      childrenOnly: true,
+      onBeforeElUpdated: function(fromEl, toEl) {
+        if (fromEl.tagName === 'INPUT') {
+          toEl.value = fromEl.value;
+        }
+        return true;
+      }
+    });
+  }
 
   attachPageEvents(path);
   updateNavbarAuthUI();
@@ -84,6 +102,8 @@ function attachFixtureFilters() {
   const empty = document.getElementById('fixture-empty');
 
   buttons.forEach(button => {
+    if (button.dataset.eventsAttached) return;
+    button.dataset.eventsAttached = 'true';
     button.addEventListener('click', () => {
       const filter = button.dataset.filter;
       let visibleCount = 0;

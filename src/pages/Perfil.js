@@ -107,6 +107,8 @@ export function Perfil(participantId) {
 
 export function attachPerfilEvents() {
   document.querySelectorAll('.admin-pred-input').forEach(input => {
+    if (input.dataset.eventsAttached) return;
+    input.dataset.eventsAttached = 'true';
     input.addEventListener('change', async (e) => {
       const matchId = e.target.dataset.match;
       const userId = e.target.dataset.uid;
@@ -125,10 +127,11 @@ export function attachPerfilEvents() {
   });
 
   const changePhotoBtn = document.querySelector('.change-photo-btn');
-  if (changePhotoBtn) {
+  if (changePhotoBtn && !changePhotoBtn.dataset.eventsAttached) {
+    changePhotoBtn.dataset.eventsAttached = 'true';
     changePhotoBtn.addEventListener('click', async (e) => {
       const uid = e.target.dataset.uid;
-      const url = prompt("Pegá el enlace (URL) de la nueva foto.\\nDejá el espacio en blanco si querés restaurar la foto original.");
+      const url = prompt("Pegá el enlace (URL) de la nueva foto.\nDejá el espacio en blanco si querés restaurar la foto original.");
       if (url !== null) { // User didn't click Cancel
         try {
           await updateUserPhoto(uid, url.trim());

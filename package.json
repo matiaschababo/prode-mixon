@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@vercel/blob": "^2.4.0",
-    "firebase": "^10.14.1"
+    "firebase": "^10.14.1",
+    "morphdom": "^2.7.8"
   }
 }

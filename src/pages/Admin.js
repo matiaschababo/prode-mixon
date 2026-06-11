@@ -114,23 +114,30 @@ export function Admin() {
 
 export function attachAdminEvents() {
   const matchSelect = document.getElementById('admin-match-select');
-  if (matchSelect) {
+  if (matchSelect && !matchSelect.dataset.eventsAttached) {
+    matchSelect.dataset.eventsAttached = 'true';
     matchSelect.addEventListener('change', renderAdminMatchForm);
     renderAdminMatchForm(); // Populate on initial load
   }
   
-  document.getElementById('save-result')?.addEventListener('click', async () => {
-    const matchId = document.getElementById('admin-match-select').value;
-    const { saveResult } = await import('../services/prodeStore.js');
-    try {
-      await saveResult(matchId, document.getElementById('result-home').value, document.getElementById('result-away').value);
-      alert('Resultado oficial guardado en Firebase');
-    } catch (e) {
-      alert('Error guardando resultado: ' + e.message);
-    }
-  });
+  const saveResultBtn = document.getElementById('save-result');
+  if (saveResultBtn && !saveResultBtn.dataset.eventsAttached) {
+    saveResultBtn.dataset.eventsAttached = 'true';
+    saveResultBtn.addEventListener('click', async () => {
+      const matchId = document.getElementById('admin-match-select').value;
+      const { saveResult } = await import('../services/prodeStore.js');
+      try {
+        await saveResult(matchId, document.getElementById('result-home').value, document.getElementById('result-away').value);
+        alert('Resultado oficial guardado en Firebase');
+      } catch (e) {
+        alert('Error guardando resultado: ' + e.message);
+      }
+    });
+  }
 
   document.querySelectorAll('.save-user-role').forEach(btn => {
+    if (btn.dataset.eventsAttached) return;
+    btn.dataset.eventsAttached = 'true';
     btn.addEventListener('click', async (e) => {
       const uid = e.target.dataset.uid;
       const role = document.querySelector(`.user-role-input[data-uid="${uid}"]`).value;

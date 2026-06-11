@@ -168,7 +168,7 @@ export function getParticipantStats(participantId) {
   return matches.reduce((stats, match) => {
     const prediction = predictions[String(match.id)]?.[participantId];
     const result = getMatchResult(match);
-    if (!prediction || !result) return stats;
+    if (!prediction || !result || result.live) return stats;
 
     const points = calculatePoints(prediction.home, prediction.away, result.home, result.away, match.stage);
     stats.totalPoints += points;

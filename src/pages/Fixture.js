@@ -67,6 +67,8 @@ export function Fixture() {
 export function attachFixtureEvents() {
   // "Cambiar" button — toggle the edit form
   document.querySelectorAll('.pred-change-btn').forEach(btn => {
+    if (btn.dataset.eventsAttached) return;
+    btn.dataset.eventsAttached = 'true';
     btn.addEventListener('click', (e) => {
       const area = e.target.closest('.pred-area');
       const saved = area.querySelector('.pred-saved');
@@ -80,6 +82,8 @@ export function attachFixtureEvents() {
 
   // "Guardar" button — save and update the UI
   document.querySelectorAll('.pred-save-btn').forEach(btn => {
+    if (btn.dataset.eventsAttached) return;
+    btn.dataset.eventsAttached = 'true';
     btn.addEventListener('click', async (e) => {
       const area = e.target.closest('.pred-area');
       const matchId = e.target.dataset.match;

@@ -5,15 +5,23 @@ import { getRankedParticipants } from '../services/prodeStore.js';
 export function Home() {
   return `
     <div class="home-page animate-fade-in">
-      <section class="hero">
-        <h1 class="hero-title">PRODE MUNDIAL 2026</h1>
+      <section class="hero collab-hero">
+        <div class="glow-bg"></div>
+        
+        <div class="collab-logos">
+          <img src="/assets/logo-mundial.webp" alt="Mundial 2026" class="collab-logo collab-mundial drop-shadow-glow">
+          <span class="collab-x">✕</span>
+          <img src="/assets/logo-mixon-clear.png" alt="Mix On" class="collab-logo collab-mixon drop-shadow-glow">
+        </div>
+
+        <h1 class="hero-title">EL TORNEO DEFINITIVO</h1>
         <p class="hero-subtitle">
-          Seguí en vivo el torneo de predicciones entre todos los conductores de Mix On.
+          Seguí en vivo el torneo de predicciones entre todos los conductores y staff de Mix On.
         </p>
         <div class="hero-actions">
-          <a href="/fixture" class="btn btn-primary btn-sm" data-link>Ver Fixture</a>
-          <a href="/programas" class="btn btn-secondary btn-sm" data-link>Por Programa</a>
-          <a href="/puntajes" class="btn btn-secondary btn-sm" data-link>Puntajes</a>
+          <a href="/fixture" class="btn btn-primary glass-btn" data-link>VER FIXTURE</a>
+          <a href="/programas" class="btn btn-secondary glass-btn" data-link>POR PROGRAMA</a>
+          <a href="/puntajes" class="btn btn-secondary glass-btn" data-link>PUNTAJES</a>
         </div>
       </section>
 
@@ -44,6 +52,9 @@ export function attachHomeEvents() {
   if (!buttons.length || !container) return;
 
   buttons.forEach(button => {
+    if (button.dataset.eventsAttached) return;
+    button.dataset.eventsAttached = 'true';
+    
     button.addEventListener('click', () => {
       const filter = button.dataset.filter;
       

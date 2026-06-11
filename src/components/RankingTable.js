@@ -30,7 +30,10 @@ export function RankingTable(participantsData) {
         <img src="${p.photo}" alt="${p.name}" class="avatar">
         <div class="ranking-info">
           <a href="/perfil/${p.id}" class="ranking-name" data-link>${p.name}</a>
-          <div class="ranking-program" style="color: ${prog.theme.accent}">${roleDisplay} · ${getParticipantProgramLabel(p)}</div>
+          <div class="ranking-program" style="color: ${prog.theme.accent}; display: flex; align-items: center; gap: 0.5rem;">
+            ${prog.logo ? `<img src="${prog.logo}" alt="${prog.name}" class="program-mini-logo" style="height: 18px; width: auto; object-fit: contain;">` : ''}
+            ${roleDisplay} · ${getParticipantProgramLabel(p)}
+          </div>
         </div>
         
         <div class="ranking-bar-container">
