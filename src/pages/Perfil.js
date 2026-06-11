@@ -2,7 +2,7 @@ import { matches } from '../data/matches.js';
 import { getParticipantProgramIds, getParticipantProgramLabel, getPrimaryProgram } from '../data/participants.js';
 import { teams } from '../data/teams.js';
 import { calculatePoints } from '../services/scoring.js';
-import { getMatchResult, getPredictions, getParticipantStats, getDynamicUsers, isMasterAdmin, adminSavePrediction, updateUserPhoto } from '../services/prodeStore.js';
+import { getMatchResult, getPredictions, getParticipantStats, getDynamicUsers, isMasterAdmin, adminSavePrediction, updateUserPhoto, updateUserDisplayName } from '../services/prodeStore.js';
 import { auth } from '../services/firebase.js';
 
 export function Perfil(participantId) {
@@ -35,6 +35,7 @@ export function Perfil(participantId) {
 
   const loggedInUser = auth.currentUser;
   const isAdmin = loggedInUser && isMasterAdmin(loggedInUser.email);
+  const isOwnProfile = loggedInUser && loggedInUser.uid === participantId;
 
   const rows = history.map(item => {
     let predictionHtml;
@@ -82,7 +83,9 @@ export function Perfil(participantId) {
         </div>
         <div>
           <p class="eyebrow">${participant.role || 'Participante'} · ${getParticipantProgramLabel(participant)}</p>
-          <h1>${participant.name}</h1>
+          <h1 style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">${participant.name}
+            ${isOwnProfile ? `<button class="btn btn-secondary btn-sm edit-name-btn" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">✏️ Cambiar nombre</button>` : ''}
+          </h1>
           <div class="profile-stats">
             <div><strong>${stats.totalPoints}</strong><span>puntos</span></div>
             <div><strong>${stats.played}</strong><span>partidos puntuados</span></div>
@@ -133,6 +136,22 @@ export function attachPerfilEvents() {
           window.location.reload();
         } catch (err) {
           alert("Error: " + err.message);
+        }
+      }
+    });
+  }
+
+  const editNameBtn = document.querySelector('.edit-name-btn');
+  if (editNameBtn) {
+    editNameBtn.addEventListener('click', async () => {
+      const currentName = document.querySelector('.profile-hero h1')?.textContent?.trim() || '';
+      const newName = prompt('Ingresá tu nuevo nombre de usuario:', currentName);
+      if (newName !== null && newName.trim()) {
+        try {
+          await updateUserDisplayName(newName);
+          window.location.reload();
+        } catch (err) {
+          alert('Error: ' + err.message);
         }
       }
     });

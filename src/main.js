@@ -14,7 +14,7 @@ import { Perfil, attachPerfilEvents } from './pages/Perfil.js';
 import { Llaves } from './pages/Llaves.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers } from './services/prodeStore.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName } from './services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
 
 const app = document.getElementById('app');
@@ -140,7 +140,7 @@ function updateNavbarAuthUI() {
     container.innerHTML = `
       <div class="user-profile">
         <div class="user-info">
-          <span class="user-name">${user.displayName}</span>
+          <span class="user-name">${currentUserDynamic?.name || user.displayName}</span>
           ${badgeHtml}
         </div>
         <img src="${customPhoto}" alt="Avatar" class="avatar-small">

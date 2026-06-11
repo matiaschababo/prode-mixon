@@ -45,7 +45,7 @@ export function Fixture() {
     <section class="fixture-page">
       <h1 class="page-title animate-fade-in">Fixture Mundial 2026</h1>
       <p class="page-subtitle animate-fade-in" style="color: var(--text-secondary); margin-bottom: 2rem;">
-        Todos los partidos en horario de Argentina 🇦🇷<br>
+        Todos los partidos en tu horario local 🌍<br>
         ${user ? 'Podés cargar tus resultados directamente en las tarjetas de los partidos que no hayan empezado.' : 'Ingresá con tu cuenta para poder cargar tus predicciones.'}
       </p>
       

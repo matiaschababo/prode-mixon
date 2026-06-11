@@ -239,3 +239,13 @@ export function isMasterAdmin(email) {
   if (!email) return false;
   return MASTER_ADMINS.map(e => e.toLowerCase()).includes(email.toLowerCase());
 }
+
+export async function updateUserDisplayName(newName) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) throw new Error("Debes iniciar sesión");
+  if (!newName || !newName.trim()) throw new Error("El nombre no puede estar vacío");
+
+  const userRef = doc(db, 'users', user.uid);
+  await setDoc(userRef, { displayName: newName.trim() }, { merge: true });
+}
