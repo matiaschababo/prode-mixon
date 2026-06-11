@@ -54,12 +54,12 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
       } else {
         // No prediction yet — show the form open with a call to action
         predictionArea = `
-          <div class="prediction-box" data-match="${match.id}">
-            <div class="prediction-header">
+          <div class="pred-area pred-area-open" data-match="${match.id}">
+            <div class="pred-cta">
               <span style="font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;">⚽</span>
               <span>¡Cargá tu pronóstico!</span>
             </div>
-            <div class="prediction-form">
+            <div class="pred-edit-form">
               <div class="pred-inputs-row">
                 <input type="number" min="0" class="pred-input my-pred-home" data-match="${match.id}" value="" placeholder="0">
                 <span class="pred-dash">-</span>
