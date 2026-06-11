@@ -1,0 +1,33 @@
+[debug] [2026-06-11T19:49:24.735Z] ----------------------------------------------------------------------
+[debug] [2026-06-11T19:49:24.737Z] Command:       /usr/local/bin/node /Users/matiaschababo/.npm/_npx/7750544ccf494d8b/node_modules/.bin/firebase deploy --only firestore:rules
+[debug] [2026-06-11T19:49:24.737Z] CLI Version:   15.20.0
+[debug] [2026-06-11T19:49:24.737Z] Platform:      darwin
+[debug] [2026-06-11T19:49:24.737Z] Node Version:  v24.13.0
+[debug] [2026-06-11T19:49:24.737Z] Time:          Thu Jun 11 2026 16:49:24 GMT-0300 (Argentina Standard Time)
+[debug] [2026-06-11T19:49:24.737Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-06-11T19:49:25.424Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-06-11T19:49:25.424Z] > authorizing via signed-in user (mixon.produccion@gmail.com)
+[debug] [2026-06-11T19:49:25.425Z] [iam] checking project prode-mixon-2026 for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-06-11T19:49:25.425Z] Checked if tokens are valid: false, expires at: 1781137912138
+[debug] [2026-06-11T19:49:25.425Z] Checked if tokens are valid: false, expires at: 1781137912138
+[debug] [2026-06-11T19:49:25.425Z] > refreshing access token with scopes: []
+[debug] [2026-06-11T19:49:25.426Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-06-11T19:49:25.426Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-06-11T19:49:25.577Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-06-11T19:49:25.577Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-06-11T19:49:25.599Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/prode-mixon-2026:testIamPermissions [none]
+[debug] [2026-06-11T19:49:25.599Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/prode-mixon-2026:testIamPermissions  x-goog-user-project=prode-mixon-2026
+[debug] [2026-06-11T19:49:25.599Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/prode-mixon-2026:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-06-11T19:49:25.875Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/prode-mixon-2026:testIamPermissions 403
+[debug] [2026-06-11T19:49:25.875Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/prode-mixon-2026:testIamPermissions {"error":{"code":403,"message":"Cloud Resource Manager API has not been used in project prode-mixon-2026 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/overview?project=prode-mixon-2026 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"consumer":"projects/prode-mixon-2026","activationUrl":"https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/overview?project=prode-mixon-2026","serviceTitle":"Cloud Resource Manager API","service":"cloudresourcemanager.googleapis.com","containerInfo":"prode-mixon-2026"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Cloud Resource Manager API has not been used in project prode-mixon-2026 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/overview?project=prode-mixon-2026 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/overview?project=prode-mixon-2026"}]}]}}
+[debug] [2026-06-11T19:49:25.876Z] [iam] error while checking permissions, command may fail: Request to https://cloudresourcemanager.googleapis.com/v1/projects/prode-mixon-2026:testIamPermissions had HTTP Error: 403, Cloud Resource Manager API has not been used in project prode-mixon-2026 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/overview?project=prode-mixon-2026 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+[info] 
+[info] === Deploying to 'prode-mixon-2026'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-06-11T19:49:25.880Z] Checked if tokens are valid: true, expires at: 1781210964577
+[debug] [2026-06-11T19:49:25.880Z] Checked if tokens are valid: true, expires at: 1781210964577
+[debug] [2026-06-11T19:49:25.880Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/prode-mixon-2026/services/firestore.googleapis.com [none]
+[debug] [2026-06-11T19:49:25.880Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/prode-mixon-2026/services/firestore.googleapis.com  x-goog-user-project=prode-mixon-2026

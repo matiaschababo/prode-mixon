@@ -415,7 +415,10 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   .ranking-row {
     grid-template-columns: 32px 48px 1fr 2fr auto;
     gap: 1rem;
-    padding: 1rem 0;
+    padding: 1rem 1rem; /* Added horizontal padding to match top-N */
+  }
+  .ranking-row:not(.top-1):not(.top-2):not(.top-3) {
+    padding: 1rem 0; /* Only normal rows lose the horizontal padding */
   }
   .ranking-pos { font-size: 1.3rem; }
   .ranking-row .avatar { width: 48px; height: 48px; }

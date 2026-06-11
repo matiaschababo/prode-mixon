@@ -2,25 +2,32 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    function isMasterAdmin() {
+      return request.auth != null && (
+        request.auth.token.email.lower() == 'matiaschababo@gmail.com' ||
+        request.auth.token.email.lower() == 'manzo.coinary@gmail.com' ||
+        request.auth.token.email.lower() == 'pitta.visual.garden@gmail.com'
+      );
+    }
+
     // Resultados globales
     match /global/results {
       allow read: if true;
-      // Solo el admin puede escribir (podemos restringirlo por UID, por ahora true para testing)
-      allow write: if true; 
+      allow write: if isMasterAdmin(); 
     }
 
     // Predicciones
     match /predictions/{userId} {
       allow read: if true;
-      // Solo el dueño puede modificar sus predicciones
+      // Solo el dueño o un admin puede modificar sus predicciones (opcional, dejamos solo dueño)
       allow write: if request.auth != null && request.auth.uid == userId;
-      // TODO: Añadir validación de horario de partido contra Firestore
     }
 
-    // Usuarios
+    // Usuarios (Perfiles, Roles)
     match /users/{userId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      // El propio usuario puede editar su info, o el admin puede editar cualquier usuario (asignar roles)
+      allow write: if (request.auth != null && request.auth.uid == userId) || isMasterAdmin();
     }
   }
 }
