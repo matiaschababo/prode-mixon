@@ -14,7 +14,7 @@ import { Perfil, attachPerfilEvents } from './pages/Perfil.js';
 import { Llaves } from './pages/Llaves.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName } from './services/prodeStore.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine } from './services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
 
 const app = document.getElementById('app');
@@ -144,10 +144,12 @@ function updateNavbarAuthUI() {
           <span class="user-name">${currentUserDynamic?.name || user.displayName}</span>
           ${badgeHtml}
         </div>
-        <img src="${customPhoto}" alt="Avatar" class="avatar-small">
-        <div class="user-actions" style="display: flex; gap: 0.5rem; margin-left: 0.5rem;">
-          ${MASTER_ADMINS.includes(user.email) ? '<a href="/admin" class="btn btn-secondary btn-small" data-link>ADMIN</a>' : ''}
-          <button id="btn-logout" class="btn btn-secondary btn-small">SALIR</button>
+        <a href="/perfil" data-link style="display: flex; align-items: center;">
+          <img src="${customPhoto}" alt="Avatar" class="avatar-small">
+        </a>
+        <div class="user-actions" style="display: flex; gap: 0.25rem; margin-left: 0.25rem;">
+          ${MASTER_ADMINS.includes(user.email) ? '<a href="/admin" class="btn btn-secondary btn-small" data-link style="padding: 0.4rem 0.6rem; font-size: 0.7rem;">ADMIN</a>' : ''}
+          <button id="btn-logout" class="btn btn-secondary btn-small" style="padding: 0.4rem 0.6rem; font-size: 0.7rem;">SALIR</button>
         </div>
       </div>
     `;
@@ -186,6 +188,10 @@ document.body.addEventListener('click', e => {
 window.addEventListener('popstate', router);
 
 onAuthStateChanged(auth, (user) => {
+  if (user) {
+    startLiveMatchEngine();
+  }
+
   if (!isInitialized) {
     initializeFirebaseSync(() => {
       router();

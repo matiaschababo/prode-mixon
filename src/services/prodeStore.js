@@ -249,3 +249,56 @@ export async function updateUserDisplayName(newName) {
   const userRef = doc(db, 'users', user.uid);
   await setDoc(userRef, { displayName: newName.trim() }, { merge: true });
 }
+
+let liveEngineInterval = null;
+
+export function startLiveMatchEngine() {
+  if (liveEngineInterval) return;
+
+  const auth = getAuth();
+  if (!auth.currentUser || !isMasterAdmin(auth.currentUser.email)) return;
+
+  console.log("🟢 Live Match Engine Started (Master Admin Mode)");
+
+  liveEngineInterval = setInterval(async () => {
+    const now = new Date();
+    const currentResults = { ...getResults() };
+    let changed = false;
+
+    for (const match of matches) {
+      const matchStart = new Date(match.date);
+      const diffMs = now - matchStart;
+      
+      if (diffMs >= 0 && diffMs <= 115 * 60 * 1000) {
+        const elapsedMinutes = Math.floor(diffMs / 60000);
+        
+        let homeGoals = 0;
+        let awayGoals = 0;
+        
+        for (let m = 1; m <= elapsedMinutes; m++) {
+          if ((match.id * m) % 103 === 0) homeGoals++;
+          if ((match.id * m) % 137 === 0) awayGoals++;
+        }
+
+        const saved = currentResults[match.id];
+        if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.minute !== elapsedMinutes) {
+          currentResults[match.id] = { home: homeGoals, away: awayGoals, live: true, minute: elapsedMinutes };
+          changed = true;
+        }
+      } 
+      else if (diffMs > 115 * 60 * 1000) {
+        const saved = currentResults[match.id];
+        if (saved && saved.live) {
+          delete saved.live;
+          delete saved.minute;
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) {
+      const resultsRef = doc(db, 'global', 'results');
+      await setDoc(resultsRef, currentResults);
+    }
+  }, 10000);
+}

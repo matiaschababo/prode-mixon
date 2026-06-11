@@ -1205,10 +1205,12 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   gap: 1rem;
 }
 .program-chart-logo {
+  flex-shrink: 0;
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 4px;
   border: 2px solid var(--glass-border);
   background: var(--bg-card);
 }
@@ -1228,11 +1230,13 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   width: 0%; /* initial for animation */
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding-right: 1rem;
+  justify-content: flex-start;
+  padding-left: 1rem;
   font-weight: 800;
   font-size: 0.9rem;
   color: #fff;
+  white-space: nowrap;
+  overflow: visible;
   text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,1);
   position: relative;
   z-index: 1;

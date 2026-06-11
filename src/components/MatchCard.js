@@ -12,10 +12,10 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
 
   let badgeClass = 'badge-scheduled';
   let statusText = 'Programado';
-  if (match.status === 'live') {
+  if (resultOverride?.live || match.status === 'live') {
     badgeClass = 'badge-live';
-    statusText = '🔴 En Vivo';
-  } else if (match.status === 'finished') {
+    statusText = `🔴 EN VIVO ${resultOverride?.minute ? '- ' + resultOverride.minute + "'" : ''}`;
+  } else if (match.status === 'finished' || (isPast && !resultOverride?.live && (resultOverride?.home !== undefined || match.homeScore !== null))) {
     badgeClass = 'badge-finished';
     statusText = 'Finalizado';
   }
