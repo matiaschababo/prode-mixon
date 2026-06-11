@@ -124,10 +124,15 @@ export function getMatchResult(match) {
   return null;
 }
 
+function capitalizeName(name) {
+  if (!name) return 'Usuario';
+  return name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
 export function getDynamicUsers() {
   return Object.values(prodeState.users).map(u => ({
     id: u.uid,
-    name: u.displayName || 'Usuario',
+    name: capitalizeName(u.displayName),
     email: u.email || '',
     photo: u.photo || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
     program: u.program || 'viewers',
@@ -162,7 +167,7 @@ export function getParticipantStats(participantId) {
 export function getRankedParticipants(programId = null) {
   const dynamicUsers = Object.values(prodeState.users).map(u => ({
     id: u.uid,
-    name: u.displayName || 'Usuario',
+    name: capitalizeName(u.displayName),
     photo: u.photo || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
     program: u.program || 'viewers',
     role: u.role || 'Viewer'
