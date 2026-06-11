@@ -127,6 +127,8 @@ export function getMatchResult(match) {
 function capitalizeName(name) {
   if (!name) return 'Usuario';
   return name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
 function getCustomLocalPhoto(name) {
   const n = name ? name.toLowerCase() : '';
   if (n.includes('matias') && n.includes('chababo')) return '/assets/matias.jpg';

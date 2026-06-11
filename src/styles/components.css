@@ -897,3 +897,55 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   .groups-grid { grid-template-columns: 1fr; }
   .bracket-round-matches { grid-template-columns: 1fr; }
 }
+
+/* Program Chart */
+.program-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  margin-bottom: 3rem;
+}
+.program-chart-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.program-chart-logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--glass-border);
+  background: var(--bg-card);
+}
+.program-chart-bar-container {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  height: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.program-chart-bar-fill {
+  height: 100%;
+  border-radius: 12px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 0%; /* initial for animation */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.75rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.program-chart-points {
+  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  min-width: 60px;
+  text-align: right;
+}

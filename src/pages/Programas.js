@@ -45,9 +45,41 @@ export function Programas(programId = null) {
     </a>
   `).join('');
 
+  const programTotals = Object.values(programs).map(prog => {
+    const participants = getRankedParticipants(prog.id);
+    const totalPoints = participants.reduce((sum, p) => sum + (p.totalPoints || 0), 0);
+    return { ...prog, totalPoints };
+  }).sort((a, b) => b.totalPoints - a.totalPoints);
+
+  const maxPoints = Math.max(...programTotals.map(p => p.totalPoints), 1);
+
+  const chartHTML = `
+    <section class="glass-card" style="margin-bottom: 2rem;">
+      <h2 style="margin-bottom: 1.5rem; text-align: center;">Competencia Global</h2>
+      <div class="program-chart">
+        ${programTotals.map(prog => {
+          const percentage = (prog.totalPoints / maxPoints) * 100;
+          return `
+            <div class="program-chart-row">
+              <img src="${prog.logo}" alt="${prog.name}" class="program-chart-logo" style="border-color: ${prog.theme.main}">
+              <div class="program-chart-bar-container">
+                <div class="program-chart-bar-fill" style="width: ${percentage === 0 ? 5 : percentage}%; background: linear-gradient(90deg, ${prog.theme.main}, ${prog.theme.accent});">
+                  ${prog.name}
+                </div>
+              </div>
+              <div class="program-chart-points">${prog.totalPoints} pts</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </section>
+  `;
+
   return `
     <div class="programas-page animate-fade-in">
       <h1 style="margin-bottom: 2rem; text-align: center;">Ranking por Programa</h1>
+
+      ${chartHTML}
       
       <div class="grid-4" style="margin-bottom: 3rem;">
         ${programCardsHTML}
