@@ -177,7 +177,7 @@ function updateNavbarAuthUI() {
           <span class="user-name">${currentUserDynamic?.name || user.displayName}</span>
           ${badgeHtml}
         </div>
-        <a href="/perfil" data-link style="display: flex; align-items: center;">
+        <a href="/perfil/${user.uid}" data-link style="display: flex; align-items: center;">
           <img src="${customPhoto}" alt="Avatar" class="avatar-small">
         </a>
         <div class="user-actions" style="display: flex; gap: 0.25rem; margin-left: 0.25rem;">

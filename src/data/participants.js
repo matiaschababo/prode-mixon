@@ -54,7 +54,12 @@ export function getPrimaryProgram(participant) {
 
 export function getParticipantProgramLabel(participant) {
   const programIds = getParticipantProgramIds(participant);
-  if (!programIds.length) return "Equipo Mix On";
+  if (!programIds.length) {
+    if (participant.role && participant.role.toUpperCase() === 'VIEWER') {
+      return "MIXON";
+    }
+    return "EQUIPO MIX ON";
+  }
 
   return programIds
     .map(programId => programs[programId]?.name || programId)

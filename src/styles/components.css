@@ -232,14 +232,16 @@
   opacity: 0.8;
 }
 .pred-cta {
-  display: block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
-  text-align: center;
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--color-mixon-light);
   animation: pulse-glow 2s ease-in-out infinite;
-  margin: 0 auto 0.5rem;
+  margin-bottom: 0.5rem;
 }
 @keyframes pulse-glow {
   0%, 100% { opacity: 1; }
