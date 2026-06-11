@@ -35,7 +35,9 @@ export const participants = [];
 
 export function getParticipantProgramIds(participant) {
   const program = participant.program || participant.programId;
-  return participant.programIds || (program && program !== 'viewers' ? [program] : []);
+  if (participant.programIds) return participant.programIds;
+  if (!program || program === 'viewers') return [];
+  return program.split(',').map(p => p.trim());
 }
 
 export function isParticipantInProgram(participant, programId) {

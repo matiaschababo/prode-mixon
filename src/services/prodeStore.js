@@ -127,14 +127,20 @@ export function getMatchResult(match) {
 function capitalizeName(name) {
   if (!name) return 'Usuario';
   return name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-}
-
 function getCustomLocalPhoto(name) {
   const n = name ? name.toLowerCase() : '';
   if (n.includes('matias') && n.includes('chababo')) return '/assets/matias.jpg';
   if (n.includes('abril') && n.includes('zabaleta')) return '/assets/abril.jpg';
   if (n.includes('dianela') && n.includes('caracchi')) return '/assets/dianela.jpg';
   if (n.includes('tomas') && n.includes('holder')) return '/assets/tomas.jpg';
+  if (n.includes('facu') && n.includes('colman')) return '/assets/facu.png';
+  if (n.includes('fran') && n.includes('metz')) return '/assets/fran.png';
+  if (n.includes('gonza') && n.includes('acevedo')) return '/assets/gonza.jpg';
+  if (n.includes('grito') && n.includes('villagra')) return '/assets/grito.jpg';
+  if (n.includes('pato') && n.includes('filippini')) return '/assets/pato.jpg';
+  if (n.includes('lobell')) return '/assets/lobell.jpg';
+  if (n.includes('tomi') && n.includes('messi')) return '/assets/tomi.jpg';
+  if (n.includes('tonali')) return '/assets/tonali.jpg';
   return null;
 }
 
