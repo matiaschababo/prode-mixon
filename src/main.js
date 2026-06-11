@@ -134,7 +134,8 @@ function updateNavbarAuthUI() {
 
     const roleIcon = currentRole === 'Conductor' ? '🎙️ ' : 
                      currentRole === 'Productor' ? '🎬 ' : 
-                     currentRole === 'Operador' ? '🎛️ ' : '';
+                     currentRole === 'Operador' ? '🎛️ ' : 
+                     currentRole === 'Editor/a' ? '✂️ ' : '';
     const badgeHtml = `<span class="user-role-badge">${roleIcon}${currentRole.toUpperCase()} ${currentProgram && currentProgram !== 'viewers' ? '· ' + currentProgram.toUpperCase() : ''}</span>`;
 
     container.innerHTML = `

@@ -52,7 +52,8 @@ export function Admin() {
           <option value="Conductor" ${u.role === 'Conductor' ? 'selected' : ''}>Conductor</option>
           <option value="Productor" ${u.role === 'Productor' ? 'selected' : ''}>Productor</option>
           <option value="Operador" ${u.role === 'Operador' ? 'selected' : ''}>Operador</option>
-          <option value="Viewer" ${['Conductor', 'Productor', 'Operador'].includes(u.role) ? '' : 'selected'}>Viewer</option>
+          <option value="Editor/a" ${u.role === 'Editor/a' ? 'selected' : ''}>Editor/a</option>
+          <option value="Viewer" ${['Conductor', 'Productor', 'Operador', 'Editor/a'].includes(u.role) ? '' : 'selected'}>Viewer</option>
         </select>
         
         <select class="user-program-input" data-uid="${u.id}" style="padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">

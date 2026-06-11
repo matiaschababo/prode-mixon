@@ -18,7 +18,8 @@ export function RankingTable(participantsData) {
     else medal = `<span class="pos-num">${pos}</span>`;
     const roleIcon = p.role === 'Conductor' ? '🎙️ ' : 
                      p.role === 'Productor' ? '🎬 ' : 
-                     p.role === 'Operador' ? '🎛️ ' : '';
+                     p.role === 'Operador' ? '🎛️ ' : 
+                     p.role === 'Editor/a' ? '✂️ ' : '';
     const roleDisplay = `${roleIcon}${(p.role || 'Viewer').toUpperCase()}`;
     
     const topClass = pos <= 3 ? `top-${pos}` : '';

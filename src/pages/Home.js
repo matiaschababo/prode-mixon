@@ -55,12 +55,10 @@ export function attachHomeEvents() {
       let participants = getRankedParticipants();
 
       if (filter === 'conductores') {
-        participants = participants.filter(p => 
-          p.program !== 'viewers' && p.role !== 'Productor' && p.role !== 'Operador' && p.role !== 'Master Admin'
-        );
+        participants = participants.filter(p => p.role === 'Conductor');
       } else if (filter === 'staff') {
         participants = participants.filter(p => 
-          p.role === 'Productor' || p.role === 'Operador'
+          p.role === 'Productor' || p.role === 'Operador' || p.role === 'Editor/a' || (p.program !== 'viewers' && p.role !== 'Conductor' && p.role !== 'Viewer')
         );
       } else if (filter === 'viewers') {
         participants = participants.filter(p => p.role === 'Viewer' || p.program === 'viewers');
