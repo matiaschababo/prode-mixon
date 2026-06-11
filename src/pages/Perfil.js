@@ -72,7 +72,7 @@ export function Perfil(participantId) {
 
   return `
     <div class="profile-page animate-fade-in">
-      <a href="${firstProgramId ? `/programas/${firstProgramId}` : '/programas'}" class="btn btn-secondary btn-sm" data-link style="margin-bottom: 1rem;">Volver</a>
+      <a href="#" onclick="window.history.back(); return false;" class="btn btn-secondary btn-sm" style="margin-bottom: 1rem;">Volver</a>
 
       <section class="profile-hero glass-card" style="border-color: ${program.theme.main}">
         <div style="position: relative; display: inline-block;">
