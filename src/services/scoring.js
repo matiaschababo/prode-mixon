@@ -27,38 +27,44 @@ export const MULTIPLIERS = {
   "Final": 4
 };
 
-export function calculatePoints(predictionHome, predictionAway, actualHome, actualAway, stage = "Group Stage") {
-  if (actualHome === null || actualAway === null) return 0;
-  if (predictionHome === null || predictionAway === null) return 0;
+export function getHitType(predictionHome, predictionAway, actualHome, actualAway) {
+  if (actualHome === null || actualAway === null) return "MISS";
+  if (predictionHome === null || predictionAway === null) return "MISS";
 
   const predH = parseInt(predictionHome);
   const predA = parseInt(predictionAway);
   const actH = parseInt(actualHome);
   const actA = parseInt(actualAway);
 
-  let points = 0;
-
-  // Resultado exacto
   if (predH === actH && predA === actA) {
-    points = 3;
+    return "EXACT"; // 3 pts
   } 
-  // Diferencia exacta (pero no resultado exacto) - Solo aplica si hay ganador, en empate 2pts no aplica si no es resultado exacto, porque empate siempre es dif 0. Si puso 1-1 y salió 2-2, es 1pt por acertar resultado.
-  else {
-    const predDiff = predH - predA;
-    const actDiff = actH - actA;
-    
-    const predWinner = predDiff > 0 ? "H" : predDiff < 0 ? "A" : "D";
-    const actWinner = actDiff > 0 ? "H" : actDiff < 0 ? "A" : "D";
 
-    if (predWinner === actWinner) {
-      if (predWinner !== "D" && predDiff === actDiff) {
-        points = 2; // Acertó ganador y diferencia
-      } else {
-        points = 1; // Acertó ganador o empate
-      }
+  const predDiff = predH - predA;
+  const actDiff = actH - actA;
+  
+  const predWinner = predDiff > 0 ? "H" : predDiff < 0 ? "A" : "D";
+  const actWinner = actDiff > 0 ? "H" : actDiff < 0 ? "A" : "D";
+
+  if (predWinner === actWinner) {
+    if (predWinner !== "D" && predDiff === actDiff) {
+      return "DIFF"; // 2 pts
+    } else {
+      return "WINNER"; // 1 pt
     }
   }
 
+  return "MISS"; // 0 pts
+}
+
+export function calculatePoints(predictionHome, predictionAway, actualHome, actualAway, stage = "Group Stage") {
+  const hitType = getHitType(predictionHome, predictionAway, actualHome, actualAway);
+  let basePoints = 0;
+  
+  if (hitType === "EXACT") basePoints = 3;
+  else if (hitType === "DIFF") basePoints = 2;
+  else if (hitType === "WINNER") basePoints = 1;
+
   const multiplier = MULTIPLIERS[stage] || 1;
-  return points * multiplier;
+  return basePoints * multiplier;
 }

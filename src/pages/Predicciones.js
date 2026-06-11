@@ -2,7 +2,7 @@
 import { matches } from '../data/matches.js';
 import { getParticipantProgramLabel } from '../data/participants.js';
 import { getPredictions, getMatchResult, getDynamicUsers } from '../services/prodeStore.js';
-import { calculatePoints } from '../services/scoring.js';
+import { calculatePoints, getHitType } from '../services/scoring.js';
 
 export function Predicciones(matchId) {
   const match = matches.find(m => m.id === parseInt(matchId));
@@ -12,29 +12,50 @@ export function Predicciones(matchId) {
   const result = getMatchResult(match);
   const dynamicUsers = getDynamicUsers();
 
-  // Filter to only users who have a prediction for this match
-  const usersWithPredictions = dynamicUsers.filter(u => predictions[u.id]);
+  // Filter to only users who have a prediction for this match, and map data
+  let usersWithPredictions = dynamicUsers
+    .filter(u => predictions[u.id])
+    .map(u => {
+      const prediction = predictions[u.id];
+      let points = null;
+      let hitType = null;
+      if (prediction && result) {
+        points = calculatePoints(prediction.home, prediction.away, result.home, result.away, match.stage);
+        hitType = getHitType(prediction.home, prediction.away, result.home, result.away);
+      }
+      return { ...u, prediction, points, hitType };
+    });
+
+  // Sort descending by points if available
+  usersWithPredictions.sort((a, b) => {
+    if (a.points !== null && b.points !== null) {
+      return b.points - a.points;
+    }
+    return 0;
+  });
 
   const prediccionesHTML = usersWithPredictions.length === 0
     ? `<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Todavía nadie cargó una predicción para este partido.</p>`
     : usersWithPredictions.map((p, index) => {
-        const prediction = predictions[p.id];
-        const points = prediction && result
-          ? calculatePoints(prediction.home, prediction.away, result.home, result.away, match.stage)
-          : null;
+        let scoreStyle = '';
+        let icon = '';
+        if (p.hitType === "EXACT") { scoreStyle = 'color: var(--color-exact); font-weight: 800;'; icon = '✅'; }
+        else if (p.hitType === "DIFF") { scoreStyle = 'color: var(--color-diff); font-weight: 800;'; icon = '🔥'; }
+        else if (p.hitType === "WINNER") { scoreStyle = 'color: var(--color-winner); font-weight: 800;'; icon = '👍'; }
+        else if (p.hitType === "MISS") { scoreStyle = 'color: var(--color-miss); opacity: 0.8;'; icon = '❌'; }
 
         return `
           <div class="glass-card prediction-row animate-slide-up" style="animation-delay: ${index * 0.05}s">
             <a href="/perfil/${p.id}" data-link style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit;">
-              <img src="${p.photo}" class="avatar" style="width: 40px; height: 40px;">
+              <img src="${p.photo}" class="avatar" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
               <div>
                 <div style="font-weight: 600;">${p.name}</div>
                 <div style="font-size: 0.8rem; color: var(--text-secondary);">${p.role || 'Participante'} · ${getParticipantProgramLabel(p)}</div>
               </div>
             </a>
-            <div class="prediction-score">
-              <span>${prediction ? `${prediction.home} - ${prediction.away}` : '? - ?'}</span>
-              ${points !== null ? `<small>${points} pts</small>` : ''}
+            <div class="prediction-score" style="text-align: right;">
+              <div style="${scoreStyle} font-size: 1.25rem;">${p.prediction ? `${p.prediction.home} - ${p.prediction.away}` : '? - ?'}</div>
+              ${p.points !== null ? `<small style="${scoreStyle}">${icon} ${p.points} pts</small>` : ''}
             </div>
           </div>
         `;
