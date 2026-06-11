@@ -24,29 +24,78 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
   const awayScore = resultOverride?.away ?? match.awayScore;
   const hasResult = homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined;
 
-  // Si hay un usuario logueado (pasamos userPred) y el partido no empezó, mostramos los inputs
+  const hasPrediction = userPred && userPred.home !== undefined && userPred.home !== null && userPred.home !== '';
+
+  // Build the prediction area
+  let predictionArea = '';
+  if (userPred !== null) {
+    // User is logged in
+    if (!isPast) {
+      // Match hasn't started — they can predict
+      if (hasPrediction) {
+        // Already has a prediction saved — show it with a "Cambiar" button
+        predictionArea = `
+          <div class="pred-area" data-match="${match.id}">
+            <div class="pred-saved">
+              <span class="pred-label">Tu pronóstico</span>
+              <span class="pred-value">${userPred.home} - ${userPred.away}</span>
+            </div>
+            <button class="btn btn-secondary btn-sm pred-change-btn" data-match="${match.id}">✏️ Cambiar</button>
+            <div class="pred-edit-form" style="display: none;">
+              <div class="pred-inputs-row">
+                <input type="number" min="0" class="pred-input my-pred-home" data-match="${match.id}" value="${userPred.home}" placeholder="0">
+                <span class="pred-dash">-</span>
+                <input type="number" min="0" class="pred-input my-pred-away" data-match="${match.id}" value="${userPred.away}" placeholder="0">
+              </div>
+              <button class="btn btn-primary btn-sm pred-save-btn" data-match="${match.id}">Guardar</button>
+            </div>
+          </div>
+        `;
+      } else {
+        // No prediction yet — show the form open with a call to action
+        predictionArea = `
+          <div class="pred-area pred-area-open" data-match="${match.id}">
+            <span class="pred-cta">⚽ ¡Cargá tu pronóstico!</span>
+            <div class="pred-edit-form">
+              <div class="pred-inputs-row">
+                <input type="number" min="0" class="pred-input my-pred-home" data-match="${match.id}" value="" placeholder="0">
+                <span class="pred-dash">-</span>
+                <input type="number" min="0" class="pred-input my-pred-away" data-match="${match.id}" value="" placeholder="0">
+              </div>
+              <button class="btn btn-primary btn-sm pred-save-btn" data-match="${match.id}">Guardar</button>
+            </div>
+          </div>
+        `;
+      }
+    } else {
+      // Match already started — show prediction as read-only
+      if (hasPrediction) {
+        predictionArea = `
+          <div class="pred-area pred-area-locked">
+            <div class="pred-saved">
+              <span class="pred-label">Tu pronóstico</span>
+              <span class="pred-value">${userPred.home} - ${userPred.away}</span>
+            </div>
+            <span class="pred-lock">🔒</span>
+          </div>
+        `;
+      } else {
+        predictionArea = `
+          <div class="pred-area pred-area-locked">
+            <span class="pred-label" style="color: var(--text-muted);">No cargaste pronóstico</span>
+            <span class="pred-lock">🔒</span>
+          </div>
+        `;
+      }
+    }
+  }
+
+  // Main score display (result or time)
   let scoreDisplay;
-  if (userPred && !isPast) {
-    scoreDisplay = `
-      <div class="prediction-inputs" style="display: flex; gap: 0.5rem; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
-        <input type="number" min="0" class="pred-input my-pred-home" data-match="${match.id}" value="${userPred.home ?? ''}" placeholder="-" style="width: 40px; text-align: center; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; padding: 0.25rem;">
-        <span>-</span>
-        <input type="number" min="0" class="pred-input my-pred-away" data-match="${match.id}" value="${userPred.away ?? ''}" placeholder="-" style="width: 40px; text-align: center; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; padding: 0.25rem;">
-      </div>
-    `;
-  } else if (userPred && isPast) {
-    // Partido pasado, mostramos la predicción del usuario como texto si la cargó
-    const pHome = userPred.home ?? '-';
-    const pAway = userPred.away ?? '-';
-    scoreDisplay = `
-      <div class="match-time" style="font-size: 0.8rem; margin-bottom: 0.25rem;">Tu pronóstico: <strong style="color:var(--color-mixon-light)">${pHome} - ${pAway}</strong></div>
-      ${hasResult ? `<div class="match-score">${homeScore} - ${awayScore}</div>` : `<div class="match-time">${timeStr}</div>`}
-    `;
+  if (hasResult) {
+    scoreDisplay = `<div class="match-score">${homeScore} - ${awayScore}</div>`;
   } else {
-    // Vista pública normal
-    scoreDisplay = hasResult
-      ? `<div class="match-score">${homeScore} - ${awayScore}</div>`
-      : `<div class="match-time">${timeStr}</div>`;
+    scoreDisplay = `<div class="match-time">${timeStr}</div>`;
   }
 
   return `
@@ -65,7 +114,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
         
         <div class="match-center">
           ${scoreDisplay}
-          ${(!userPred || isPast) ? `<div class="match-date">${dateStr}</div>` : ''}
+          <div class="match-date">${dateStr}</div>
         </div>
         
         <div class="team away">
@@ -74,6 +123,8 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
           <span class="name">${away.name}</span>
         </div>
       </div>
+
+      ${predictionArea}
       
       <div class="match-footer">
         <span>📍 ${match.venue}</span>

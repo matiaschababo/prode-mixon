@@ -65,20 +65,76 @@ export function Fixture() {
 }
 
 export function attachFixtureEvents() {
-  document.querySelectorAll('.pred-input').forEach(input => {
-    input.addEventListener('change', async (e) => {
+  // "Cambiar" button — toggle the edit form
+  document.querySelectorAll('.pred-change-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const area = e.target.closest('.pred-area');
+      const saved = area.querySelector('.pred-saved');
+      const form = area.querySelector('.pred-edit-form');
+      const changeBtn = area.querySelector('.pred-change-btn');
+      saved.style.display = 'none';
+      changeBtn.style.display = 'none';
+      form.style.display = 'flex';
+    });
+  });
+
+  // "Guardar" button — save and update the UI
+  document.querySelectorAll('.pred-save-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const area = e.target.closest('.pred-area');
       const matchId = e.target.dataset.match;
-      const card = e.target.closest('.match-card');
-      const home = card.querySelector('.my-pred-home').value;
-      const away = card.querySelector('.my-pred-away').value;
-      
+      const home = area.querySelector('.my-pred-home').value;
+      const away = area.querySelector('.my-pred-away').value;
+
+      if (home === '' || away === '') {
+        alert('Completá ambos marcadores para guardar tu pronóstico.');
+        return;
+      }
+
       try {
         await saveMyPrediction(matchId, home, away);
-        e.target.style.borderColor = '#2ed573';
-        setTimeout(() => e.target.style.borderColor = 'rgba(255,255,255,0.2)', 1000);
+        
+        // Update the UI to show saved state
+        const form = area.querySelector('.pred-edit-form');
+        let saved = area.querySelector('.pred-saved');
+        let changeBtn = area.querySelector('.pred-change-btn');
+        const cta = area.querySelector('.pred-cta');
+        
+        if (cta) cta.remove();
+
+        if (!saved) {
+          // First time saving — create the saved display
+          saved = document.createElement('div');
+          saved.className = 'pred-saved';
+          saved.innerHTML = `<span class="pred-label">Tu pronóstico</span><span class="pred-value">${home} - ${away}</span>`;
+          area.insertBefore(saved, form);
+          
+          changeBtn = document.createElement('button');
+          changeBtn.className = 'btn btn-secondary btn-sm pred-change-btn';
+          changeBtn.dataset.match = matchId;
+          changeBtn.textContent = '✏️ Cambiar';
+          area.insertBefore(changeBtn, form);
+          
+          changeBtn.addEventListener('click', () => {
+            saved.style.display = 'none';
+            changeBtn.style.display = 'none';
+            form.style.display = 'flex';
+          });
+        } else {
+          saved.querySelector('.pred-value').textContent = `${home} - ${away}`;
+          saved.style.display = '';
+          if (changeBtn) changeBtn.style.display = '';
+        }
+        
+        form.style.display = 'none';
+        area.classList.remove('pred-area-open');
+        
+        // Brief green flash on the saved value
+        const val = saved.querySelector('.pred-value');
+        val.style.color = '#2ed573';
+        setTimeout(() => val.style.color = '', 1500);
       } catch (err) {
         alert("Error al guardar: " + err.message);
-        e.target.value = '';
       }
     });
   });

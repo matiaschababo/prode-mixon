@@ -156,6 +156,95 @@
 .match-footer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .match-footer .btn { flex-shrink: 0; }
 
+/* Prediction Area */
+.pred-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border-radius: 12px;
+  background: rgba(123, 45, 142, 0.08);
+  border: 1px dashed rgba(155, 89, 182, 0.3);
+  flex-wrap: wrap;
+}
+.pred-area-open {
+  background: rgba(123, 45, 142, 0.15);
+  border: 1px solid rgba(155, 89, 182, 0.4);
+}
+.pred-area-locked {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0.8;
+}
+.pred-cta {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-mixon-light);
+  animation: pulse-glow 2s ease-in-out infinite;
+  width: 100%;
+  text-align: center;
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.pred-saved {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.pred-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.pred-value {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--color-mixon-light);
+  font-family: var(--font-display);
+  transition: color 0.3s ease;
+}
+.pred-lock {
+  font-size: 0.75rem;
+  opacity: 0.5;
+}
+.pred-edit-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.pred-inputs-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.pred-input {
+  width: 44px;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px solid rgba(155, 89, 182, 0.4);
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  padding: 0.35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.pred-input:focus {
+  outline: none;
+  border-color: var(--color-mixon-light);
+  box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.25);
+}
+.pred-dash {
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
 /* Ranking Specifics */
 .ranking-row {
   display: flex;
