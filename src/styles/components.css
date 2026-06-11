@@ -1370,3 +1370,134 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   opacity: 0.7;
   font-size: 0.75rem;
 }
+
+/* Slogan Brand styling */
+.slogan-brand {
+  white-space: nowrap;
+  background: linear-gradient(135deg, var(--color-mixon-light), #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  font-weight: 900;
+  text-shadow: 0 0 30px rgba(155, 89, 182, 0.25);
+}
+
+/* Feature Cards Premium Redesign */
+.feature-card {
+  position: relative;
+  overflow: hidden;
+  background: rgba(18, 18, 26, 0.5);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 16px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 24px;
+  padding: 2.2rem 1.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.05), transparent 60%);
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.feature-icon-wrapper {
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 1.25rem;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.02);
+}
+
+.feature-card-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0 0 0.75rem 0;
+  transition: color 0.3s ease;
+}
+
+.feature-card-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  transition: color 0.3s ease;
+}
+
+/* Themes colors and hovers */
+.feature-card.theme-purple .feature-icon-wrapper {
+  filter: drop-shadow(0 0 10px rgba(155, 89, 182, 0.25));
+}
+.feature-card.theme-purple .feature-card-title {
+  color: var(--color-mixon-light);
+}
+.feature-card.theme-purple:hover {
+  transform: translateY(-8px);
+  border-color: rgba(155, 89, 182, 0.45);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(155, 89, 182, 0.25);
+  background-color: rgba(24, 18, 30, 0.65);
+}
+.feature-card.theme-purple:hover .feature-icon-wrapper {
+  background: rgba(155, 89, 182, 0.15);
+  border-color: rgba(155, 89, 182, 0.45);
+  box-shadow: 0 0 20px rgba(155, 89, 182, 0.4);
+  transform: scale(1.1);
+}
+
+.feature-card.theme-blue .feature-icon-wrapper {
+  filter: drop-shadow(0 0 10px rgba(92, 184, 228, 0.25));
+}
+.feature-card.theme-blue .feature-card-title {
+  color: var(--color-diff);
+}
+.feature-card.theme-blue:hover {
+  transform: translateY(-8px);
+  border-color: rgba(92, 184, 228, 0.45);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(92, 184, 228, 0.25);
+  background-color: rgba(18, 22, 30, 0.65);
+}
+.feature-card.theme-blue:hover .feature-icon-wrapper {
+  background: rgba(92, 184, 228, 0.15);
+  border-color: rgba(92, 184, 228, 0.45);
+  box-shadow: 0 0 20px rgba(92, 184, 228, 0.4);
+  transform: scale(1.1);
+}
+
+.feature-card.theme-red .feature-icon-wrapper {
+  filter: drop-shadow(0 0 10px rgba(226, 27, 60, 0.25));
+}
+.feature-card.theme-red .feature-card-title {
+  color: #ff4d6d;
+}
+.feature-card.theme-red:hover {
+  transform: translateY(-8px);
+  border-color: rgba(226, 27, 60, 0.45);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(226, 27, 60, 0.25);
+  background-color: rgba(30, 18, 20, 0.65);
+}
+.feature-card.theme-red:hover .feature-icon-wrapper {
+  background: rgba(226, 27, 60, 0.15);
+  border-color: rgba(226, 27, 60, 0.45);
+  box-shadow: 0 0 20px rgba(226, 27, 60, 0.4);
+  transform: scale(1.1);
+}
