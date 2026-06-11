@@ -15,6 +15,7 @@ export function RankingTable(participantsData) {
     if (pos === 1) medal = '🥇';
     else if (pos === 2) medal = '🥈';
     else if (pos === 3) medal = '🥉';
+    else medal = `<span class="pos-num">${pos}</span>`;
     const roleIcon = p.role === 'Conductor' ? '🎙️ ' : 
                      p.role === 'Productor' ? '🎬 ' : 
                      p.role === 'Operador' ? '🎛️ ' : '';
