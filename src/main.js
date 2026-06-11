@@ -13,6 +13,7 @@ import { Admin, attachAdminEvents } from './pages/Admin.js';
 import { Puntajes } from './pages/Puntajes.js';
 import { Perfil, attachPerfilEvents } from './pages/Perfil.js';
 import { Llaves } from './pages/Llaves.js';
+import { TeamProfile } from './pages/TeamProfile.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
 import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine } from './services/prodeStore.js';
@@ -62,6 +63,13 @@ function router() {
   updateNavbarAuthUI();
 }
 
+window.router = {
+  navigate: (url) => {
+    window.history.pushState(null, null, url);
+    router();
+  }
+};
+
 function renderPage(path) {
   if (path.startsWith('/predicciones/')) {
     const matchId = path.split('/')[2];
@@ -76,6 +84,10 @@ function renderPage(path) {
   if (path.startsWith('/perfil/')) {
     const participantId = path.split('/')[2];
     return Perfil(participantId);
+  }
+
+  if (path.startsWith('/equipo/')) {
+    return TeamProfile();
   }
   
   const page = routes[path];

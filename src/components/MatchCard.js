@@ -106,7 +106,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
       </div>
       
       <div class="match-teams">
-        <div class="team home">
+        <div class="team home" onclick="window.router.navigate('/equipo/${home.id}')" style="cursor: pointer;">
           <img src="${home.flagUrl}" alt="${home.name}" class="flag-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
           <span class="flag-emoji" style="display:none">${home.flag}</span>
           <span class="name">${home.name}</span>
@@ -117,7 +117,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
           <div class="match-date">${dateStr}</div>
         </div>
         
-        <div class="team away">
+        <div class="team away" onclick="window.router.navigate('/equipo/${away.id}')" style="cursor: pointer;">
           <img src="${away.flagUrl}" alt="${away.name}" class="flag-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
           <span class="flag-emoji" style="display:none">${away.flag}</span>
           <span class="name">${away.name}</span>

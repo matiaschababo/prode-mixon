@@ -2,27 +2,53 @@
 import { teams } from '../data/teams.js';
 import { bracketData, groupsList } from '../data/bracket.js';
 
-function getTeamsByGroup(group) {
-  return Object.values(teams).filter(t => t.group === group && t.id !== 'TBD');
-}
+import { calculateGroupStandings } from '../services/standings.js';
 
-function renderGroupMini(group) {
-  const groupTeams = getTeamsByGroup(group);
+function renderGroupMini(group, standings) {
+  const groupTeams = standings[group] || [];
   const rows = groupTeams.map((team, i) => {
     const posClass = i < 2 ? 'group-qualified' : (i === 2 ? 'group-third' : 'group-eliminated');
     return `
-      <div class="group-mini-row ${posClass}">
-        <span class="group-mini-pos">${i + 1}</span>
-        <img src="${team.flagUrl}" alt="${team.name}" class="group-mini-flag" onerror="this.style.display='none'">
-        <span class="group-mini-name">${team.name}</span>
-      </div>
+      <tr class="${posClass}" onclick="window.router.navigate('/equipo/${team.id}')" style="cursor: pointer;">
+        <td class="group-mini-pos">${i + 1}</td>
+        <td class="group-mini-team">
+          <img src="${team.flagUrl}" alt="${team.name}" class="group-mini-flag" onerror="this.style.display='none'">
+          <span class="group-mini-name">${team.name}</span>
+        </td>
+        <td>${team.played}</td>
+        <td>${team.won}</td>
+        <td>${team.drawn}</td>
+        <td>${team.lost}</td>
+        <td>${team.goalsFor}</td>
+        <td>${team.goalsAgainst}</td>
+        <td>${team.goalDiff > 0 ? '+'+team.goalDiff : team.goalDiff}</td>
+        <td class="group-mini-pts">${team.points}</td>
+      </tr>
     `;
   }).join('');
 
   return `
     <div class="glass-card group-mini animate-slide-up">
       <div class="group-mini-header">Grupo ${group}</div>
-      ${rows}
+      <table class="group-standings-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Equipo</th>
+            <th>PJ</th>
+            <th>G</th>
+            <th>E</th>
+            <th>P</th>
+            <th>GF</th>
+            <th>GC</th>
+            <th>DIF</th>
+            <th>Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
     </div>
   `;
 }
@@ -73,7 +99,8 @@ function expandLabel(label) {
 }
 
 export function Llaves() {
-  const groups = groupsList.map(g => renderGroupMini(g)).join('');
+  const standings = calculateGroupStandings();
+  const groups = groupsList.map(g => renderGroupMini(g, standings)).join('');
 
   const renderRound = (matches, title, round) => {
     const slots = matches.map(s => renderBracketSlot(s, round)).join('');
