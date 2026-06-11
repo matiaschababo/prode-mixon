@@ -54,9 +54,16 @@ export function Admin() {
           <option value="Operador" ${u.role === 'Operador' ? 'selected' : ''}>Operador</option>
           <option value="Viewer" ${['Conductor', 'Productor', 'Operador'].includes(u.role) ? '' : 'selected'}>Viewer</option>
         </select>
+        
         <select class="user-program-input" data-uid="${u.id}" style="padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
-          ${programOptions.replace(`value="${u.program}"`, `value="${u.program}" selected`)}
+          ${programOptions.replace(`value="${u.program?.split(',')[0]?.trim() || u.program}"`, `value="${u.program?.split(',')[0]?.trim() || u.program}" selected`)}
         </select>
+
+        <select class="user-program2-input" data-uid="${u.id}" style="padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: rgba(255,255,255,0.5);">
+          <option value="">(Sin Prog. 2)</option>
+          ${programOptions.replace(`value="${u.program?.split(',')[1]?.trim() || ''}"`, `value="${u.program?.split(',')[1]?.trim() || ''}" selected`)}
+        </select>
+
         <button class="btn btn-secondary btn-sm save-user-role" data-uid="${u.id}">Guardar</button>
       </div>
     </div>
@@ -126,8 +133,11 @@ export function attachAdminEvents() {
     btn.addEventListener('click', async (e) => {
       const uid = e.target.dataset.uid;
       const role = document.querySelector(`.user-role-input[data-uid="${uid}"]`).value;
-      const program = document.querySelector(`.user-program-input[data-uid="${uid}"]`).value;
+      const program1 = document.querySelector(`.user-program-input[data-uid="${uid}"]`).value;
+      const program2 = document.querySelector(`.user-program2-input[data-uid="${uid}"]`).value;
       
+      const program = program2 ? `${program1}, ${program2}` : program1;
+
       try {
         await updateUserRole(uid, program, role);
         e.target.innerText = '✅ Guardado';

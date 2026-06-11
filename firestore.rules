@@ -4,9 +4,9 @@ service cloud.firestore {
     
     function isMasterAdmin() {
       return request.auth != null && (
-        request.auth.token.email.lower() == 'matiaschababo@gmail.com' ||
-        request.auth.token.email.lower() == 'manzo.coinary@gmail.com' ||
-        request.auth.token.email.lower() == 'pitta.visual.garden@gmail.com'
+        request.auth.token.email == 'matiaschababo@gmail.com' ||
+        request.auth.token.email == 'manzo.coinary@gmail.com' ||
+        request.auth.token.email == 'pitta.visual.garden@gmail.com'
       );
     }
 
