@@ -113,7 +113,7 @@ export function getDynamicUsers() {
     email: u.email || '',
     photo: u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
     program: u.program || 'viewers',
-    role: u.role || 'Espectador'
+    role: u.role || 'Viewer'
   }));
 }
 
@@ -147,7 +147,7 @@ export function getRankedParticipants(programId = null) {
     name: u.displayName || 'Usuario',
     photo: u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
     program: u.program || 'viewers',
-    role: u.role || 'Espectador'
+    role: u.role || 'Viewer'
   }));
 
   return dynamicUsers
@@ -169,7 +169,7 @@ export async function ensureUserExists(user) {
       email: user.email,
       photoURL: user.photoURL,
       program: 'viewers',
-      role: 'Espectador'
+      role: 'Viewer'
     });
   }
 }
