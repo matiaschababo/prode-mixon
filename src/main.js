@@ -14,7 +14,7 @@ import { Perfil } from './pages/Perfil.js';
 import { Llaves } from './pages/Llaves.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists } from './services/prodeStore.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS } from './services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
 
 const app = document.getElementById('app');
@@ -118,11 +118,18 @@ function updateNavbarAuthUI() {
   const user = auth.currentUser;
   if (user) {
     if (myPredsLink) myPredsLink.style.display = 'none'; // We don't need the link anymore
+    const badgeHtml = MASTER_ADMINS.includes(user.email) 
+      ? '<span class="user-role-badge user-role-master">⭐ MASTER ADMIN</span>'
+      : '';
+
     container.innerHTML = `
       <div class="user-profile">
+        <div class="user-info">
+          <span class="user-name">${user.displayName}</span>
+          ${badgeHtml}
+        </div>
         <img src="${user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid}" alt="Avatar" class="avatar-small">
-        <span class="user-name">${user.displayName}</span>
-        <button id="btn-logout" class="btn btn-secondary btn-small">Salir</button>
+        <button id="btn-logout" class="btn btn-secondary btn-small" style="margin-left: 1rem;">SALIR</button>
       </div>
     `;
     document.getElementById('btn-logout')?.addEventListener('click', () => {

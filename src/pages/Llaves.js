@@ -108,9 +108,15 @@ export function Llaves() {
         ${renderRound(bracketData.semiFinals, 'Semifinales', 'semiFinals')}
         
         <div class="bracket-round bracket-finals">
-          <h3 class="bracket-round-label">Final</h3>
+          <h3 class="bracket-round-label">Tercer Puesto</h3>
           <div class="bracket-round-matches">
             ${renderBracketSlot(bracketData.thirdPlace, 'final')}
+          </div>
+        </div>
+
+        <div class="bracket-round bracket-finals">
+          <h3 class="bracket-round-label">Final</h3>
+          <div class="bracket-round-matches">
             ${renderBracketSlot(bracketData.final, 'final')}
           </div>
         </div>
