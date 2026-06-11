@@ -1501,3 +1501,20 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   box-shadow: 0 0 20px rgba(226, 27, 60, 0.4);
   transform: scale(1.1);
 }
+
+.play-btn-highlight {
+  background: linear-gradient(135deg, var(--color-mixon-main), var(--color-mixon-light)) !important;
+  box-shadow: 0 0 20px rgba(155, 89, 182, 0.4) !important;
+  animation: play-btn-pulse 2s infinite ease-in-out !important;
+}
+
+@keyframes play-btn-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(155, 89, 182, 0.4);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 30px rgba(155, 89, 182, 0.7);
+  }
+}

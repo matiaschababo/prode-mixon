@@ -117,12 +117,12 @@ export function Llaves() {
   return `
     <section class="llaves-page">
       <h1 class="page-title animate-fade-in">Llaves del Mundial 2026</h1>
-      <p class="page-subtitle animate-fade-in" style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.5;">
+      <div class="page-subtitle animate-fade-in" style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.5;">
         Explorá el cuadro completo. Pasá el mouse sobre cada partido para ver quién se enfrenta.<br>
-        <span style="font-size: 0.85rem; color: var(--color-mixon-light); display: inline-flex; align-items: center; gap: 0.25rem; margin-top: 0.5rem;">
+        <div style="font-size: 0.85rem; color: var(--color-mixon-light); margin-top: 0.8rem; line-height: 1.4;">
           💡 <strong>Navegación:</strong> Hacé clic en cualquier bandera o selección dentro de las tablas de posiciones de grupos para ver su fixture completo, historial y estadísticas.
-        </span>
-      </p>
+        </div>
+      </div>
       
       <h2 class="section-title animate-fade-in">📋 Fase de Grupos</h2>
       <p class="section-desc animate-fade-in">Los 2 primeros de cada grupo clasifican directo. Los 8 mejores terceros también avanzan.</p>

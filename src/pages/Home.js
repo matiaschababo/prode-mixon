@@ -19,7 +19,7 @@ export function Home() {
           La plataforma definitiva para vivir la Copa del Mundo 2026. Cargá tus pronósticos, compará con la comunidad y seguí cada partido en vivo.
         </p>
         <div class="hero-actions">
-          <a href="/fixture" class="btn btn-primary glass-btn" data-link>VER FIXTURE</a>
+          <a href="/fixture" class="btn btn-primary glass-btn play-btn-highlight" data-link>🎮 JUGAR / CARGAR PRONÓSTICOS</a>
           <a href="/programas" class="btn btn-secondary glass-btn" data-link>POR PROGRAMA</a>
           <a href="/puntajes" class="btn btn-secondary glass-btn" data-link>PUNTAJES</a>
         </div>
