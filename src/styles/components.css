@@ -172,8 +172,17 @@
   padding: 0.4rem 0.1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
-.group-standings-table tr:hover {
-  background: rgba(255, 255, 255, 0.05);
+.group-standings-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.group-standings-table tbody tr:hover {
+  background: rgba(155, 89, 182, 0.15) !important;
+}
+.group-standings-table tbody tr:hover .group-mini-name {
+  color: var(--color-mixon-light);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 .group-standings-table .group-mini-team {
   text-align: left;

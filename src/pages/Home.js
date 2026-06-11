@@ -14,9 +14,9 @@ export function Home() {
           <img src="/assets/logo-mixon-clear.png" alt="Mix On" class="collab-logo collab-mixon drop-shadow-glow">
         </div>
 
-        <h1 class="hero-title">EL TORNEO DEFINITIVO</h1>
+        <h1 class="hero-title">SEGUÍ TODO EL MUNDIAL CON MIX ON</h1>
         <p class="hero-subtitle">
-          Seguí en vivo el torneo de predicciones entre todos los conductores, staff y viewers de Mix On.
+          La plataforma definitiva para vivir la Copa del Mundo 2026. Cargá tus pronósticos, compará con la comunidad y seguí cada partido en vivo.
         </p>
         <div class="hero-actions">
           <a href="/fixture" class="btn btn-primary glass-btn" data-link>VER FIXTURE</a>
@@ -24,6 +24,24 @@ export function Home() {
           <a href="/puntajes" class="btn btn-secondary glass-btn" data-link>PUNTAJES</a>
         </div>
       </section>
+
+      <div class="home-features grid-3 animate-fade-in" style="margin-bottom: 3rem;">
+        <div class="glass-card feature-card" style="padding: 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 2rem; filter: drop-shadow(0 0 10px rgba(155, 89, 182, 0.4));">🔮</span>
+          <h3 style="font-size: 1.1rem; color: var(--color-mixon-light); margin: 0; font-family: var(--font-display); font-weight: 800;">Pronósticos</h3>
+          <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Cargá tus pronósticos antes del partido y sumá puntos para subir en el ranking.</p>
+        </div>
+        <div class="glass-card feature-card" style="padding: 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 2rem; filter: drop-shadow(0 0 10px rgba(155, 89, 182, 0.4));">👥</span>
+          <h3 style="font-size: 1.1rem; color: var(--color-mixon-light); margin: 0; font-family: var(--font-display); font-weight: 800;">Comparar Votos</h3>
+          <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Hacél clic en <strong>"Comparar pronósticos"</strong> en cualquier tarjeta para ver qué votó el resto.</p>
+        </div>
+        <div class="glass-card feature-card" style="padding: 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 2rem; filter: drop-shadow(0 0 10px rgba(155, 89, 182, 0.4));">🔴</span>
+          <h3 style="font-size: 1.1rem; color: var(--color-mixon-light); margin: 0; font-family: var(--font-display); font-weight: 800;">Eventos en Vivo</h3>
+          <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Goles, rojas y cronómetro actualizados al instante en tiempo real.</p>
+        </div>
+      </div>
 
       <section class="ranking-section">
         <h2 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; justify-content: center;">

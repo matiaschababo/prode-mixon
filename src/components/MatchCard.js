@@ -152,7 +152,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
       
       <div class="match-footer">
         <span>📍 ${match.venue}</span>
-        <a href="/predicciones/${match.id}" class="btn btn-secondary btn-sm" data-link>Ver todas</a>
+        <a href="/predicciones/${match.id}" class="btn btn-secondary btn-sm" title="Comparar los pronósticos de todos los usuarios registrados para este partido" data-link>👥 Comparar pronósticos</a>
       </div>
     </div>
   `;

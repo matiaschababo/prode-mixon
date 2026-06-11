@@ -44,9 +44,12 @@ export function Fixture() {
   return `
     <section class="fixture-page">
       <h1 class="page-title animate-fade-in">Fixture Mundial 2026</h1>
-      <p class="page-subtitle animate-fade-in" style="color: var(--text-secondary); margin-bottom: 2rem;">
+      <p class="page-subtitle animate-fade-in" style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.5;">
         Todos los partidos en tu horario local 🌍<br>
-        ${user ? 'Podés cargar tus resultados directamente en las tarjetas de los partidos que no hayan empezado.' : 'Ingresá con tu cuenta para poder cargar tus predicciones.'}
+        ${user ? 'Podés cargar tus resultados directamente en las tarjetas de los partidos que no hayan empezado.' : 'Ingresá con tu cuenta para poder cargar tus predicciones.'}<br>
+        <span style="font-size: 0.85rem; color: var(--color-mixon-light); display: inline-flex; align-items: center; gap: 0.25rem; margin-top: 0.5rem;">
+          💡 <strong>Tip:</strong> Hacé clic en <strong>"Comparar pronósticos"</strong> en cualquier tarjeta para ver qué votaron los demás participantes, o seguí los goles y eventos en vivo una vez que comience el encuentro.
+        </span>
       </p>
       
       <div class="fixture-filters animate-fade-in">
