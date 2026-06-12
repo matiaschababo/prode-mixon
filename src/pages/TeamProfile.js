@@ -47,11 +47,11 @@ export function TeamProfile() {
 
   return `
     <section class="team-profile-page" style="max-width: 800px; margin: 0 auto;">
-      <div class="team-profile-header animate-fade-in" style="display: flex; align-items: center; gap: 1.5rem; justify-content: center; margin-bottom: 2rem;">
-        <img src="${team.flagUrl}" alt="${team.name}" style="width: 120px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-        <div style="text-align: left;">
+      <div class="team-profile-header animate-fade-in">
+        <img src="${team.flagUrl}" alt="${team.name}" class="team-profile-flag">
+        <div class="team-profile-info">
           <h1 class="page-title" style="margin-bottom: 0.25rem;">${team.name}</h1>
-          <div style="color: var(--text-secondary); font-size: 1.1rem;">Grupo ${team.group}</div>
+          <div class="team-profile-group">Grupo ${team.group}</div>
         </div>
       </div>
 

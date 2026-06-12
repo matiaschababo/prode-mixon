@@ -29,7 +29,7 @@ export function Home() {
         <div class="feature-card theme-purple">
           <div class="feature-icon-wrapper">🔮</div>
           <h3 class="feature-card-title">Pronósticos</h3>
-          <p class="feature-card-desc">Cargá tus pronósticos antes del partido y sumá puntos para subir en el ranking.</p>
+          <p class="feature-card-desc">Cargá y editá tus resultados partido a partido, hasta el inicio de cada encuentro. ¡No hace falta completar todo el fixture de una!</p>
         </div>
         <div class="feature-card theme-blue">
           <div class="feature-icon-wrapper">👥</div>

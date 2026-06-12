@@ -1518,3 +1518,38 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
     box-shadow: 0 0 30px rgba(155, 89, 182, 0.7);
   }
 }
+
+/* Team Profile Page styles */
+.team-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+.team-profile-flag {
+  width: 120px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+.team-profile-info {
+  text-align: left;
+}
+.team-profile-group {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+@media (max-width: 576px) {
+  .team-profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  .team-profile-info {
+    text-align: center;
+  }
+  .team-profile-flag {
+    width: 100px;
+  }
+}
+

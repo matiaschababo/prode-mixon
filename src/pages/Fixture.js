@@ -47,6 +47,12 @@ export function Fixture() {
       <div class="page-subtitle animate-fade-in" style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.5;">
         Todos los partidos en tu horario local 🌍<br>
         ${user ? 'Podés cargar tus resultados directamente en las tarjetas de los partidos que no hayan empezado.' : 'Ingresá con tu cuenta para poder cargar tus predicciones.'}<br>
+        <div style="font-size: 0.88rem; color: #00E676; margin-top: 0.8rem; line-height: 1.5; padding: 0.8rem 1rem; background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.2); border-radius: 12px; display: flex; gap: 0.6rem; align-items: flex-start; text-align: left; box-sizing: border-box;">
+          <span style="flex-shrink: 0; margin-top: 0.1rem;">🟢</span>
+          <div>
+            <strong>¡Jugá a tu ritmo!</strong> Podés cargar y editar tus predicciones partido a partido, hasta el minuto anterior a que empiece cada encuentro. No hace falta completar todo el fixture de una.
+          </div>
+        </div>
         <div style="font-size: 0.85rem; color: var(--color-mixon-light); margin-top: 0.8rem; line-height: 1.4;">
           💡 <strong>Tip:</strong> Hacé clic en <strong>"Comparar pronósticos"</strong> en cualquier tarjeta para ver qué votaron los demás participantes, o seguí los goles y eventos en vivo una vez que comience el encuentro.
         </div>
