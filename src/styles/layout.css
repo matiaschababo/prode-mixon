@@ -119,19 +119,24 @@
   .navbar { padding: 0.75rem 0; }
   .nav-content { 
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     width: 100%;
+  }
+  .nav-brand {
+    order: 1;
   }
   .nav-brand span.nav-title { display: none; }
   .nav-brand span.nav-x { font-size: 1.1rem; }
   .nav-brand img { height: 24px; }
   
   .nav-auth {
+    order: 2;
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    margin-right: 0.5rem;
+    margin-left: auto;
+    margin-right: 0.8rem;
   }
   .nav-auth .btn {
     padding: 0.4rem 1rem;
@@ -140,8 +145,12 @@
   }
   
   .mobile-menu-btn {
-    display: block;
-    margin-left: auto;
+    order: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0;
+    padding: 0;
   }
 
   .nav-overlay {
