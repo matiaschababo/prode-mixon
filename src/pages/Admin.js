@@ -92,9 +92,9 @@ export function Admin() {
               <p style="color: var(--text-secondary); font-size: 0.9rem;">Esto calcula los puntajes de todo el ranking automáticamente.</p>
             </div>
             <div class="score-inputs">
-              <input type="number" min="-1" oninput="if(this.value<0)this.value=0" id="result-home" value="${firstResult.home ?? ''}" aria-label="Resultado local">
+              <input type="number" min="0" id="result-home" value="${firstResult.home ?? '0'}" aria-label="Resultado local">
               <span>-</span>
-              <input type="number" min="-1" oninput="if(this.value<0)this.value=0" id="result-away" value="${firstResult.away ?? ''}" aria-label="Resultado visitante">
+              <input type="number" min="0" id="result-away" value="${firstResult.away ?? '0'}" aria-label="Resultado visitante">
             </div>
             <button class="btn btn-primary" id="save-result" style="width: 100%; margin-top: 1rem;">Guardar resultado</button>
           </div>
