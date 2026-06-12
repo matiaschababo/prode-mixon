@@ -116,6 +116,8 @@
     grid-template-rows: auto auto;
     gap: 0.5rem 1rem;
     align-items: center;
+    min-width: 0;
+    width: 100%;
   }
   .nav-brand {
     grid-column: 1;
@@ -142,6 +144,7 @@
     grid-column: 1 / -1;
     grid-row: 2;
     width: 100%; 
+    min-width: 0;
     gap: 1rem; 
     overflow-x: auto; 
     padding-bottom: 0.5rem; 
