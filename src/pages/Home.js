@@ -36,15 +36,17 @@ export function Home() {
             <p class="feature-card-desc">Cargá y editá tus resultados partido a partido, hasta el inicio de cada encuentro. ¡No hace falta completar todo el fixture de una!</p>
           </div>
         </div>
-        <div class="feature-card theme-blue">
-          <div class="feature-icon-wrapper">👥</div>
-          <h3 class="feature-card-title">Comparar Votos</h3>
-          <p class="feature-card-desc">Hacé clic en <strong>"Comparar pronósticos"</strong> en cualquier tarjeta para ver qué votó el resto.</p>
+        <div class="feature-card feature-card-image theme-blue" style="background-image: url('/assets/comparar-votos-bg.png');">
+          <div class="feature-card-content">
+            <h3 class="feature-card-title">Comparar Votos</h3>
+            <p class="feature-card-desc">Hacé clic en <strong>"Comparar pronósticos"</strong> en cualquier tarjeta para ver qué votó el resto.</p>
+          </div>
         </div>
-        <div class="feature-card theme-red">
-          <div class="feature-icon-wrapper">🔴</div>
-          <h3 class="feature-card-title">Eventos en Vivo</h3>
-          <p class="feature-card-desc">Goles, rojas y cronómetro actualizados al instante en tiempo real.</p>
+        <div class="feature-card feature-card-image theme-red" style="background-image: url('/assets/eventos-vivo-bg.png');">
+          <div class="feature-card-content">
+            <h3 class="feature-card-title">Eventos en Vivo</h3>
+            <p class="feature-card-desc">Goles, rojas y cronómetro actualizados al instante en tiempo real.</p>
+          </div>
         </div>
       </div>
 
