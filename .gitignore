@@ -23,3 +23,5 @@ HQG/
 deploy.exp
 *.code-workspace
 .env*
+*-firebase-adminsdk-*.json
+prode-mixon-*.json
