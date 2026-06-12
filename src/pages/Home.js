@@ -30,10 +30,11 @@ export function Home() {
       </section>
 
       <div class="home-features grid-3 animate-fade-in" style="margin-bottom: 3.5rem; gap: 1.5rem;">
-        <div class="feature-card theme-purple">
-          <div class="feature-icon-wrapper">🔮</div>
-          <h3 class="feature-card-title">Pronósticos</h3>
-          <p class="feature-card-desc">Cargá y editá tus resultados partido a partido, hasta el inicio de cada encuentro. ¡No hace falta completar todo el fixture de una!</p>
+        <div class="feature-card feature-card-image" style="background-image: url('/assets/pronosticos-bg.png');">
+          <div class="feature-card-content">
+            <h3 class="feature-card-title">Pronósticos</h3>
+            <p class="feature-card-desc">Cargá y editá tus resultados partido a partido, hasta el inicio de cada encuentro. ¡No hace falta completar todo el fixture de una!</p>
+          </div>
         </div>
         <div class="feature-card theme-blue">
           <div class="feature-icon-wrapper">👥</div>

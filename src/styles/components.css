@@ -1415,6 +1415,29 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   box-sizing: border-box;
 }
 
+.feature-card.feature-card-image {
+  padding: 0;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  min-height: 280px;
+  justify-content: flex-end;
+}
+
+.feature-card.feature-card-image::before {
+  display: none;
+}
+
+.feature-card-content {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 40%, transparent 100%);
+  width: 100%;
+  padding: 3rem 1.8rem 2.2rem 1.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
 .feature-card::before {
   content: '';
   position: absolute;
