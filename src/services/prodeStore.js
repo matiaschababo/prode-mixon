@@ -270,13 +270,21 @@ export function startLiveMatchEngine() {
 
   const runEngine = async () => {
     try {
-      // Obtenemos la fecha en formato YYYYMMDD para la API de ESPN
+      // Obtenemos la fecha de hace 2 días y la de hoy para la API de ESPN
+      // Así evitamos que partidos de ayer a la noche queden colgados "en vivo" al cambiar de día
       const todayDate = new Date();
-      const yyyy = todayDate.getFullYear();
-      const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
-      const dd = String(todayDate.getDate()).padStart(2, '0');
+      const pastDate = new Date();
+      pastDate.setDate(todayDate.getDate() - 2);
+
+      const yyyy1 = pastDate.getFullYear();
+      const mm1 = String(pastDate.getMonth() + 1).padStart(2, '0');
+      const dd1 = String(pastDate.getDate()).padStart(2, '0');
+
+      const yyyy2 = todayDate.getFullYear();
+      const mm2 = String(todayDate.getMonth() + 1).padStart(2, '0');
+      const dd2 = String(todayDate.getDate()).padStart(2, '0');
       
-      const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${yyyy}${mm}${dd}`);
+      const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${yyyy1}${mm1}${dd1}-${yyyy2}${mm2}${dd2}`);
       const data = await res.json();
       
       if (data.events && data.events.length > 0) {
