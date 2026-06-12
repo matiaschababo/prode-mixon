@@ -145,15 +145,14 @@
     grid-row: 2;
     width: 100%; 
     min-width: 0;
-    gap: 1rem; 
-    overflow-x: auto; 
-    padding-bottom: 0.5rem; 
-    scrollbar-width: none; 
+    gap: 0.4rem 0.75rem; 
+    overflow-x: hidden; 
+    padding-bottom: 0.25rem; 
     display: flex;
-    justify-content: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
   }
-  .nav-links::-webkit-scrollbar { display: none; }
-  .nav-link { white-space: nowrap; font-size: 0.9rem; padding: 0.25rem 0; flex-shrink: 0; }
+  .nav-link { white-space: nowrap; font-size: 0.78rem; padding: 0.2rem 0; }
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
   .main-content { padding-top: 1.5rem; }
 }
