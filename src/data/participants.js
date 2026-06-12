@@ -46,7 +46,7 @@ export function isParticipantInProgram(participant, programId) {
 
 export function getPrimaryProgram(participant) {
   return programs[getParticipantProgramIds(participant)[0]] || {
-    id: "MIXON",
+    id: "MIX ON",
     name: "Equipo Mix On",
     theme: { main: "#7B2D8E", accent: "#9B59B6" }
   };
@@ -56,12 +56,20 @@ export function getParticipantProgramLabel(participant) {
   const programIds = getParticipantProgramIds(participant);
   if (!programIds.length) {
     if (participant.role && participant.role.toUpperCase() === 'VIEWER') {
-      return "MIXON";
+      return "MIX ON";
     }
     return "EQUIPO MIX ON";
   }
 
   return programIds
-    .map(programId => programs[programId]?.name || programId)
+    .map(programId => {
+      if (programId.toUpperCase() === 'MIXON' || programId.toUpperCase() === 'MIX ON') {
+        // Staff assigned to the MIX ON org directly (not a specific show)
+        const role = (participant.role || '').toUpperCase();
+        if (role === 'VIEWER') return "MIX ON";
+        return "EQUIPO MIX ON";
+      }
+      return programs[programId]?.name || programId;
+    })
     .join(' + ');
 }
