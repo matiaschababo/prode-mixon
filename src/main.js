@@ -85,6 +85,7 @@ function router() {
     attachPageEvents(path);
   }
   updateNavbarAuthUI();
+  setupNavbar(path);
 }
 
 window.router = {
@@ -93,6 +94,45 @@ window.router = {
     router();
   }
 };
+
+function setupNavbar(path) {
+  // 1. Highlight active link
+  const links = document.querySelectorAll('.nav-link');
+  links.forEach(link => {
+    link.classList.remove('active');
+    const href = link.getAttribute('href');
+    if (href === path || (href !== '/' && path.startsWith(href))) {
+      link.classList.add('active');
+    }
+  });
+
+  // 2. Mobile Menu Logic
+  const mobileBtn = document.getElementById('mobile-menu-btn');
+  const closeBtn = document.getElementById('mobile-menu-close');
+  const navLinks = document.getElementById('nav-links');
+  const navOverlay = document.getElementById('nav-overlay');
+
+  function openMenu() {
+    navLinks?.classList.add('active');
+    navOverlay?.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Prevent background scroll
+  }
+
+  function closeMenu() {
+    navLinks?.classList.remove('active');
+    navOverlay?.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  if (mobileBtn) mobileBtn.addEventListener('click', openMenu);
+  if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+  if (navOverlay) navOverlay.addEventListener('click', closeMenu);
+
+  // Close menu when a link is clicked
+  links.forEach(link => {
+    link.addEventListener('click', closeMenu);
+  });
+}
 
 function renderPage(path) {
   if (path.startsWith('/predicciones/')) {
