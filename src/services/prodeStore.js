@@ -10,6 +10,12 @@ let prodeState = {
   users: {}
 };
 
+let loadingState = { results: false, predictions: false, users: false };
+
+export function isDataReady() {
+  return loadingState.results && loadingState.predictions && loadingState.users;
+}
+
 // Start listening to Firebase data
 export function initializeFirebaseSync(onUpdateCallback) {
   // Listen to results
@@ -17,23 +23,24 @@ export function initializeFirebaseSync(onUpdateCallback) {
     if (docSnap.exists()) {
       prodeState.results = docSnap.data();
     }
+    loadingState.results = true;
     onUpdateCallback();
   });
 
-  // Listen to all predictions (scalable for staff, we will need pagination/functions for 50k users later)
+  // Listen to all predictions
   onSnapshot(collection(db, "predictions"), (snapshot) => {
     const newPredictions = {};
     snapshot.forEach(docSnap => {
       const userId = docSnap.id;
       const userPreds = docSnap.data();
       
-      // Convert from { matchId: {home, away} } to { matchId: { userId: {home, away} } }
       Object.entries(userPreds).forEach(([matchId, pred]) => {
         if (!newPredictions[matchId]) newPredictions[matchId] = {};
         newPredictions[matchId][userId] = pred;
       });
     });
     prodeState.predictions = newPredictions;
+    loadingState.predictions = true;
     onUpdateCallback();
   });
 
@@ -44,6 +51,7 @@ export function initializeFirebaseSync(onUpdateCallback) {
       users[docSnap.id] = docSnap.data();
     });
     prodeState.users = users;
+    loadingState.users = true;
     onUpdateCallback();
   });
 }

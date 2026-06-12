@@ -16,7 +16,7 @@ import { Llaves } from './pages/Llaves.js';
 import { TeamProfile } from './pages/TeamProfile.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine } from './services/prodeStore.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady } from './services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
 
 const app = document.getElementById('app');
@@ -32,13 +32,35 @@ const routes = {
   '/admin': Admin
 };
 
+function LoadingScreen() {
+  return `
+    <div class="loading-screen">
+      <div class="loading-content">
+        <div class="loading-logos">
+          <img src="/assets/logo-mixon.png" alt="Mix On" class="loading-logo">
+          <span class="loading-x">✕</span>
+          <img src="/assets/logo-mundial.webp" alt="Mundial 2026" class="loading-logo">
+        </div>
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Cargando datos del prode...</p>
+        <div class="loading-skeletons">
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row short"></div>
+          <div class="skeleton-row"></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function router() {
   const path = window.location.pathname;
-  
+  const dataReady = isDataReady();
+
   const newHtml = `
     ${Navbar()}
     <main class="main-content container">
-      ${renderPage(path)}
+      ${dataReady ? renderPage(path) : LoadingScreen()}
     </main>
   `;
 
@@ -59,7 +81,9 @@ function router() {
     });
   }
 
-  attachPageEvents(path);
+  if (dataReady) {
+    attachPageEvents(path);
+  }
   updateNavbarAuthUI();
 }
 
