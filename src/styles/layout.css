@@ -129,6 +129,9 @@
     grid-row: 1;
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
   }
   .nav-auth .btn {
     padding: 0.4rem 1rem;
@@ -144,9 +147,10 @@
     padding-bottom: 0.5rem; 
     scrollbar-width: none; 
     display: flex;
+    justify-content: flex-start;
   }
   .nav-links::-webkit-scrollbar { display: none; }
-  .nav-link { white-space: nowrap; font-size: 0.9rem; padding: 0.25rem 0; }
+  .nav-link { white-space: nowrap; font-size: 0.9rem; padding: 0.25rem 0; flex-shrink: 0; }
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
   .main-content { padding-top: 1.5rem; }
 }
