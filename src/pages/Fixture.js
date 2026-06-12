@@ -1,7 +1,7 @@
 import { matches } from '../data/matches.js';
 import { MatchCard } from '../components/MatchCard.js';
-import { getMatchResult, getPredictions, saveMyPrediction } from '../services/prodeStore.js';
-import { auth } from '../services/firebase.js';
+import { getMatchResult, getPredictions, saveMyPrediction, ensureUserExists } from '../services/prodeStore.js';
+import { auth, googleProvider, signInWithPopup } from '../services/firebase.js';
 
 export function Fixture() {
   const sorted = [...matches].sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -46,13 +46,19 @@ export function Fixture() {
       <h1 class="page-title animate-fade-in">Fixture Mundial 2026</h1>
       <div class="page-subtitle animate-fade-in" style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.5;">
         Todos los partidos en tu horario local 🌍<br>
-        ${user ? 'Podés cargar tus resultados directamente en las tarjetas de los partidos que no hayan empezado.' : 'Ingresá con tu cuenta para poder cargar tus predicciones.'}<br>
+        ${!user ? `
+        <div style="margin-top: 1.2rem; margin-bottom: 1.2rem; background: rgba(0, 0, 0, 0.2); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--color-mixon); text-align: center;">
+          <p style="color: #fff; font-size: 1.1rem; margin-bottom: 1rem;"><strong>¡Tenés que iniciar sesión para jugar!</strong><br>Logueate para poder cargar tus predicciones y sumar puntos.</p>
+          <button id="fixture-login-btn" class="btn btn-primary glass-btn play-btn-highlight" style="font-size: 1rem; padding: 0.8rem 1.5rem; text-transform: uppercase;">👋 Entrar con Google</button>
+        </div>
+        ` : `
         <div style="font-size: 0.88rem; color: #00E676; margin-top: 0.8rem; line-height: 1.5; padding: 0.8rem 1rem; background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.2); border-radius: 12px; display: flex; gap: 0.6rem; align-items: flex-start; text-align: left; box-sizing: border-box;">
           <span style="flex-shrink: 0; margin-top: 0.1rem;">🟢</span>
           <div>
             <strong>¡Jugá a tu ritmo!</strong> Podés cargar y editar tus predicciones partido a partido, hasta el minuto anterior a que empiece cada encuentro. No hace falta completar todo el fixture de una.
           </div>
         </div>
+        `}
         <div style="font-size: 0.85rem; color: var(--color-mixon-light); margin-top: 0.8rem; line-height: 1.4;">
           💡 <strong>Tip:</strong> Hacé clic en <strong>"Comparar pronósticos"</strong> en cualquier tarjeta para ver qué votaron los demás participantes, o seguí los goles y eventos en vivo una vez que comience el encuentro.
         </div>
@@ -74,6 +80,21 @@ export function Fixture() {
 }
 
 export function attachFixtureEvents() {
+  const loginBtn = document.getElementById('fixture-login-btn');
+  if (loginBtn && !loginBtn.dataset.eventsAttached) {
+    loginBtn.dataset.eventsAttached = 'true';
+    loginBtn.addEventListener('click', async () => {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        await ensureUserExists(result.user);
+        window.router();
+      } catch (error) {
+        console.error("Login falló", error);
+        alert("Ocurrió un error al iniciar sesión.");
+      }
+    });
+  }
+
   // "Cambiar" button — toggle the edit form
   document.querySelectorAll('.pred-change-btn').forEach(btn => {
     if (btn.dataset.eventsAttached) return;

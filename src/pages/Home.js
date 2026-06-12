@@ -1,8 +1,9 @@
-// src/pages/Home.js
 import { RankingTable } from '../components/RankingTable.js';
-import { getRankedParticipants } from '../services/prodeStore.js';
+import { getRankedParticipants, ensureUserExists } from '../services/prodeStore.js';
+import { auth, googleProvider, signInWithPopup } from '../services/firebase.js';
 
 export function Home() {
+  const user = auth.currentUser;
   return `
     <div class="home-page animate-fade-in">
       <section class="hero collab-hero">
@@ -19,7 +20,10 @@ export function Home() {
           La plataforma definitiva para vivir la Copa del Mundo 2026. Cargá tus pronósticos, compará con la comunidad y seguí cada partido en vivo.
         </p>
         <div class="hero-actions">
-          <a href="/fixture" class="btn btn-primary glass-btn play-btn-highlight" data-link>🎮 JUGAR / CARGAR PRONÓSTICOS</a>
+          ${user 
+            ? `<a href="/fixture" class="btn btn-primary glass-btn play-btn-highlight" data-link>🎮 JUGAR / CARGAR PRONÓSTICOS</a>`
+            : `<button id="home-login-btn" class="btn btn-primary glass-btn play-btn-highlight">👋 INICIÁ SESIÓN PARA JUGAR</button>`
+          }
           <a href="/programas" class="btn btn-secondary glass-btn" data-link>POR PROGRAMA</a>
           <a href="/puntajes" class="btn btn-secondary glass-btn" data-link>PUNTAJES</a>
         </div>
@@ -64,6 +68,22 @@ export function Home() {
 }
 
 export function attachHomeEvents() {
+  const loginBtn = document.getElementById('home-login-btn');
+  if (loginBtn && !loginBtn.dataset.eventsAttached) {
+    loginBtn.dataset.eventsAttached = 'true';
+    loginBtn.addEventListener('click', async () => {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        await ensureUserExists(result.user);
+        window.history.pushState(null, null, '/fixture');
+        window.router();
+      } catch (error) {
+        console.error("Login falló", error);
+        alert("Ocurrió un error al iniciar sesión.");
+      }
+    });
+  }
+
   const buttons = document.querySelectorAll('.home-filter');
   const container = document.getElementById('ranking-table-container');
   

@@ -1,5 +1,6 @@
 // src/pages/Predicciones.js
 import { matches } from '../data/matches.js';
+import { teams } from '../data/teams.js';
 import { getParticipantProgramLabel } from '../data/participants.js';
 import { getPredictions, getMatchResult, getDynamicUsers } from '../services/prodeStore.js';
 import { calculatePoints, getHitType } from '../services/scoring.js';
@@ -11,6 +12,9 @@ export function Predicciones(matchId) {
   const predictions = getPredictions()[String(match.id)] || {};
   const result = getMatchResult(match);
   const dynamicUsers = getDynamicUsers();
+
+  const home = teams[match.homeTeam] || { name: match.homeTeam, flag: "❓" };
+  const away = teams[match.awayTeam] || { name: match.awayTeam, flag: "❓" };
 
   // Filter to only users who have a prediction for this match, and map data
   let usersWithPredictions = dynamicUsers
@@ -65,9 +69,19 @@ export function Predicciones(matchId) {
     <div class="predicciones-page animate-fade-in" style="max-width: 800px; margin: 0 auto;">
       <a href="/fixture" class="btn btn-secondary btn-sm" data-link style="margin-bottom: 1rem;">← Volver al Fixture</a>
       
-      <h1 style="margin-bottom: 0.5rem;">Predicciones del Partido</h1>
-      <h3 style="color: var(--color-mixon-light); margin-bottom: 2rem;">${match.homeTeam} vs ${match.awayTeam}</h3>
-      ${result ? `<p class="result-pill">Resultado cargado: ${result.home} - ${result.away}</p>` : ''}
+      <h1 style="margin-bottom: 0.5rem; text-align: center;">Predicciones del Partido</h1>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 1.5rem; margin-top: 1.5rem; margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; gap: 0.8rem;">
+          <span style="font-weight: 600; font-size: 1.4rem;">${home.name}</span>
+          <span style="font-size: 2.2rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">${home.flag}</span>
+        </div>
+        <div style="color: var(--text-secondary); font-weight: bold; font-size: 1.1rem;">vs</div>
+        <div style="display: flex; align-items: center; gap: 0.8rem;">
+          <span style="font-size: 2.2rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">${away.flag}</span>
+          <span style="font-weight: 600; font-size: 1.4rem;">${away.name}</span>
+        </div>
+      </div>
+      ${result ? `<p class="result-pill" style="text-align: center; margin-bottom: 2rem;">Resultado final: ${result.home} - ${result.away}</p>` : ''}
       
       <div class="predicciones-list">
         ${prediccionesHTML}
