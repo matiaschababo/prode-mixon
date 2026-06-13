@@ -59,7 +59,7 @@ export function Predicciones(matchId) {
             </a>
             <div class="prediction-score" style="text-align: right;">
               <div style="${scoreStyle} font-size: 1.25rem;">${p.prediction ? `${p.prediction.home} - ${p.prediction.away}` : '? - ?'}</div>
-              ${p.points !== null ? `<small style="${scoreStyle}">${icon} ${p.points} pts</small>` : ''}
+              ${p.points !== null ? `<small style="${scoreStyle}">${result && result.live ? '<span style="opacity:0.8; font-size:0.75rem;">Con este resultado: </span>' : ''}${icon} ${p.points} pts</small>` : ''}
             </div>
           </div>
         `;
@@ -81,7 +81,7 @@ export function Predicciones(matchId) {
           <span style="font-weight: 600; font-size: 1.4rem;">${away.name}</span>
         </div>
       </div>
-      ${result ? `<p class="result-pill" style="text-align: center; margin-bottom: 2rem;">Resultado final: ${result.home} - ${result.away}</p>` : ''}
+      ${result ? `<p class="result-pill" style="text-align: center; margin-bottom: 2rem;">${result.live ? 'Resultado parcial (En vivo)' : 'Resultado final'}: ${result.home} - ${result.away}</p>` : ''}
       
       <div class="predicciones-list">
         ${prediccionesHTML}
