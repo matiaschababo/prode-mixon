@@ -1,12 +1,13 @@
 import { matches } from '../src/data/matches.js';
-import admin from 'firebase-admin';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 
 // Parse the service account from environment variables
-if (!admin.apps.length) {
+if (getApps().length === 0) {
   try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
+    initializeApp({
+      credential: cert(serviceAccount)
     });
   } catch (error) {
     console.error("Error inicializando Firebase Admin. Verifica FIREBASE_SERVICE_ACCOUNT", error);
@@ -25,11 +26,11 @@ export default async function handler(request, response) {
   }
 
   // Comprobar que Firebase se inicializó correctamente
-  if (!admin.apps.length) {
+  if (getApps().length === 0) {
     return response.status(500).json({ error: "Firebase Admin no está configurado." });
   }
 
-  const db = admin.firestore();
+  const db = getFirestore();
   
   try {
     const todayDate = new Date();
