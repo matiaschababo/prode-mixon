@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/cron-live-matches",
+      "schedule": "* * * * *"
+    }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

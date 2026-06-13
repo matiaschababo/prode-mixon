@@ -64,8 +64,12 @@ export default async function handler(request, response) {
         if (!homeTeamData || !awayTeamData) return;
 
         const localMatch = matches.find(m => {
-          return m.homeTeam.toLowerCase() === homeTeamData.team.abbreviation.toLowerCase() ||
-                 m.awayTeam.toLowerCase() === awayTeamData.team.abbreviation.toLowerCase();
+          const apiHome = homeTeamData.team.abbreviation.toLowerCase();
+          const apiAway = awayTeamData.team.abbreviation.toLowerCase();
+          const mHome = m.homeTeam.toLowerCase();
+          const mAway = m.awayTeam.toLowerCase();
+          
+          return (mHome === apiHome && mAway === apiAway) || (mHome === apiAway && mAway === apiHome);
         });
 
         if (localMatch) {
