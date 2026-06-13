@@ -261,7 +261,18 @@ export async function updateUserDisplayName(newName) {
 let liveEngineInterval = null;
 
 export function startLiveMatchEngine() {
-  // Client-side engine disabled in favor of Vercel Backend Cron Job
-  // This prevents multiple admins from making simultaneous writes
-  console.log("🟢 Live Match Engine delegatd to Backend Cron Job");
+  console.log("🟢 Live Match Engine polling backend API");
+  
+  const triggerLiveUpdate = async () => {
+    try {
+      await fetch('/api/cron-live-matches');
+    } catch (e) {
+      console.log('Live update skipped');
+    }
+  };
+  
+  // Trigger once immediately, then every 60 seconds
+  triggerLiveUpdate();
+  if (liveEngineInterval) clearInterval(liveEngineInterval);
+  liveEngineInterval = setInterval(triggerLiveUpdate, 60000);
 }
