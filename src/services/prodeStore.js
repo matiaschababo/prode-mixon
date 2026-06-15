@@ -99,8 +99,20 @@ export async function sendChatMessage(text, type = 'text', gifUrl = null) {
 export async function deleteChatMessage(msgId) {
   const auth = getAuth();
   const user = auth.currentUser;
-  if (!user || !MASTER_ADMINS.includes(user.email)) throw new Error("No tienes permisos para moderar");
-  await deleteDoc(doc(db, "chat_messages", msgId));
+  if (!user) throw new Error("Debes iniciar sesión para borrar mensajes");
+
+  const msgRef = doc(db, "chat_messages", msgId);
+  const msgDoc = await getDoc(msgRef);
+  
+  if (!msgDoc.exists()) return;
+  const msgData = msgDoc.data();
+
+  const isAuthor = msgData.uid === user.uid;
+  const isMod = MASTER_ADMINS.includes(user.email);
+
+  if (!isAuthor && !isMod) throw new Error("No tienes permisos para borrar este mensaje");
+  
+  await deleteDoc(msgRef);
 }
 
 export async function toggleLikeChatMessage(msgId) {
