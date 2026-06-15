@@ -124,8 +124,10 @@ export async function toggleLikeChatMessage(msgId) {
       likes: arrayRemove(existingLike)
     });
   } else {
+    const localUser = prodeState.users[user.uid];
+    const photoUrl = localUser?.photo || getCustomLocalPhoto(user.displayName) || user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid;
     await updateDoc(msgRef, {
-      likes: arrayUnion({ uid, name: userName })
+      likes: arrayUnion({ uid, name: userName, photo: photoUrl })
     });
   }
 }

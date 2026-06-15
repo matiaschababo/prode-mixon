@@ -49,11 +49,13 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
             ${!isMe ? `<img src="${msg.photo}" class="chat-avatar" alt="${msg.name}">` : ''}
             <div class="chat-bubble-content">
               ${!isMe ? `<div class="chat-author">${msg.name}</div>` : ''}
-              ${msg.type === 'gif' 
-                ? `<img src="${msg.gifUrl}" class="chat-gif-img" alt="GIF">` 
-                : `<div class="chat-text">${parseMessage(msg.text, user)}</div>`
-              }
-              <div class="chat-time">${timeStr}</div>
+              <div style="position: relative; display: flex; flex-direction: column;">
+                ${msg.type === 'gif' 
+                  ? `<img src="${msg.gifUrl}" class="chat-gif-img" alt="GIF">` 
+                  : `<div class="chat-text">${parseMessage(msg.text, user)}</div>`
+                }
+                <div class="chat-time">${timeStr}</div>
+              </div>
               ${modHTML}
               <div class="chat-message-actions">
                 <button class="chat-like-btn ${msg.likes && msg.likes.find(l => l.uid === user?.uid) ? 'liked' : ''}" data-id="${msg.id}">
@@ -61,7 +63,9 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
                   <span>${msg.likes ? msg.likes.length : 0}</span>
                   ${msg.likes && msg.likes.length > 0 ? `
                     <div class="chat-like-tooltip">
-                      A ${msg.likes.map(l => l.name).join(', ')} le gustó
+                      <div class="chat-like-avatars">
+                        ${msg.likes.map(l => `<img src="${l.photo || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + l.uid}" class="chat-like-avatar" alt="${l.name}" title="${l.name}">`).join('')}
+                      </div>
                     </div>
                   ` : ''}
                 </button>
