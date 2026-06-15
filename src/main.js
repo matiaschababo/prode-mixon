@@ -192,6 +192,7 @@ function setupChat() {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
         currentMsg = msg;
+        msg.style.animation = 'none'; // Overrides CSS animation that blocks transform
         msg.style.transition = 'none';
       }
     }, {passive: true});
@@ -216,7 +217,7 @@ function setupChat() {
       if (!currentMsg) return;
       const msg = currentMsg;
       currentMsg = null;
-      msg.style.transition = 'transform 0.3s ease';
+      msg.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
       msg.style.transform = '';
       
       const diffX = e.changedTouches[0].clientX - startX;
@@ -225,23 +226,6 @@ function setupChat() {
         if (replyBtn) replyBtn.click();
       }
     });
-  }
-
-  // iOS Virtual Keyboard Fix
-  if (!window.chatViewportSetup && window.visualViewport) {
-    window.chatViewportSetup = true;
-    const adjustViewport = () => {
-      if (isChatOpen) {
-        const chatWin = document.getElementById('chat-window');
-        if (chatWin && window.innerWidth <= 768) {
-          chatWin.style.height = window.visualViewport.height + 'px';
-          chatWin.style.top = window.visualViewport.offsetTop + 'px';
-          chatWin.style.bottom = 'auto'; // override CSS bottom: 0
-        }
-      }
-    };
-    window.visualViewport.addEventListener('resize', adjustViewport);
-    window.visualViewport.addEventListener('scroll', adjustViewport);
   }
 
   const toggleChat = () => {

@@ -30,7 +30,7 @@ function parseMessage(text, user) {
     const color = isMe ? '#ffb300' : '#5CB8E4';
     const bg = isMe ? 'rgba(255, 179, 0, 0.2)' : 'rgba(92, 184, 228, 0.2)';
     const glow = isMe ? `box-shadow: 0 0 10px rgba(255,179,0,0.5);` : '';
-    return `<a href="${profileLink}" data-link class="chat-mention-link" style="color: ${color}; background: ${bg}; padding: 0 4px; border-radius: 4px; font-weight: 700; ${glow}; text-decoration: none;">@${nameWithSpaces}</a>`;
+    return `<a href="${profileLink}" data-link onclick="document.getElementById('chat-close-btn')?.click();" class="chat-mention-link" style="color: ${color}; background: ${bg}; padding: 0 4px; border-radius: 4px; font-weight: 700; ${glow}; text-decoration: none;">@${nameWithSpaces}</a>`;
   });
 
   return parsed;
@@ -85,7 +85,7 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
       return `
         ${dateDividerHTML}
         <div class="chat-message ${isMe ? 'chat-message-me' : 'chat-message-other'}" id="msg-${msg.id}">
-          ${!isMe ? `<img src="${msg.photo}" class="chat-avatar" alt="${msg.name}">` : ''}
+          ${!isMe ? `<a href="/perfil/${msg.uid}" data-link onclick="document.getElementById('chat-close-btn')?.click();"><img src="${msg.photo}" class="chat-avatar" alt="${msg.name}" style="cursor: pointer; display: block;"></a>` : ''}
           <div class="chat-bubble-content">
             ${!isMe ? `<div class="chat-author">${msg.name}</div>` : ''}
             ${msg.replyTo ? `
