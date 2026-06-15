@@ -301,6 +301,9 @@
 }
 
 .chat-window {
+  position: absolute;
+  bottom: 0;
+  right: 0;
   width: 350px;
   height: 500px;
   max-height: 80vh;
@@ -592,14 +595,14 @@
   position: absolute;
   top: -45px;
   right: 0;
-  background: linear-gradient(135deg, var(--color-mixon), var(--color-mixon-light));
-  color: #111;
+  background: linear-gradient(135deg, var(--color-mixon-light), var(--color-mixon-main));
+  color: #ffffff;
   padding: 0.4rem 1rem;
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 800;
   white-space: nowrap;
-  box-shadow: 0 4px 15px rgba(230,255,0,0.3);
+  box-shadow: 0 4px 15px rgba(123, 45, 142, 0.4);
   animation: bounceCallout 2s infinite ease-in-out;
   pointer-events: none;
 }
