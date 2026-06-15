@@ -38,6 +38,7 @@ function parseMessage(text, user) {
 
 export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false, isMentioned = false, isMasterAdmin = false, replyingTo = null) {
   const displayClass = isOpen ? 'chat-open' : 'chat-closed';
+  const dynamicUsers = getDynamicUsers();
   
   let messagesHTML = '';
   if (messages.length === 0) {
@@ -51,6 +52,10 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
 
     messagesHTML = messages.map(msg => {
       const isMe = user && user.uid === msg.uid;
+      const dynamicUser = dynamicUsers.find(u => u.id === msg.uid);
+      const customPhoto = dynamicUser?.photo || msg.photo || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + msg.uid;
+      const customName = dynamicUser?.name || msg.name;
+
       let timeStr = '';
       let msgDateStr = '';
       if (msg.timestamp) {
@@ -85,9 +90,9 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
       return `
         ${dateDividerHTML}
         <div class="chat-message ${isMe ? 'chat-message-me' : 'chat-message-other'}" id="msg-${msg.id}">
-          ${!isMe ? `<a href="/perfil/${msg.uid}" data-link onclick="document.getElementById('chat-close-btn')?.click();"><img src="${msg.photo}" class="chat-avatar" alt="${msg.name}" style="cursor: pointer; display: block;"></a>` : ''}
+          ${!isMe ? `<a href="/perfil/${msg.uid}" data-link onclick="document.getElementById('chat-close-btn')?.click();"><img src="${customPhoto}" class="chat-avatar" alt="${customName}" style="cursor: pointer; display: block; object-fit: cover;"></a>` : ''}
           <div class="chat-bubble-content">
-            ${!isMe ? `<div class="chat-author">${msg.name}</div>` : ''}
+            ${!isMe ? `<div class="chat-author">${customName}</div>` : ''}
             ${msg.replyTo ? `
               <div class="chat-replied-msg" ${!msg.replyTo.isPrediction ? `onclick="document.getElementById('msg-${msg.replyTo.id}')?.scrollIntoView({behavior: 'smooth', block: 'center'})"` : ''}>
                 <div class="reply-name">${msg.replyTo.isPrediction ? '⚽ Pronóstico de ' + msg.replyTo.name : msg.replyTo.name}</div>

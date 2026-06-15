@@ -536,8 +536,8 @@ function setupChat() {
     gifResults.innerHTML = '<div style="padding:1rem;text-align:center;color:white;">Buscando...</div>';
     try {
       const endpoint = query 
-        ? `https://g.tenor.com/v1/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=12`
-        : `https://g.tenor.com/v1/trending?key=${TENOR_API_KEY}&limit=12`;
+        ? `https://tenor.googleapis.com/v2/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=12`
+        : `https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&limit=12`;
         
       const res = await fetch(endpoint);
       const { results } = await res.json();
@@ -548,8 +548,8 @@ function setupChat() {
       }
 
       gifResults.innerHTML = results.map(g => `
-        <img src="${g.media[0].tinygif.url}" 
-             data-url="${g.media[0].gif.url}" 
+        <img src="${g.media_formats.tinygif.url}" 
+             data-url="${g.media_formats.gif.url}" 
              class="chat-gif-option" 
              alt="GIF">
       `).join('');
