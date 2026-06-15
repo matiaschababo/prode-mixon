@@ -16,8 +16,9 @@ import { Llaves } from './pages/Llaves.js';
 import { TeamProfile } from './pages/TeamProfile.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady } from './services/prodeStore.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady, getChatMessages, sendChatMessage } from './services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
+import { ChatWidget } from './components/ChatWidget.js';
 
 const app = document.getElementById('app');
 let isInitialized = false;
@@ -31,6 +32,9 @@ const routes = {
   '/perfil': Perfil,
   '/admin': Admin
 };
+
+let isChatOpen = false;
+let lastReadChatLength = 0;
 
 function LoadingScreen() {
   return `
@@ -57,11 +61,18 @@ function router() {
   const path = window.location.pathname;
   const dataReady = isDataReady();
 
+  const msgs = getChatMessages();
+  if (isChatOpen) {
+    lastReadChatLength = msgs.length;
+  }
+  const unreadCount = msgs.length > lastReadChatLength ? msgs.length - lastReadChatLength : 0;
+
   const newHtml = `
     ${Navbar()}
     <main class="main-content container">
       ${dataReady ? renderPage(path) : LoadingScreen()}
     </main>
+    ${dataReady ? ChatWidget(auth.currentUser, msgs, unreadCount, isChatOpen) : ''}
   `;
 
   if (!app.hasChildNodes()) {
@@ -86,6 +97,80 @@ function router() {
   }
   updateNavbarAuthUI();
   setupNavbar(path);
+  if (dataReady) {
+    setupChat();
+  }
+}
+
+function setupChat() {
+  const bubble = document.getElementById('chat-bubble');
+  const closeBtn = document.getElementById('chat-close-btn');
+  const sendBtn = document.getElementById('chat-send-btn');
+  const input = document.getElementById('chat-input');
+  const loginBtn = document.getElementById('chat-login-btn');
+  const msgsContainer = document.getElementById('chat-messages-container');
+
+  if (msgsContainer && !msgsContainer.dataset.scrolled) {
+    // Scroll to bottom on first open or update
+    msgsContainer.scrollTop = msgsContainer.scrollHeight;
+    msgsContainer.dataset.scrolled = "true";
+  }
+
+  const toggleChat = () => {
+    isChatOpen = !isChatOpen;
+    router();
+  };
+
+  if (bubble && !bubble.dataset.events) {
+    bubble.dataset.events = "true";
+    bubble.addEventListener('click', toggleChat);
+  }
+  if (closeBtn && !closeBtn.dataset.events) {
+    closeBtn.dataset.events = "true";
+    closeBtn.addEventListener('click', toggleChat);
+  }
+
+  const handleSend = async () => {
+    if (!input || !input.value.trim()) return;
+    try {
+      sendBtn.disabled = true;
+      sendBtn.textContent = '...';
+      await sendChatMessage(input.value);
+      input.value = '';
+    } catch (error) {
+      console.error("Error sending message:", error);
+      alert(error.message);
+    } finally {
+      if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Enviar';
+      }
+      if (input) input.focus();
+    }
+  };
+
+  if (sendBtn && !sendBtn.dataset.events) {
+    sendBtn.dataset.events = "true";
+    sendBtn.addEventListener('click', handleSend);
+  }
+
+  if (input && !input.dataset.events) {
+    input.dataset.events = "true";
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleSend();
+    });
+  }
+
+  if (loginBtn && !loginBtn.dataset.events) {
+    loginBtn.dataset.events = "true";
+    loginBtn.addEventListener('click', async () => {
+      try {
+        await signInWithPopup(auth, googleProvider);
+      } catch (e) {
+        console.error("Login failed", e);
+      }
+    });
+  }
 }
 
 window.router = {

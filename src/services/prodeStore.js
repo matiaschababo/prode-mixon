@@ -1,13 +1,14 @@
 import { matches } from '../data/matches.js';
 import { isParticipantInProgram } from '../data/participants.js';
 import { calculatePoints } from './scoring.js';
-import { db, doc, getDoc, setDoc, onSnapshot, collection, query } from './firebase.js';
+import { db, doc, getDoc, setDoc, onSnapshot, collection, query, addDoc, serverTimestamp, orderBy, limit } from './firebase.js';
 import { getAuth } from 'firebase/auth';
 
 let prodeState = {
   predictions: {},
   results: {},
-  users: {}
+  users: {},
+  chatMessages: []
 };
 
 let loadingState = { results: false, predictions: false, users: false };
@@ -46,13 +47,47 @@ export function initializeFirebaseSync(onUpdateCallback) {
 
   // Listen to users
   onSnapshot(collection(db, "users"), (snapshot) => {
-    const users = {};
+    const newUsers = {};
     snapshot.forEach(docSnap => {
-      users[docSnap.id] = docSnap.data();
+      newUsers[docSnap.id] = docSnap.data();
     });
-    prodeState.users = users;
+    prodeState.users = newUsers;
     loadingState.users = true;
     onUpdateCallback();
+  });
+
+  // Listen to Chat Messages (latest 50)
+  const chatQuery = query(collection(db, "chat_messages"), orderBy("timestamp", "desc"), limit(50));
+  onSnapshot(chatQuery, (snapshot) => {
+    const msgs = [];
+    snapshot.forEach(docSnap => {
+      msgs.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    // Reverse to show oldest first at the top of the chat window
+    prodeState.chatMessages = msgs.reverse();
+    onUpdateCallback('chat');
+  });
+}
+
+export function getChatMessages() {
+  return prodeState.chatMessages;
+}
+
+export async function sendChatMessage(text) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) throw new Error("Debes iniciar sesión para comentar");
+  if (!text || !text.trim()) throw new Error("El mensaje está vacío");
+
+  const localUser = prodeState.users[user.uid];
+  const photo = localUser?.photo || getCustomLocalPhoto(user.displayName) || user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid;
+  
+  await addDoc(collection(db, "chat_messages"), {
+    uid: user.uid,
+    name: capitalizeName(user.displayName),
+    photo: photo,
+    text: text.trim(),
+    timestamp: serverTimestamp()
   });
 }
 

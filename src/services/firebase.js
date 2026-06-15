@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { initializeFirestore, persistentLocalCache, persistentSingleTabManager, doc, setDoc, getDoc, collection, getDocs, writeBatch, query, onSnapshot } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager, doc, setDoc, getDoc, collection, getDocs, writeBatch, query, onSnapshot, serverTimestamp, addDoc, orderBy, limit } from 'firebase/firestore';
 
 const firebaseConfig = {
   projectId: "prode-mixon-2026-36579",
@@ -22,4 +22,4 @@ const db = initializeFirestore(app, {
 
 const googleProvider = new GoogleAuthProvider();
 
-export { auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged, doc, setDoc, getDoc, collection, getDocs, writeBatch, query, onSnapshot };
+export { auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged, doc, setDoc, getDoc, collection, getDocs, writeBatch, query, onSnapshot, serverTimestamp, addDoc, orderBy, limit };
