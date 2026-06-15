@@ -84,8 +84,25 @@ function router() {
     ${dataReady ? ChatWidget(auth.currentUser, msgs, unreadCount, isChatOpen, isMentioned, isMasterAdmin) : ''}
   `;
 
+  const renderTweets = () => {
+    if (window.twttr && window.twttr.widgets) {
+      document.querySelectorAll('.tweet-embed:not(.loaded)').forEach(el => {
+        el.classList.add('loaded');
+        const tweetId = el.getAttribute('data-tweet-id');
+        el.innerHTML = ''; // clear placeholder text
+        window.twttr.widgets.createTweet(tweetId, el, { theme: 'dark', conversation: 'none' });
+      });
+    } else {
+      // If twttr isn't loaded yet, try again in 500ms
+      setTimeout(() => {
+        if (window.twttr && window.twttr.widgets) renderTweets();
+      }, 500);
+    }
+  };
+
   if (!app.hasChildNodes()) {
     app.innerHTML = newHtml;
+    renderTweets();
   } else {
     const tempEl = document.createElement('div');
     tempEl.id = 'app';
@@ -93,12 +110,16 @@ function router() {
     morphdom(app, tempEl, {
       childrenOnly: true,
       onBeforeElUpdated: function(fromEl, toEl) {
+        if (fromEl.hasAttribute && fromEl.hasAttribute('data-ignore-morph')) {
+          return false;
+        }
         if (fromEl.tagName === 'INPUT') {
           toEl.value = fromEl.value;
         }
         return true;
       }
     });
+    renderTweets();
   }
 
   if (dataReady) {

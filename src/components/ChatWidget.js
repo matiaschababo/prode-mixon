@@ -6,7 +6,13 @@ function parseMessage(text, user) {
   
   // Parse links
   const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const tweetRegex = /https?:\/\/(?:www\.)?(?:twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/status\/([0-9]+)/;
+  
   parsed = parsed.replace(urlRegex, function(url) {
+    const tweetMatch = url.match(tweetRegex);
+    if (tweetMatch && tweetMatch[1]) {
+      return `<div class="tweet-embed" data-tweet-id="${tweetMatch[1]}" data-ignore-morph="true"><a href="${url}" target="_blank" style="color:var(--color-mixon-main); text-decoration:underline; font-size: 0.8rem;">Ver Tweet / X</a></div>`;
+    }
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0a84ff; text-decoration: underline;">${url}</a>`;
   });
 
