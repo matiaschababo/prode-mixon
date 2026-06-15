@@ -73,11 +73,12 @@ export function getChatMessages() {
   return prodeState.chatMessages;
 }
 
-export async function sendChatMessage(text) {
+export async function sendChatMessage(text, type = 'text', gifUrl = null) {
   const auth = getAuth();
   const user = auth.currentUser;
   if (!user) throw new Error("Debes iniciar sesión para comentar");
-  if (!text || !text.trim()) throw new Error("El mensaje está vacío");
+  if (type === 'text' && (!text || !text.trim())) throw new Error("El mensaje está vacío");
+  if (type === 'gif' && !gifUrl) throw new Error("URL de GIF inválida");
 
   const localUser = prodeState.users[user.uid];
   const photo = localUser?.photo || getCustomLocalPhoto(user.displayName) || user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid;
@@ -86,7 +87,9 @@ export async function sendChatMessage(text) {
     uid: user.uid,
     name: capitalizeName(user.displayName),
     photo: photo,
-    text: text.trim(),
+    text: text ? text.trim() : '',
+    type: type,
+    gifUrl: gifUrl,
     timestamp: serverTimestamp()
   });
 }

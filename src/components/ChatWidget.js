@@ -1,4 +1,13 @@
 // src/components/ChatWidget.js
+
+function parseLinks(text) {
+  if (!text) return '';
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return text.replace(urlRegex, function(url) {
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0a84ff; text-decoration: underline;">${url}</a>`;
+  });
+}
+
 export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false) {
   const displayClass = isOpen ? 'chat-open' : 'chat-closed';
   
@@ -18,7 +27,10 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false)
             ${!isMe ? `<img src="${msg.photo}" class="chat-avatar" alt="${msg.name}">` : ''}
             <div class="chat-bubble-content">
               ${!isMe ? `<div class="chat-author">${msg.name}</div>` : ''}
-              <div class="chat-text">${msg.text}</div>
+              ${msg.type === 'gif' 
+                ? `<img src="${msg.gifUrl}" class="chat-gif-img" alt="GIF">` 
+                : `<div class="chat-text">${parseLinks(msg.text)}</div>`
+              }
               <div class="chat-time">${timeStr}</div>
             </div>
           </div>
@@ -28,6 +40,8 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false)
   const inputAreaHTML = user
     ? `
       <div class="chat-input-area">
+        <button id="chat-emoji-btn" class="chat-action-btn" title="Emojis">😀</button>
+        <button id="chat-gif-btn" class="chat-action-btn" title="GIFs">GIF</button>
         <input type="text" id="chat-input" placeholder="Escribí un mensaje..." autocomplete="off">
         <button id="chat-send-btn" class="btn btn-primary btn-sm" style="padding: 0.5rem 1rem;">Enviar</button>
       </div>
@@ -41,6 +55,7 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false)
   return `
     <div id="global-chat-container">
       <div id="chat-bubble" class="chat-bubble ${isOpen ? 'hidden' : ''}">
+        <div class="chat-callout">¡Nuevo Chat! 🔥</div>
         <span class="chat-icon">💬</span>
         ${unreadCount > 0 ? `<span class="chat-unread-badge animate-bounce">${unreadCount > 99 ? '99+' : unreadCount}</span>` : ''}
       </div>
@@ -53,9 +68,21 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false)
           </div>
           <button id="chat-close-btn" class="chat-close-btn">✕</button>
         </div>
+        
         <div id="chat-messages-container" class="chat-messages-container">
           ${messagesHTML}
         </div>
+        
+        <div id="chat-panels-container" class="chat-panels-container hidden">
+          <div id="chat-emoji-panel" class="chat-panel hidden"></div>
+          <div id="chat-gif-panel" class="chat-panel hidden">
+            <div style="padding: 0.5rem;">
+              <input type="text" id="chat-gif-search" placeholder="Buscar GIF..." autocomplete="off">
+            </div>
+            <div id="chat-gif-results" class="chat-gif-results"></div>
+          </div>
+        </div>
+
         ${inputAreaHTML}
       </div>
     </div>

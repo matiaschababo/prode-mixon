@@ -171,6 +171,132 @@ function setupChat() {
       }
     });
   }
+
+  // --- PREMIUM CHAT FEATURES: EMOJI & GIF ---
+  const emojiBtn = document.getElementById('chat-emoji-btn');
+  const gifBtn = document.getElementById('chat-gif-btn');
+  const emojiPanel = document.getElementById('chat-emoji-panel');
+  const gifPanel = document.getElementById('chat-gif-panel');
+  const panelsContainer = document.getElementById('chat-panels-container');
+  const gifSearchInput = document.getElementById('chat-gif-search');
+  const gifResults = document.getElementById('chat-gif-results');
+
+  const closePanels = () => {
+    if(panelsContainer) panelsContainer.classList.add('hidden');
+    if(emojiPanel) emojiPanel.classList.add('hidden');
+    if(gifPanel) gifPanel.classList.add('hidden');
+  };
+
+  // EMOJI PICKER
+  if (emojiBtn && !emojiBtn.dataset.events) {
+    emojiBtn.dataset.events = "true";
+    emojiBtn.addEventListener('click', async () => {
+      if (!panelsContainer.classList.contains('hidden') && !emojiPanel.classList.contains('hidden')) {
+        closePanels();
+        return;
+      }
+      closePanels();
+      panelsContainer.classList.remove('hidden');
+      emojiPanel.classList.remove('hidden');
+
+      if (!window.picmoPicker) {
+        emojiPanel.innerHTML = '<div style="padding:1rem;text-align:center;color:white;">Cargando emojis...</div>';
+        try {
+          if (!window.picmo) {
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = 'https://unpkg.com/picmo@latest/dist/umd/picmo.js';
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+          }
+          emojiPanel.innerHTML = '';
+          window.picmoPicker = window.picmo.createPicker({
+            rootElement: emojiPanel,
+            theme: 'dark'
+          });
+          window.picmoPicker.addEventListener('emoji:select', event => {
+            if (input) input.value += event.emoji;
+            if (input) input.focus();
+            closePanels();
+          });
+        } catch (e) {
+          emojiPanel.innerHTML = '<div style="padding:1rem;color:red;">Error cargando emojis</div>';
+        }
+      }
+    });
+  }
+
+  // GIF PICKER
+  const GIPHY_API_KEY = 'dc6zaTOxFJmzC'; // Public beta key
+  
+  const renderGifs = async (query = '') => {
+    if (!gifResults) return;
+    gifResults.innerHTML = '<div style="padding:1rem;text-align:center;color:white;">Buscando...</div>';
+    try {
+      const endpoint = query 
+        ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=12`
+        : `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=12`;
+        
+      const res = await fetch(endpoint);
+      const { data } = await res.json();
+      
+      if (data.length === 0) {
+        gifResults.innerHTML = '<div style="padding:1rem;text-align:center;color:#999;">No se encontraron GIFs</div>';
+        return;
+      }
+
+      gifResults.innerHTML = data.map(g => `
+        <img src="${g.images.fixed_height_small.url}" 
+             data-url="${g.images.downsized.url}" 
+             class="chat-gif-option" 
+             alt="${g.title}">
+      `).join('');
+
+      // Add click listeners to GIFs
+      gifResults.querySelectorAll('.chat-gif-option').forEach(img => {
+        img.addEventListener('click', async (e) => {
+          const gifUrl = e.target.getAttribute('data-url');
+          closePanels();
+          try {
+            await sendChatMessage('', 'gif', gifUrl);
+          } catch (err) {
+            alert('Error enviando GIF');
+          }
+        });
+      });
+
+    } catch (e) {
+      gifResults.innerHTML = '<div style="padding:1rem;color:red;">Error al cargar GIFs</div>';
+    }
+  };
+
+  if (gifBtn && !gifBtn.dataset.events) {
+    gifBtn.dataset.events = "true";
+    gifBtn.addEventListener('click', () => {
+      if (!panelsContainer.classList.contains('hidden') && !gifPanel.classList.contains('hidden')) {
+        closePanels();
+        return;
+      }
+      closePanels();
+      panelsContainer.classList.remove('hidden');
+      gifPanel.classList.remove('hidden');
+      renderGifs(); // Load trending by default
+    });
+  }
+
+  let gifDebounce;
+  if (gifSearchInput && !gifSearchInput.dataset.events) {
+    gifSearchInput.dataset.events = "true";
+    gifSearchInput.addEventListener('input', (e) => {
+      clearTimeout(gifDebounce);
+      gifDebounce = setTimeout(() => {
+        renderGifs(e.target.value);
+      }, 500);
+    });
+  }
+
 }
 
 window.router = {
