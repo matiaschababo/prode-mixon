@@ -160,6 +160,90 @@ function setupChat() {
     msgsContainer.dataset.scrolled = "true";
   }
 
+  // Scroll to bottom button logic
+  const scrollToBottomBtn = document.getElementById('chat-scroll-to-bottom');
+  if (msgsContainer && !msgsContainer.dataset.scrollEvent) {
+    msgsContainer.dataset.scrollEvent = "true";
+    msgsContainer.addEventListener('scroll', () => {
+      const isNearBottom = msgsContainer.scrollHeight - msgsContainer.scrollTop - msgsContainer.clientHeight < 100;
+      if (!isNearBottom) {
+        scrollToBottomBtn?.classList.remove('hidden');
+      } else {
+        scrollToBottomBtn?.classList.add('hidden');
+      }
+    });
+  }
+  if (scrollToBottomBtn && !scrollToBottomBtn.dataset.events) {
+    scrollToBottomBtn.dataset.events = "true";
+    scrollToBottomBtn.addEventListener('click', () => {
+      msgsContainer.scrollTo({ top: msgsContainer.scrollHeight, behavior: 'smooth' });
+    });
+  }
+
+  // Swipe-to-reply logic
+  if (msgsContainer && !msgsContainer.dataset.swipeEvents) {
+    msgsContainer.dataset.swipeEvents = "true";
+    let startX = 0;
+    let startY = 0;
+    let currentMsg = null;
+    msgsContainer.addEventListener('touchstart', (e) => {
+      const msg = e.target.closest('.chat-message');
+      if (msg) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        currentMsg = msg;
+        msg.style.transition = 'none';
+      }
+    }, {passive: true});
+
+    msgsContainer.addEventListener('touchmove', (e) => {
+      if (!currentMsg) return;
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
+      const diffX = x - startX;
+      const diffY = Math.abs(y - startY);
+      
+      if (diffX > 10 && diffY < 30) {
+        const translateX = Math.min(diffX, 60);
+        currentMsg.style.transform = `translateX(${translateX}px)`;
+      } else if (diffY > 30) {
+        currentMsg.style.transform = '';
+        currentMsg = null;
+      }
+    }, {passive: true});
+
+    msgsContainer.addEventListener('touchend', (e) => {
+      if (!currentMsg) return;
+      const msg = currentMsg;
+      currentMsg = null;
+      msg.style.transition = 'transform 0.3s ease';
+      msg.style.transform = '';
+      
+      const diffX = e.changedTouches[0].clientX - startX;
+      if (diffX > 50) {
+        const replyBtn = msg.querySelector('.chat-mod-reply');
+        if (replyBtn) replyBtn.click();
+      }
+    });
+  }
+
+  // iOS Virtual Keyboard Fix
+  if (!window.chatViewportSetup && window.visualViewport) {
+    window.chatViewportSetup = true;
+    const adjustViewport = () => {
+      if (isChatOpen) {
+        const chatWin = document.getElementById('chat-window');
+        if (chatWin && window.innerWidth <= 768) {
+          chatWin.style.height = window.visualViewport.height + 'px';
+          chatWin.style.top = window.visualViewport.offsetTop + 'px';
+          chatWin.style.bottom = 'auto'; // override CSS bottom: 0
+        }
+      }
+    };
+    window.visualViewport.addEventListener('resize', adjustViewport);
+    window.visualViewport.addEventListener('scroll', adjustViewport);
+  }
+
   const toggleChat = () => {
     isChatOpen = !isChatOpen;
     if (isChatOpen) {
