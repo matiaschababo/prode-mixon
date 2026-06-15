@@ -80,7 +80,6 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
           <button class="chat-mod-delete btn btn-sm" data-id="${msg.id}" style="background: rgba(255,59,48,0.2); color: #ff3b30; padding: 0.2rem 0.5rem; font-size: 0.7rem; border: 1px solid #ff3b30;">Eliminar</button>
           <button class="chat-mod-ban btn btn-sm" data-uid="${msg.uid}" style="background: rgba(255,149,0,0.2); color: #ff9500; padding: 0.2rem 0.5rem; font-size: 0.7rem; border: 1px solid #ff9500;">Bloquear</button>
         </div>
-      </div>
     ` : '';
 
       return `
