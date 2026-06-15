@@ -16,7 +16,7 @@ import { Llaves } from './pages/Llaves.js';
 import { TeamProfile } from './pages/TeamProfile.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady, getChatMessages, sendChatMessage, deleteChatMessage, banUser } from './services/prodeStore.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady, getChatMessages, sendChatMessage, deleteChatMessage, banUser, toggleLikeChatMessage } from './services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
 import { ChatWidget } from './components/ChatWidget.js';
 
@@ -228,6 +228,19 @@ function setupChat() {
         } catch (error) {
           alert(error.message);
         }
+      }
+    };
+  });
+
+  // Like Chat Messages
+  document.querySelectorAll('.chat-like-btn').forEach(btn => {
+    btn.onclick = async (e) => {
+      const target = e.target.closest('.chat-like-btn');
+      const id = target.getAttribute('data-id');
+      try {
+        await toggleLikeChatMessage(id);
+      } catch (error) {
+        alert(error.message);
       }
     };
   });

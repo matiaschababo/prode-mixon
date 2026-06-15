@@ -1,7 +1,7 @@
 import { matches } from '../data/matches.js';
 import { isParticipantInProgram } from '../data/participants.js';
 import { calculatePoints } from './scoring.js';
-import { db, doc, getDoc, setDoc, onSnapshot, collection, query, addDoc, serverTimestamp, orderBy, limit } from './firebase.js';
+import { db, doc, getDoc, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, collection, query, addDoc, serverTimestamp, orderBy, limit } from './firebase.js';
 import { getAuth } from 'firebase/auth';
 
 let prodeState = {
@@ -101,6 +101,33 @@ export async function deleteChatMessage(msgId) {
   const user = auth.currentUser;
   if (!user || !MASTER_ADMINS.includes(user.email)) throw new Error("No tienes permisos para moderar");
   await deleteDoc(doc(db, "chat_messages", msgId));
+}
+
+export async function toggleLikeChatMessage(msgId) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) throw new Error("Debes iniciar sesión para dar like");
+
+  const msgRef = doc(db, "chat_messages", msgId);
+  const msgDoc = await getDoc(msgRef);
+  if (!msgDoc.exists()) return;
+  
+  const data = msgDoc.data();
+  const likes = data.likes || [];
+  const uid = user.uid;
+  const userName = capitalizeName(user.displayName);
+
+  const existingLike = likes.find(l => l.uid === uid);
+
+  if (existingLike) {
+    await updateDoc(msgRef, {
+      likes: arrayRemove(existingLike)
+    });
+  } else {
+    await updateDoc(msgRef, {
+      likes: arrayUnion({ uid, name: userName })
+    });
+  }
 }
 
 export async function banUser(uid) {

@@ -564,15 +564,72 @@
   
   .chat-window {
     position: fixed;
+    top: 0;
+    left: 0;
     bottom: 0;
     right: 0;
     width: 100vw;
-    height: 100vh;
-    max-height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
     border-radius: 0;
     z-index: 1001;
+    transform-origin: center bottom;
   }
 }
+
+.chat-message-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.2rem;
+  justify-content: flex-end;
+}
+
+.chat-like-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.chat-like-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.chat-like-btn.liked {
+  color: #ff4757;
+  background: rgba(255, 71, 87, 0.15);
+}
+
+.chat-like-tooltip {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 5px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.chat-like-btn:hover .chat-like-tooltip {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 

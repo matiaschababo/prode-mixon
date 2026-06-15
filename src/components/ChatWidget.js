@@ -55,6 +55,17 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
               }
               <div class="chat-time">${timeStr}</div>
               ${modHTML}
+              <div class="chat-message-actions">
+                <button class="chat-like-btn ${msg.likes && msg.likes.find(l => l.uid === user?.uid) ? 'liked' : ''}" data-id="${msg.id}">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="${msg.likes && msg.likes.find(l => l.uid === user?.uid) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                  <span>${msg.likes ? msg.likes.length : 0}</span>
+                  ${msg.likes && msg.likes.length > 0 ? `
+                    <div class="chat-like-tooltip">
+                      A ${msg.likes.map(l => l.name).join(', ')} le gustó
+                    </div>
+                  ` : ''}
+                </button>
+              </div>
             </div>
           </div>
         `;
