@@ -24,7 +24,7 @@ function parseMessage(text, user) {
   return parsed;
 }
 
-export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false, isMentioned = false) {
+export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false, isMentioned = false, isMasterAdmin = false) {
   const displayClass = isOpen ? 'chat-open' : 'chat-closed';
   
   const messagesHTML = messages.length === 0 
@@ -37,6 +37,13 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
           timeStr = timeObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
         }
 
+        const modHTML = isMasterAdmin && !isMe ? `
+          <div class="chat-mod-tools" style="display: flex; gap: 0.5rem; margin-top: 0.5rem; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.25rem;">
+            <button class="chat-mod-delete btn btn-sm" data-id="${msg.id}" style="background: rgba(255,59,48,0.2); color: #ff3b30; padding: 0.2rem 0.5rem; font-size: 0.7rem; border: 1px solid #ff3b30;">Eliminar</button>
+            <button class="chat-mod-ban btn btn-sm" data-uid="${msg.uid}" style="background: rgba(255,149,0,0.2); color: #ff9500; padding: 0.2rem 0.5rem; font-size: 0.7rem; border: 1px solid #ff9500;">Bloquear</button>
+          </div>
+        ` : '';
+
         return `
           <div class="chat-message ${isMe ? 'chat-message-me' : 'chat-message-other'}">
             ${!isMe ? `<img src="${msg.photo}" class="chat-avatar" alt="${msg.name}">` : ''}
@@ -47,6 +54,7 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
                 : `<div class="chat-text">${parseMessage(msg.text, user)}</div>`
               }
               <div class="chat-time">${timeStr}</div>
+              ${modHTML}
             </div>
           </div>
         `;

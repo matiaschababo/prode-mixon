@@ -81,6 +81,8 @@ export async function sendChatMessage(text, type = 'text', gifUrl = null) {
   if (type === 'gif' && !gifUrl) throw new Error("URL de GIF inválida");
 
   const localUser = prodeState.users[user.uid];
+  if (localUser?.isBanned) throw new Error("Estás bloqueado para usar el chat.");
+
   const photo = localUser?.photo || getCustomLocalPhoto(user.displayName) || user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid;
   
   await addDoc(collection(db, "chat_messages"), {
@@ -92,6 +94,20 @@ export async function sendChatMessage(text, type = 'text', gifUrl = null) {
     gifUrl: gifUrl,
     timestamp: serverTimestamp()
   });
+}
+
+export async function deleteChatMessage(msgId) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user || !MASTER_ADMINS.includes(user.email)) throw new Error("No tienes permisos para moderar");
+  await deleteDoc(doc(db, "chat_messages", msgId));
+}
+
+export async function banUser(uid) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user || !MASTER_ADMINS.includes(user.email)) throw new Error("No tienes permisos para moderar");
+  await setDoc(doc(db, "users", uid), { isBanned: true }, { merge: true });
 }
 
 export function getPredictions() {

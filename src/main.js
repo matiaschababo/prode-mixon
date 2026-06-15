@@ -16,7 +16,7 @@ import { Llaves } from './pages/Llaves.js';
 import { TeamProfile } from './pages/TeamProfile.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady, getChatMessages, sendChatMessage } from './services/prodeStore.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady, getChatMessages, sendChatMessage, deleteChatMessage, banUser } from './services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
 import { ChatWidget } from './components/ChatWidget.js';
 
@@ -74,12 +74,14 @@ function router() {
     isMentioned = unreadMsgs.some(m => m.text && m.text.toLowerCase().includes('@' + firstName));
   }
 
+  const isMasterAdmin = auth.currentUser ? MASTER_ADMINS.includes(auth.currentUser.email) : false;
+
   const newHtml = `
     ${Navbar()}
     <main class="main-content container">
       ${dataReady ? renderPage(path) : LoadingScreen()}
     </main>
-    ${dataReady ? ChatWidget(auth.currentUser, msgs, unreadCount, isChatOpen, isMentioned) : ''}
+    ${dataReady ? ChatWidget(auth.currentUser, msgs, unreadCount, isChatOpen, isMentioned, isMasterAdmin) : ''}
   `;
 
   if (!app.hasChildNodes()) {
@@ -201,6 +203,34 @@ function setupChat() {
       });
     }
   }
+
+  // Mod Tools
+  document.querySelectorAll('.chat-mod-delete').forEach(btn => {
+    btn.onclick = async (e) => {
+      const id = e.target.getAttribute('data-id');
+      if (confirm('¿Eliminar mensaje de forma permanente?')) {
+        try {
+          await deleteChatMessage(id);
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+    };
+  });
+
+  document.querySelectorAll('.chat-mod-ban').forEach(btn => {
+    btn.onclick = async (e) => {
+      const uid = e.target.getAttribute('data-uid');
+      if (confirm('¿Bloquear a este usuario del chat? (No podrá enviar más mensajes)')) {
+        try {
+          await banUser(uid);
+          alert('Usuario bloqueado exitosamente.');
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+    };
+  });
 
   if (loginBtn) {
     loginBtn.onclick = async () => {

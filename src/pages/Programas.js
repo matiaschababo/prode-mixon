@@ -34,6 +34,23 @@ export function Programas(programId = null) {
     .map(prog => ProgramCard(prog))
     .join('');
 
+  return `
+    <div class="programas-page animate-fade-in">
+      <h1 style="margin-bottom: 2rem; text-align: center;">Ranking por Programa</h1>
+
+      <section class="glass-card" style="margin-bottom: 2rem;"><h2 style="margin-bottom: 1.5rem; text-align: center;">Competencia Global</h2>${getProgramChartHTML()}</section>
+      
+      <div class="grid-4" style="margin-bottom: 3rem;">
+        ${programCardsHTML}
+      </div>
+      
+      <p style="text-align: center; color: var(--text-secondary);">
+        Seleccioná un programa para ver el ranking interno entre sus conductores.
+      </p>
+    </div>
+  `;
+}
+
 export function getProgramChartHTML() {
   const programTotals = Object.values(programs).map(prog => {
     const participants = getRankedParticipants(prog.id);
@@ -89,19 +106,3 @@ export function getProgramChartHTML() {
   `;
 }
 
-  return `
-    <div class="programas-page animate-fade-in">
-      <h1 style="margin-bottom: 2rem; text-align: center;">Ranking por Programa</h1>
-
-      <section class="glass-card" style="margin-bottom: 2rem;"><h2 style="margin-bottom: 1.5rem; text-align: center;">Competencia Global</h2>${getProgramChartHTML()}</section>
-      
-      <div class="grid-4" style="margin-bottom: 3rem;">
-        ${programCardsHTML}
-      </div>
-      
-      <p style="text-align: center; color: var(--text-secondary);">
-        Seleccioná un programa para ver el ranking interno entre sus conductores.
-      </p>
-    </div>
-  `;
-}
