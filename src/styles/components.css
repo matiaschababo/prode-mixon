@@ -588,6 +588,8 @@
     background: rgb(15, 15, 20);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   @supports (-webkit-touch-callout: none) {
