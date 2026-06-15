@@ -568,13 +568,69 @@
     left: 0;
     bottom: 0;
     right: 0;
-    width: 100vw;
+    width: 100%;
     height: 100dvh;
     max-height: 100dvh;
     border-radius: 0;
     z-index: 1001;
     transform-origin: center bottom;
   }
+}
+
+.chat-reply-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-left: 4px solid var(--color-mixon-main);
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.chat-reply-preview .reply-name {
+  color: var(--color-mixon-main);
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.chat-reply-preview .reply-text {
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+.chat-replied-msg {
+  background: rgba(0, 0, 0, 0.15);
+  border-left: 3px solid var(--color-mixon-main);
+  padding: 0.4rem;
+  border-radius: 4px;
+  margin-bottom: 0.4rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.chat-replied-msg:hover {
+  opacity: 0.8;
+}
+
+.chat-replied-msg .reply-name {
+  color: var(--color-mixon-main);
+  font-weight: 700;
+  margin-bottom: 0.1rem;
+}
+
+.chat-replied-msg .reply-text {
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .chat-message-actions {

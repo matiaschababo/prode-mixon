@@ -73,18 +73,17 @@ export function getChatMessages() {
   return prodeState.chatMessages;
 }
 
-export async function sendChatMessage(text, type = 'text', gifUrl = null) {
+export async function sendChatMessage(text, type = 'text', gifUrl = '', replyTo = null) {
   const auth = getAuth();
   const user = auth.currentUser;
-  if (!user) throw new Error("Debes iniciar sesión para comentar");
-  if (type === 'text' && (!text || !text.trim())) throw new Error("El mensaje está vacío");
-  if (type === 'gif' && !gifUrl) throw new Error("URL de GIF inválida");
+  if (!user) throw new Error("Debes iniciar sesión para chatear");
 
-  const localUser = prodeState.users[user.uid];
-  if (localUser?.isBanned) throw new Error("Estás bloqueado para usar el chat.");
+  let photo = user.photoURL;
+  if (!photo) {
+    const localUser = prodeState.users[user.uid];
+    photo = localUser?.photo || getCustomLocalPhoto(user.displayName) || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid;
+  }
 
-  const photo = localUser?.photo || getCustomLocalPhoto(user.displayName) || user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid;
-  
   await addDoc(collection(db, "chat_messages"), {
     uid: user.uid,
     name: capitalizeName(user.displayName),
@@ -92,6 +91,7 @@ export async function sendChatMessage(text, type = 'text', gifUrl = null) {
     text: text ? text.trim() : '',
     type: type,
     gifUrl: gifUrl,
+    replyTo: replyTo,
     timestamp: serverTimestamp()
   });
 }

@@ -1,8 +1,10 @@
-// src/components/ChatWidget.js
+import { getDynamicUsers } from '../services/prodeStore.js';
 
 function parseMessage(text, user) {
   if (!text) return '';
   let parsed = text;
+  
+  const dynamicUsers = getDynamicUsers();
   
   // Parse links
   const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -21,16 +23,20 @@ function parseMessage(text, user) {
   const mentionRegex = /@([a-zA-Z0-9_áéíóúñÁÉÍÓÚÑ]+)/g;
   parsed = parsed.replace(mentionRegex, function(match, name) {
     const isMe = firstName && name.toLowerCase() === firstName;
+    const nameWithSpaces = name.replace(/_/g, ' ');
+    const mentionedUser = dynamicUsers.find(u => u.name.replace(/\s+/g, '_') === name);
+    const profileLink = mentionedUser ? `/perfil/${mentionedUser.id}` : '#';
+    
     const color = isMe ? '#ffb300' : '#5CB8E4';
     const bg = isMe ? 'rgba(255, 179, 0, 0.2)' : 'rgba(92, 184, 228, 0.2)';
     const glow = isMe ? `box-shadow: 0 0 10px rgba(255,179,0,0.5);` : '';
-    return `<span style="color: ${color}; background: ${bg}; padding: 0 4px; border-radius: 4px; font-weight: 700; ${glow}">${match}</span>`;
+    return `<a href="${profileLink}" class="chat-mention-link" style="color: ${color}; background: ${bg}; padding: 0 4px; border-radius: 4px; font-weight: 700; ${glow}; text-decoration: none;">@${nameWithSpaces}</a>`;
   });
 
   return parsed;
 }
 
-export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false, isMentioned = false, isMasterAdmin = false) {
+export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false, isMentioned = false, isMasterAdmin = false, replyingTo = null) {
   const displayClass = isOpen ? 'chat-open' : 'chat-closed';
   
   const messagesHTML = messages.length === 0 
@@ -51,10 +57,16 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
         ` : '';
 
         return `
-          <div class="chat-message ${isMe ? 'chat-message-me' : 'chat-message-other'}">
+          <div class="chat-message ${isMe ? 'chat-message-me' : 'chat-message-other'}" id="msg-${msg.id}">
             ${!isMe ? `<img src="${msg.photo}" class="chat-avatar" alt="${msg.name}">` : ''}
             <div class="chat-bubble-content">
               ${!isMe ? `<div class="chat-author">${msg.name}</div>` : ''}
+              ${msg.replyTo ? `
+                <div class="chat-replied-msg" onclick="document.getElementById('msg-${msg.replyTo.id}')?.scrollIntoView({behavior: 'smooth', block: 'center'})">
+                  <div class="reply-name">${msg.replyTo.name}</div>
+                  <div class="reply-text">${msg.replyTo.text || 'GIF'}</div>
+                </div>
+              ` : ''}
               <div style="position: relative; display: flex; flex-direction: column;">
                 ${msg.type === 'gif' 
                   ? `<img src="${msg.gifUrl}" class="chat-gif-img" alt="GIF">` 
@@ -69,6 +81,9 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                   </button>
                 ` : ''}
+                <button class="chat-mod-reply ${isMe ? '' : 'chat-action-left'}" data-id="${msg.id}" data-name="${msg.name}" data-text="${msg.type === 'gif' ? 'GIF' : msg.text.replace(/"/g, '&quot;')}" style="background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; padding: 2px 4px; margin-right: ${isMe ? '0' : 'auto'};" title="Responder">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+                </button>
                 <button class="chat-like-btn ${msg.likes && msg.likes.find(l => l.uid === user?.uid) ? 'liked' : ''}" data-id="${msg.id}">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="${msg.likes && msg.likes.find(l => l.uid === user?.uid) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                   <span>${msg.likes ? msg.likes.length : 0}</span>
@@ -89,6 +104,15 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
   const inputAreaHTML = user
     ? `
       <div class="chat-input-area" style="position: relative;">
+        ${replyingTo ? `
+          <div class="chat-reply-preview">
+            <div style="flex: 1; overflow: hidden; margin-right: 0.5rem;">
+              <div class="reply-name">Respondiendo a ${replyingTo.name}</div>
+              <div class="reply-text">${replyingTo.text}</div>
+            </div>
+            <button id="chat-cancel-reply-btn" style="background:transparent; border:none; color:var(--text-secondary); cursor:pointer; padding: 4px;">✕</button>
+          </div>
+        ` : ''}
         <div id="chat-mentions-panel" class="hidden" style="position: absolute; bottom: 100%; left: 0; width: 100%; max-height: 150px; overflow-y: auto; background: var(--glass-bg); backdrop-filter: blur(10px); border-top: 1px solid var(--glass-border); border-radius: 12px 12px 0 0; z-index: 10;"></div>
         
         <div class="chat-input-wrapper">

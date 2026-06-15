@@ -35,6 +35,12 @@ const routes = {
 
 let isChatOpen = false;
 let lastReadChatLength = 0;
+export let chatReplyingTo = null;
+
+export function setChatReplyingTo(msg) {
+  chatReplyingTo = msg;
+  router();
+}
 
 function LoadingScreen() {
   return `
@@ -81,7 +87,7 @@ function router() {
     <main class="main-content container">
       ${dataReady ? renderPage(path) : LoadingScreen()}
     </main>
-    ${dataReady ? ChatWidget(auth.currentUser, msgs, unreadCount, isChatOpen, isMentioned, isMasterAdmin) : ''}
+    ${dataReady ? ChatWidget(auth.currentUser, msgs, unreadCount, isChatOpen, isMentioned, isMasterAdmin, chatReplyingTo) : ''}
   `;
 
   const renderTweets = (retries = 5) => {
@@ -156,6 +162,12 @@ function setupChat() {
 
   const toggleChat = () => {
     isChatOpen = !isChatOpen;
+    if (isChatOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      if (chatReplyingTo) setChatReplyingTo(null);
+    }
     router();
   };
 
@@ -165,14 +177,19 @@ function setupChat() {
   const handleSend = async () => {
     if (!input || !input.value.trim()) return;
     const val = input.value;
+    const replyData = chatReplyingTo ? { ...chatReplyingTo } : null;
     input.value = '';
     input.dataset.cleared = 'true'; // tell morphdom not to restore it
     if (sendBtn) {
       sendBtn.disabled = true;
       sendBtn.textContent = '...';
     }
+    if (chatReplyingTo) {
+      chatReplyingTo = null; // Clear immediately for UI
+      router();
+    }
     try {
-      await sendChatMessage(val);
+      await sendChatMessage(val, 'text', '', replyData);
     } catch (error) {
       console.error("Error sending message:", error);
       input.value = val;
@@ -206,21 +223,24 @@ function setupChat() {
         
         if (lastWordMatch) {
           const search = lastWordMatch[1].toLowerCase();
-          const allUsers = [...new Set(getRankedParticipants().map(p => p.name.split(' ')[0]))];
-          const matches = allUsers.filter(u => u.toLowerCase().startsWith(search)).slice(0, 5);
+          const allUsers = getRankedParticipants().map(p => ({
+            displayName: p.name,
+            mentionName: p.name.replace(/\s+/g, '_')
+          }));
+          const matches = allUsers.filter(u => u.displayName.toLowerCase().includes(search) || u.mentionName.toLowerCase().includes(search)).slice(0, 5);
           
           if (matches.length > 0) {
             mentionsPanel.innerHTML = matches.map(m => `
-              <div class="mention-option" style="padding: 0.5rem 1rem; cursor: pointer; color: white; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: 600;">
-                @${m}
+              <div class="mention-option" data-mention="${m.mentionName}" style="padding: 0.5rem 1rem; cursor: pointer; color: white; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: 600;">
+                @${m.displayName}
               </div>
             `).join('');
             mentionsPanel.classList.remove('hidden');
             
             mentionsPanel.querySelectorAll('.mention-option').forEach(opt => {
               opt.onclick = () => {
-                const name = opt.innerText.trim();
-                input.value = val.replace(/@[a-zA-Z0-9_áéíóúñÁÉÍÓÚÑ]*$/, name + ' ');
+                const mention = opt.getAttribute('data-mention');
+                input.value = val.replace(/@[a-zA-Z0-9_áéíóúñÁÉÍÓÚÑ]*$/, '@' + mention + ' ');
                 mentionsPanel.classList.add('hidden');
                 input.focus();
               };
@@ -240,6 +260,25 @@ function setupChat() {
         }
       });
     }
+  }
+
+  // Reply to messages
+  document.querySelectorAll('.chat-mod-reply').forEach(btn => {
+    btn.onclick = (e) => {
+      const target = e.target.closest('.chat-mod-reply');
+      const id = target.getAttribute('data-id');
+      const name = target.getAttribute('data-name');
+      const text = target.getAttribute('data-text');
+      setChatReplyingTo({ id, name, text });
+    };
+  });
+
+  // Cancel reply
+  const cancelReplyBtn = document.getElementById('chat-cancel-reply-btn');
+  if (cancelReplyBtn) {
+    cancelReplyBtn.onclick = () => {
+      setChatReplyingTo(null);
+    };
   }
 
   // Mod Tools
