@@ -575,11 +575,19 @@
     bottom: 0;
     right: 0;
     width: 100%;
+    height: 100%;
     height: 100dvh;
     max-height: 100dvh;
     border-radius: 0;
     z-index: 1001;
     transform-origin: center bottom;
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    .chat-window {
+      height: -webkit-fill-available;
+      max-height: -webkit-fill-available;
+    }
   }
 }
 
