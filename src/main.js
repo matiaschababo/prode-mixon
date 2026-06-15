@@ -314,6 +314,22 @@ function setupChat() {
   if (bubble) bubble.onclick = toggleChat;
   if (closeBtn) closeBtn.onclick = toggleChat;
 
+  const chatWindow = document.getElementById('chat-window');
+  if (chatWindow && !chatWindow.dataset.touchBlocker) {
+    chatWindow.dataset.touchBlocker = "true";
+    chatWindow.addEventListener('touchmove', (e) => {
+      // Prevent scrolling the background app when touching inside chat window
+      // Only allow scrolling inside scrollable areas
+      const isScrollableArea = e.target.closest('.chat-messages-container') || 
+                               e.target.closest('.chat-gif-results') || 
+                               e.target.closest('.picmo__picker') ||
+                               e.target.closest('#chat-mentions-panel');
+      if (!isScrollableArea) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+  }
+
   const handleSend = async () => {
     if (!input || !input.value.trim()) return;
     const val = input.value;
