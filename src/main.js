@@ -299,29 +299,29 @@ function setupChat() {
   }
 
   // GIF PICKER
-  const GIPHY_API_KEY = 'dc6zaTOxFJmzC'; // Public beta key
+  const TENOR_API_KEY = 'LIVDSRZULELA'; // Public Tenor key
   
   const renderGifs = async (query = '') => {
     if (!gifResults) return;
     gifResults.innerHTML = '<div style="padding:1rem;text-align:center;color:white;">Buscando...</div>';
     try {
       const endpoint = query 
-        ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=12`
-        : `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=12`;
+        ? `https://g.tenor.com/v1/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=12`
+        : `https://g.tenor.com/v1/trending?key=${TENOR_API_KEY}&limit=12`;
         
       const res = await fetch(endpoint);
-      const { data } = await res.json();
+      const { results } = await res.json();
       
-      if (data.length === 0) {
+      if (!results || results.length === 0) {
         gifResults.innerHTML = '<div style="padding:1rem;text-align:center;color:#999;">No se encontraron GIFs</div>';
         return;
       }
 
-      gifResults.innerHTML = data.map(g => `
-        <img src="${g.images.fixed_height_small.url}" 
-             data-url="${g.images.downsized.url}" 
+      gifResults.innerHTML = results.map(g => `
+        <img src="${g.media[0].tinygif.url}" 
+             data-url="${g.media[0].gif.url}" 
              class="chat-gif-option" 
-             alt="${g.title}">
+             alt="GIF">
       `).join('');
 
       // Add click listeners to GIFs

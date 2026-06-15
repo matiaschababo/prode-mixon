@@ -70,7 +70,7 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
           </button>
           <button id="chat-gif-btn" class="chat-action-btn" title="GIFs">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="2" ry="2"></rect><path d="M6 10v4"></path><path d="M10 10h4"></path><path d="M12 10v4"></path><path d="M18 10v4h-2"></path></svg>
+            <span style="font-weight: 800; font-size: 0.7rem; border: 2px solid currentColor; padding: 1px 4px; border-radius: 6px;">GIF</span>
           </button>
           <input type="text" id="chat-input" placeholder="Mensaje..." autocomplete="off">
         </div>
