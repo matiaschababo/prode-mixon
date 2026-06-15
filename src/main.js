@@ -66,13 +66,20 @@ function router() {
     lastReadChatLength = msgs.length;
   }
   const unreadCount = msgs.length > lastReadChatLength ? msgs.length - lastReadChatLength : 0;
+  
+  let isMentioned = false;
+  if (unreadCount > 0 && auth.currentUser && auth.currentUser.displayName) {
+    const firstName = auth.currentUser.displayName.split(' ')[0].toLowerCase();
+    const unreadMsgs = msgs.slice(lastReadChatLength);
+    isMentioned = unreadMsgs.some(m => m.text && m.text.toLowerCase().includes('@' + firstName));
+  }
 
   const newHtml = `
     ${Navbar()}
     <main class="main-content container">
       ${dataReady ? renderPage(path) : LoadingScreen()}
     </main>
-    ${dataReady ? ChatWidget(auth.currentUser, msgs, unreadCount, isChatOpen) : ''}
+    ${dataReady ? ChatWidget(auth.currentUser, msgs, unreadCount, isChatOpen, isMentioned) : ''}
   `;
 
   if (!app.hasChildNodes()) {
@@ -149,6 +156,50 @@ function setupChat() {
     input.onkeypress = (e) => {
       if (e.key === 'Enter') handleSend();
     };
+    
+    // Mentions Autocomplete
+    const mentionsPanel = document.getElementById('chat-mentions-panel');
+    if (mentionsPanel) {
+      input.addEventListener('input', (e) => {
+        const val = input.value;
+        const lastWordMatch = val.match(/@([a-zA-Z0-9_áéíóúñÁÉÍÓÚÑ]*)$/);
+        
+        if (lastWordMatch) {
+          const search = lastWordMatch[1].toLowerCase();
+          const allUsers = [...new Set(getRankedParticipants().map(p => p.name.split(' ')[0]))];
+          const matches = allUsers.filter(u => u.toLowerCase().startsWith(search)).slice(0, 5);
+          
+          if (matches.length > 0) {
+            mentionsPanel.innerHTML = matches.map(m => `
+              <div class="mention-option" style="padding: 0.5rem 1rem; cursor: pointer; color: white; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: 600;">
+                @${m}
+              </div>
+            `).join('');
+            mentionsPanel.classList.remove('hidden');
+            
+            mentionsPanel.querySelectorAll('.mention-option').forEach(opt => {
+              opt.onclick = () => {
+                const name = opt.innerText.trim();
+                input.value = val.replace(/@[a-zA-Z0-9_áéíóúñÁÉÍÓÚÑ]*$/, name + ' ');
+                mentionsPanel.classList.add('hidden');
+                input.focus();
+              };
+            });
+          } else {
+            mentionsPanel.classList.add('hidden');
+          }
+        } else {
+          mentionsPanel.classList.add('hidden');
+        }
+      });
+      
+      // Hide mentions panel on click outside
+      document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !mentionsPanel.contains(e.target)) {
+          mentionsPanel.classList.add('hidden');
+        }
+      });
+    }
   }
 
   if (loginBtn) {

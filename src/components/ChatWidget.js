@@ -1,21 +1,36 @@
 // src/components/ChatWidget.js
 
-function parseLinks(text) {
+function parseMessage(text, user) {
   if (!text) return '';
+  let parsed = text;
+  
+  // Parse links
   const urlRegex = /(https?:\/\/[^\s]+)/g;
-  return text.replace(urlRegex, function(url) {
+  parsed = parsed.replace(urlRegex, function(url) {
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0a84ff; text-decoration: underline;">${url}</a>`;
   });
+
+  // Parse mentions
+  const firstName = user?.displayName ? user.displayName.split(' ')[0].toLowerCase() : '';
+  const mentionRegex = /@([a-zA-Z0-9_áéíóúñÁÉÍÓÚÑ]+)/g;
+  parsed = parsed.replace(mentionRegex, function(match, name) {
+    const isMe = firstName && name.toLowerCase() === firstName;
+    const color = isMe ? '#ffb300' : '#5CB8E4';
+    const bg = isMe ? 'rgba(255, 179, 0, 0.2)' : 'rgba(92, 184, 228, 0.2)';
+    const glow = isMe ? `box-shadow: 0 0 10px rgba(255,179,0,0.5);` : '';
+    return `<span style="color: ${color}; background: ${bg}; padding: 0 4px; border-radius: 4px; font-weight: 700; ${glow}">${match}</span>`;
+  });
+
+  return parsed;
 }
 
-export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false) {
+export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false, isMentioned = false) {
   const displayClass = isOpen ? 'chat-open' : 'chat-closed';
   
   const messagesHTML = messages.length === 0 
     ? `<div class="chat-empty" style="text-align: center; color: var(--text-secondary); padding: 2rem 1rem; font-size: 0.9rem;">No hay mensajes aún. ¡Sé el primero en comentar!</div>`
     : messages.map(msg => {
         const isMe = user && user.uid === msg.uid;
-        // Handle serverTimestamp which might be pending (null) on optimistic UI update
         let timeStr = '';
         if (msg.timestamp) {
           const timeObj = msg.timestamp.toDate ? msg.timestamp.toDate() : new Date(msg.timestamp);
@@ -29,7 +44,7 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false)
               ${!isMe ? `<div class="chat-author">${msg.name}</div>` : ''}
               ${msg.type === 'gif' 
                 ? `<img src="${msg.gifUrl}" class="chat-gif-img" alt="GIF">` 
-                : `<div class="chat-text">${parseLinks(msg.text)}</div>`
+                : `<div class="chat-text">${parseMessage(msg.text, user)}</div>`
               }
               <div class="chat-time">${timeStr}</div>
             </div>
@@ -39,7 +54,8 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false)
 
   const inputAreaHTML = user
     ? `
-      <div class="chat-input-area">
+      <div class="chat-input-area" style="position: relative;">
+        <div id="chat-mentions-panel" class="hidden" style="position: absolute; bottom: 100%; left: 0; width: 100%; max-height: 150px; overflow-y: auto; background: var(--glass-bg); backdrop-filter: blur(10px); border-top: 1px solid var(--glass-border); border-radius: 12px 12px 0 0; z-index: 10;"></div>
         <button id="chat-emoji-btn" class="chat-action-btn" title="Emojis">😀</button>
         <button id="chat-gif-btn" class="chat-action-btn" title="GIFs">GIF</button>
         <input type="text" id="chat-input" placeholder="Escribí un mensaje..." autocomplete="off">
@@ -52,12 +68,19 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false)
       </div>
     `;
 
+  let badgeHTML = '';
+  if (isMentioned) {
+    badgeHTML = `<span class="chat-unread-badge animate-bounce" style="background: #ffb300; font-weight: 900; font-size: 1rem;">@</span>`;
+  } else if (unreadCount > 0) {
+    badgeHTML = `<span class="chat-unread-badge animate-bounce">${unreadCount > 99 ? '99+' : unreadCount}</span>`;
+  }
+
   return `
     <div id="global-chat-container">
       <div id="chat-bubble" class="chat-bubble ${isOpen ? 'hidden' : ''}">
         <div class="chat-callout">¡Nuevo Chat! 🔥</div>
         <span class="chat-icon">💬</span>
-        ${unreadCount > 0 ? `<span class="chat-unread-badge animate-bounce">${unreadCount > 99 ? '99+' : unreadCount}</span>` : ''}
+        ${badgeHTML}
       </div>
 
       <div id="chat-window" class="chat-window ${displayClass}">
