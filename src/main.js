@@ -16,7 +16,7 @@ import { Llaves } from './pages/Llaves.js';
 import { TeamProfile } from './pages/TeamProfile.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady, getChatMessages, sendChatMessage, deleteChatMessage, banUser, toggleLikeChatMessage } from './services/prodeStore.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady, getChatMessages, sendChatMessage, deleteChatMessage, banUser, toggleLikeChatMessage, listenToNotifications, markNotificationsAsRead, togglePredictionLike, incrementPredictionShares } from './services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
 import { ChatWidget } from './components/ChatWidget.js';
 
@@ -42,7 +42,8 @@ export function setChatReplyingTo(msg) {
   router();
 }
 
-window.sharePredictionToChat = (name, matchStr, predStr) => {
+window.sharePredictionToChat = async (uid, name, matchStr, predStr, matchId) => {
+  if (matchId) await incrementPredictionShares(matchId, uid);
   setChatReplyingTo({
     isPrediction: true,
     name,
@@ -57,6 +58,60 @@ window.sharePredictionToChat = (name, matchStr, predStr) => {
   setTimeout(() => {
     document.getElementById('chat-input')?.focus();
   }, 100);
+};
+
+window.showLikesModal = (likesJson) => {
+  try {
+    const likes = JSON.parse(unescape(likesJson));
+    const modal = document.createElement('div');
+    modal.className = 'glass-card animate-fade-in';
+    modal.style.position = 'fixed';
+    modal.style.top = '50%';
+    modal.style.left = '50%';
+    modal.style.transform = 'translate(-50%, -50%)';
+    modal.style.zIndex = '10000';
+    modal.style.width = '90%';
+    modal.style.maxWidth = '350px';
+    modal.style.padding = '1.5rem';
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'animate-fade-in';
+    overlay.style.position = 'fixed';
+    overlay.style.inset = '0';
+    overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    overlay.style.zIndex = '9999';
+    overlay.style.backdropFilter = 'blur(3px)';
+    
+    const close = () => { modal.remove(); overlay.remove(); };
+    overlay.onclick = close;
+    
+    modal.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+        <h3 style="margin: 0; font-size: 1.1rem;">Me gusta</h3>
+        <button onclick="this.closest('.glass-card').nextSibling.click()" class="btn btn-sm" style="background: transparent; color: white; padding: 0.2rem;">✕</button>
+      </div>
+      <div style="max-height: 300px; overflow-y: auto;">
+        ${likes.map(l => `
+          <a href="/perfil/${l.uid}" onclick="this.closest('.glass-card').nextSibling.click(); window.router();" data-link style="display: flex; align-items: center; gap: 0.8rem; padding: 0.5rem 0; text-decoration: none; color: inherit; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <img src="${l.photo || 'https://api.dicebear.com/7.x/avataaars/svg?seed='+l.uid}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+            <div style="font-weight: 500; font-size: 0.9rem;">${l.name}</div>
+          </a>
+        `).join('')}
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.body.appendChild(overlay);
+  } catch(e) { console.error(e); }
+};
+
+window.toggleLikeOnPrediction = async (matchId, targetUserId) => {
+  try {
+    await togglePredictionLike(matchId, targetUserId);
+    router(); // re-render to reflect like changes instantly
+  } catch(e) {
+    alert(e.message);
+  }
 };
 
 function LoadingScreen() {
@@ -691,8 +746,32 @@ function updateNavbarAuthUI() {
                      currentRole === 'Editor/a' ? '✂️ ' : '';
     const badgeHtml = `<span class="user-role-badge">${roleIcon}${currentRole.toUpperCase()} ${currentProgram && currentProgram !== 'viewers' ? '· ' + currentProgram.toUpperCase() : ''}</span>`;
 
+    const unreadCount = window.userNotifications ? window.userNotifications.filter(n => !n.read).length : 0;
+    const notifsHtml = `
+      <div class="notif-container" style="position: relative; cursor: pointer; margin-right: 0.5rem;" id="btn-notifs">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-primary);"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        ${unreadCount > 0 ? `<span class="notif-badge" style="position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border-radius: 50%; padding: 0.1rem 0.3rem; font-size: 0.6rem; font-weight: bold;">${unreadCount}</span>` : ''}
+        
+        <div id="notif-dropdown" class="glass-card" style="display: none; position: absolute; top: 120%; right: -10px; width: 300px; max-height: 350px; overflow-y: auto; z-index: 1000; padding: 0.5rem; text-align: left;">
+          <h4 style="margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem;">Notificaciones</h4>
+          ${window.userNotifications && window.userNotifications.length > 0 
+            ? window.userNotifications.map(n => `
+                <div class="notif-item" style="display: flex; gap: 0.5rem; align-items: center; padding: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); ${n.read ? 'opacity: 0.7;' : 'background: rgba(255,255,255,0.05); border-radius: 4px;'}">
+                  <img src="${n.fromUserPhoto || 'https://api.dicebear.com/7.x/avataaars/svg?seed='+n.fromUserId}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                  <div style="font-size: 0.8rem; line-height: 1.2;">
+                    <strong>${n.fromUserName}</strong> 
+                    ${n.type === 'like' ? 'le dio like a tu pronóstico' : 'compartió tu pronóstico al chat'}
+                  </div>
+                </div>
+              `).join('')
+            : '<div style="padding: 1rem; text-align: center; font-size: 0.8rem; color: var(--text-secondary);">No hay notificaciones nuevas</div>'}
+        </div>
+      </div>
+    `;
+
     container.innerHTML = `
       <div class="user-profile">
+        ${notifsHtml}
         <div class="user-info">
           <span class="user-name">${currentUserDynamic?.name || user.displayName}</span>
           ${badgeHtml}
@@ -706,6 +785,27 @@ function updateNavbarAuthUI() {
         </div>
       </div>
     `;
+
+    document.getElementById('btn-notifs')?.addEventListener('click', (e) => {
+      const drop = document.getElementById('notif-dropdown');
+      if (drop.style.display === 'none') {
+        drop.style.display = 'block';
+        if (unreadCount > 0) {
+          markNotificationsAsRead(user.uid);
+        }
+      } else {
+        drop.style.display = 'none';
+      }
+      e.stopPropagation();
+    });
+    
+    document.addEventListener('click', (e) => {
+      const drop = document.getElementById('notif-dropdown');
+      if (drop && !e.target.closest('#btn-notifs')) {
+        drop.style.display = 'none';
+      }
+    });
+
     document.getElementById('btn-logout')?.addEventListener('click', () => {
       signOut(auth).then(() => router());
     });
@@ -738,11 +838,23 @@ document.body.addEventListener('click', e => {
   }
 });
 
+window.userNotifications = [];
+let notifUnsubscribe = null;
+
 window.addEventListener('popstate', router);
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
     startLiveMatchEngine();
+    
+    if (notifUnsubscribe) notifUnsubscribe();
+    notifUnsubscribe = listenToNotifications(user.uid, (notifs) => {
+      window.userNotifications = notifs;
+      router();
+    });
+  } else {
+    window.userNotifications = [];
+    if (notifUnsubscribe) notifUnsubscribe();
   }
 
   if (!isInitialized) {

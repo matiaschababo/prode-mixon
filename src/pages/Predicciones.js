@@ -48,6 +48,13 @@ export function Predicciones(matchId) {
         else if (p.hitType === "WINNER") { scoreStyle = 'color: var(--color-winner); font-weight: 800;'; icon = '👍'; }
         else if (p.hitType === "MISS") { scoreStyle = 'color: var(--color-miss); opacity: 0.8;'; icon = '❌'; }
 
+        const likes = p.prediction.likes || [];
+        const shares = p.prediction.shares || 0;
+        const currentUserId = window.auth?.currentUser?.uid;
+        const hasLiked = likes.some(l => l.uid === currentUserId);
+        const heartColor = hasLiked ? '#ff4757' : 'currentColor';
+        const heartFill = hasLiked ? '#ff4757' : 'none';
+
         return `
           <div class="glass-card prediction-row animate-slide-up" style="animation-delay: ${index * 0.05}s">
             <a href="/perfil/${p.id}" data-link style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; flex: 1;">
@@ -57,16 +64,25 @@ export function Predicciones(matchId) {
                 <div style="font-size: 0.8rem; color: var(--text-secondary);">${p.role || 'Participante'} · ${getParticipantProgramLabel(p)}</div>
               </div>
             </a>
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
               <div class="prediction-score" style="text-align: right;">
                 <div style="${scoreStyle} font-size: 1.25rem;">${p.prediction ? `${p.prediction.home} - ${p.prediction.away}` : '? - ?'}</div>
                 ${p.points !== null ? `<small style="${scoreStyle}">${result && result.live ? '<span style="opacity:0.8; font-size:0.75rem;">Con este resultado: </span>' : ''}${icon} ${p.points} pts</small>` : ''}
               </div>
-              ${p.prediction ? `
-                <button onclick="window.sharePredictionToChat('${p.name.replace(/'/g, "\\'")}', '${home.name} vs ${away.name}', '${p.prediction.home} - ${p.prediction.away}')" class="btn btn-sm" style="background: transparent; color: var(--color-mixon-main); padding: 0.3rem; border: 1px solid rgba(255,255,255,0.1);" title="Compartir al chat">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                </button>
-              ` : ''}
+              <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.8rem;">
+                <div style="display: flex; align-items: center; gap: 0.2rem;">
+                  <button onclick="window.toggleLikeOnPrediction('${match.id}', '${p.id}')" class="btn btn-sm" style="background: transparent; color: ${heartColor}; padding: 0.2rem; border: none; box-shadow: none;" title="Me gusta">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="${heartFill}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                  </button>
+                  ${likes.length > 0 ? `<span style="cursor:pointer;" onclick="window.showLikesModal('${escape(JSON.stringify(likes))}')">${likes.length}</span>` : ''}
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.2rem;">
+                  <button onclick="window.sharePredictionToChat('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${home.name} vs ${away.name}', '${p.prediction.home} - ${p.prediction.away}', '${match.id}')" class="btn btn-sm" style="background: transparent; color: var(--color-mixon-main); padding: 0.2rem; border: none; box-shadow: none;" title="Compartir al chat">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  </button>
+                  ${shares > 0 ? `<span>${shares}</span>` : ''}
+                </div>
+              </div>
             </div>
           </div>
         `;

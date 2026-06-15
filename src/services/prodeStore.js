@@ -1,7 +1,7 @@
 import { matches } from '../data/matches.js';
 import { isParticipantInProgram } from '../data/participants.js';
 import { calculatePoints } from './scoring.js';
-import { db, doc, getDoc, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, collection, query, addDoc, serverTimestamp, orderBy, limit } from './firebase.js';
+import { db, doc, getDoc, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, collection, query, where, addDoc, serverTimestamp, orderBy, limit } from './firebase.js';
 import { getAuth } from 'firebase/auth';
 
 let prodeState = {
@@ -371,3 +371,108 @@ export function startLiveMatchEngine() {
   if (liveEngineInterval) clearInterval(liveEngineInterval);
   liveEngineInterval = setInterval(triggerLiveUpdate, 60000);
 }
+
+// ==============================================
+// Social Predictions (Likes, Shares, Notifications)
+// ==============================================
+
+export async function togglePredictionLike(matchId, targetUserId) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) throw new Error("Debes iniciar sesión para dar me gusta");
+
+  const predRef = doc(db, 'predictions', targetUserId);
+  const snap = await getDoc(predRef);
+  const current = snap.data() || {};
+  
+  if (!current[matchId]) return;
+
+  const currentLikes = current[matchId].likes || [];
+  const userLikedIndex = currentLikes.findIndex(l => l.uid === user.uid);
+  
+  const updatedLikes = [...currentLikes];
+  let isLiking = false;
+
+  if (userLikedIndex >= 0) {
+    updatedLikes.splice(userLikedIndex, 1);
+  } else {
+    isLiking = true;
+    updatedLikes.push({ uid: user.uid, name: user.displayName || 'Usuario', photo: user.photoURL || '' });
+  }
+
+  current[matchId].likes = updatedLikes;
+  await setDoc(predRef, current);
+
+  // Send Notification
+  if (isLiking && targetUserId !== user.uid) {
+    await addDoc(collection(db, 'notifications'), {
+      userId: targetUserId,
+      fromUserId: user.uid,
+      fromUserName: user.displayName || 'Alguien',
+      fromUserPhoto: user.photoURL || '',
+      type: 'like',
+      matchId: matchId,
+      timestamp: serverTimestamp(),
+      read: false
+    });
+  }
+}
+
+export async function incrementPredictionShares(matchId, targetUserId) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const predRef = doc(db, 'predictions', targetUserId);
+  const snap = await getDoc(predRef);
+  const current = snap.data() || {};
+  
+  if (!current[matchId]) return;
+
+  current[matchId].shares = (current[matchId].shares || 0) + 1;
+  await setDoc(predRef, current);
+
+  if (targetUserId !== user.uid) {
+    await addDoc(collection(db, 'notifications'), {
+      userId: targetUserId,
+      fromUserId: user.uid,
+      fromUserName: user.displayName || 'Alguien',
+      fromUserPhoto: user.photoURL || '',
+      type: 'share',
+      matchId: matchId,
+      timestamp: serverTimestamp(),
+      read: false
+    });
+  }
+}
+
+export function listenToNotifications(userId, callback) {
+  if (!userId) return () => {};
+  const q = query(
+    collection(db, 'notifications'),
+    where('userId', '==', userId),
+    orderBy('timestamp', 'desc'),
+    limit(20)
+  );
+  return onSnapshot(q, (snapshot) => {
+    const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(notifs);
+  });
+}
+
+export async function markNotificationsAsRead(userId) {
+  // Using multiple updateDoc calls since writeBatch can be overkill for a few unread notifications
+  // In a real prod environment with many notifications, we might query unread ones first.
+  const q = query(
+    collection(db, 'notifications'),
+    where('userId', '==', userId),
+    where('read', '==', false)
+  );
+  const snapshot = await getDocs(q);
+  const batch = writeBatch(db);
+  snapshot.docs.forEach(d => {
+    batch.update(d.ref, { read: true });
+  });
+  await batch.commit();
+}
+

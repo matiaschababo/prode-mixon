@@ -65,12 +65,23 @@ export function Perfil(participantId) {
           <span>${item.result ? `${item.result.home}-${item.result.away}` : 'Pendiente'}</span>
           <small>Resultado</small>
         </div>
-        <div class="history-points" style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end;">
-          <span>${item.points ?? '-'} pts</span>
+        <div class="history-points" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
+          <div style="font-weight: 600;">${item.points ?? '-'} pts</div>
           ${item.prediction ? `
-            <button onclick="window.sharePredictionToChat('${participant.name.replace(/'/g, "\\'")}', '${item.label.replace(/'/g, "\\'")}', '${item.prediction.home} - ${item.prediction.away}')" class="btn btn-sm" style="background: transparent; color: var(--color-mixon-main); padding: 0.3rem; border: 1px solid rgba(255,255,255,0.1);" title="Compartir al chat">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            </button>
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.7rem;">
+              <div style="display: flex; align-items: center; gap: 0.2rem;">
+                <button onclick="window.toggleLikeOnPrediction('${item.match.id}', '${participantId}')" class="btn btn-sm" style="background: transparent; color: ${item.prediction.likes?.some(l => l.uid === window.auth?.currentUser?.uid) ? '#ff4757' : 'currentColor'}; padding: 0.2rem; border: none; box-shadow: none;" title="Me gusta">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="${item.prediction.likes?.some(l => l.uid === window.auth?.currentUser?.uid) ? '#ff4757' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                </button>
+                ${item.prediction.likes?.length > 0 ? `<span style="cursor:pointer;" onclick="window.showLikesModal('${escape(JSON.stringify(item.prediction.likes))}')">${item.prediction.likes.length}</span>` : ''}
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.2rem;">
+                <button onclick="window.sharePredictionToChat('${participantId}', '${participant.name.replace(/'/g, "\\'")}', '${item.label.replace(/'/g, "\\'")}', '${item.prediction.home} - ${item.prediction.away}', '${item.match.id}')" class="btn btn-sm" style="background: transparent; color: var(--color-mixon-main); padding: 0.2rem; border: none; box-shadow: none;" title="Compartir al chat">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </button>
+                ${item.prediction.shares > 0 ? `<span>${item.prediction.shares}</span>` : ''}
+              </div>
+            </div>
           ` : ''}
         </div>
       </div>
