@@ -121,14 +121,8 @@ function setupChat() {
     router();
   };
 
-  if (bubble && !bubble.dataset.events) {
-    bubble.dataset.events = "true";
-    bubble.addEventListener('click', toggleChat);
-  }
-  if (closeBtn && !closeBtn.dataset.events) {
-    closeBtn.dataset.events = "true";
-    closeBtn.addEventListener('click', toggleChat);
-  }
+  if (bubble) bubble.onclick = toggleChat;
+  if (closeBtn) closeBtn.onclick = toggleChat;
 
   const handleSend = async () => {
     if (!input || !input.value.trim()) return;
@@ -149,27 +143,22 @@ function setupChat() {
     }
   };
 
-  if (sendBtn && !sendBtn.dataset.events) {
-    sendBtn.dataset.events = "true";
-    sendBtn.addEventListener('click', handleSend);
-  }
+  if (sendBtn) sendBtn.onclick = handleSend;
 
-  if (input && !input.dataset.events) {
-    input.dataset.events = "true";
-    input.addEventListener('keypress', (e) => {
+  if (input) {
+    input.onkeypress = (e) => {
       if (e.key === 'Enter') handleSend();
-    });
+    };
   }
 
-  if (loginBtn && !loginBtn.dataset.events) {
-    loginBtn.dataset.events = "true";
-    loginBtn.addEventListener('click', async () => {
+  if (loginBtn) {
+    loginBtn.onclick = async () => {
       try {
         await signInWithPopup(auth, googleProvider);
       } catch (e) {
         console.error("Login failed", e);
       }
-    });
+    };
   }
 
   // --- PREMIUM CHAT FEATURES: EMOJI & GIF ---

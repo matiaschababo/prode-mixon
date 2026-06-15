@@ -264,7 +264,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(135deg, var(--color-mixon-main), var(--color-mixon-light));
   display: flex;
   justify-content: center;
   align-items: center;
@@ -427,7 +427,7 @@
 }
 
 .chat-message-me .chat-text {
-  background: var(--color-primary);
+  background: var(--color-mixon-main);
   color: white;
 }
 
@@ -458,7 +458,7 @@
 }
 
 #chat-input:focus {
-  border-color: var(--color-primary);
+  border-color: var(--color-mixon-main);
 }
 
 @media (max-width: 768px) {
@@ -539,7 +539,7 @@
   outline: none;
 }
 #chat-gif-search:focus {
-  border-color: var(--color-primary);
+  border-color: var(--color-mixon-main);
 }
 
 .chat-gif-results {

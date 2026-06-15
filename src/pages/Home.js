@@ -1,6 +1,7 @@
 import { RankingTable } from '../components/RankingTable.js';
 import { getRankedParticipants, ensureUserExists } from '../services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup } from '../services/firebase.js';
+import { getProgramChartHTML } from './Programas.js';
 
 export function Home() {
   const user = auth.currentUser;
@@ -63,6 +64,7 @@ export function Home() {
           <button class="btn btn-secondary home-filter" data-filter="conductores">Conductores</button>
           <button class="btn btn-secondary home-filter" data-filter="staff">Staff</button>
           <button class="btn btn-secondary home-filter" data-filter="viewers">Viewers</button>
+          <button class="btn btn-secondary home-filter" data-filter="programas">Programas</button>
         </div>
 
         <div id="ranking-table-container">
@@ -106,6 +108,11 @@ export function attachHomeEvents() {
         btn.classList.toggle('btn-primary', btn === button);
         btn.classList.toggle('btn-secondary', btn !== button);
       });
+
+      if (filter === 'programas') {
+        container.innerHTML = getProgramChartHTML();
+        return;
+      }
 
       let participants = getRankedParticipants();
 
