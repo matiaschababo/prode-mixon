@@ -103,7 +103,7 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
 
   const inputAreaHTML = user
     ? `
-      <div class="chat-input-area" style="position: relative;">
+      <div class="chat-input-area" style="position: relative; flex-direction: column; align-items: stretch; gap: 0;">
         ${replyingTo ? `
           <div class="chat-reply-preview">
             <div style="flex: 1; overflow: hidden; margin-right: 0.5rem;">
@@ -115,19 +115,21 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
         ` : ''}
         <div id="chat-mentions-panel" class="hidden" style="position: absolute; bottom: 100%; left: 0; width: 100%; max-height: 150px; overflow-y: auto; background: var(--glass-bg); backdrop-filter: blur(10px); border-top: 1px solid var(--glass-border); border-radius: 12px 12px 0 0; z-index: 10;"></div>
         
-        <div class="chat-input-wrapper">
-          <button id="chat-emoji-btn" class="chat-action-btn" title="Emojis">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+        <div style="display: flex; gap: 0.5rem; align-items: center; width: 100%;">
+          <div class="chat-input-wrapper">
+            <button id="chat-emoji-btn" class="chat-action-btn" title="Emojis">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+            </button>
+            <button id="chat-gif-btn" class="chat-action-btn" title="GIFs">
+              <span style="font-weight: 800; font-size: 0.7rem; border: 2px solid currentColor; padding: 1px 4px; border-radius: 6px;">GIF</span>
+            </button>
+            <input type="text" id="chat-input" placeholder="Mensaje..." autocomplete="off">
+          </div>
+          
+          <button id="chat-send-btn" class="chat-send-circle">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: translateX(-1px) translateY(1px);"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
           </button>
-          <button id="chat-gif-btn" class="chat-action-btn" title="GIFs">
-            <span style="font-weight: 800; font-size: 0.7rem; border: 2px solid currentColor; padding: 1px 4px; border-radius: 6px;">GIF</span>
-          </button>
-          <input type="text" id="chat-input" placeholder="Mensaje..." autocomplete="off">
         </div>
-        
-        <button id="chat-send-btn" class="chat-send-circle">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: translateX(-1px) translateY(1px);"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-        </button>
       </div>
     `
     : `
