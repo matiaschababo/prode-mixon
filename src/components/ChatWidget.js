@@ -89,9 +89,9 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
           <div class="chat-bubble-content">
             ${!isMe ? `<div class="chat-author">${msg.name}</div>` : ''}
             ${msg.replyTo ? `
-              <div class="chat-replied-msg" onclick="document.getElementById('msg-${msg.replyTo.id}')?.scrollIntoView({behavior: 'smooth', block: 'center'})">
-                <div class="reply-name">${msg.replyTo.name}</div>
-                <div class="reply-text">${msg.replyTo.text || 'GIF'}</div>
+              <div class="chat-replied-msg" ${!msg.replyTo.isPrediction ? `onclick="document.getElementById('msg-${msg.replyTo.id}')?.scrollIntoView({behavior: 'smooth', block: 'center'})"` : ''}>
+                <div class="reply-name">${msg.replyTo.isPrediction ? '⚽ Pronóstico de ' + msg.replyTo.name : msg.replyTo.name}</div>
+                <div class="reply-text">${msg.replyTo.isPrediction ? `<strong>${msg.replyTo.matchStr}</strong>: ${msg.replyTo.predStr}` : (msg.replyTo.text || 'GIF')}</div>
               </div>
             ` : ''}
             <div style="position: relative; display: flex; flex-direction: column;">
@@ -136,8 +136,8 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
         ${replyingTo ? `
           <div class="chat-reply-preview">
             <div style="flex: 1; overflow: hidden; margin-right: 0.5rem;">
-              <div class="reply-name">Respondiendo a ${replyingTo.name}</div>
-              <div class="reply-text">${replyingTo.text}</div>
+              <div class="reply-name">${replyingTo.isPrediction ? 'Compartiendo pronóstico de ' + replyingTo.name : 'Respondiendo a ' + replyingTo.name}</div>
+              <div class="reply-text">${replyingTo.isPrediction ? `${replyingTo.matchStr}: ${replyingTo.predStr}` : replyingTo.text}</div>
             </div>
             <button id="chat-cancel-reply-btn" style="background:transparent; border:none; color:var(--text-secondary); cursor:pointer; padding: 4px;">✕</button>
           </div>

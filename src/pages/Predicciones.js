@@ -50,16 +50,23 @@ export function Predicciones(matchId) {
 
         return `
           <div class="glass-card prediction-row animate-slide-up" style="animation-delay: ${index * 0.05}s">
-            <a href="/perfil/${p.id}" data-link style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit;">
+            <a href="/perfil/${p.id}" data-link style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; flex: 1;">
               <img src="${p.photo}" class="avatar" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
               <div>
                 <div style="font-weight: 600;">${p.name}</div>
                 <div style="font-size: 0.8rem; color: var(--text-secondary);">${p.role || 'Participante'} · ${getParticipantProgramLabel(p)}</div>
               </div>
             </a>
-            <div class="prediction-score" style="text-align: right;">
-              <div style="${scoreStyle} font-size: 1.25rem;">${p.prediction ? `${p.prediction.home} - ${p.prediction.away}` : '? - ?'}</div>
-              ${p.points !== null ? `<small style="${scoreStyle}">${result && result.live ? '<span style="opacity:0.8; font-size:0.75rem;">Con este resultado: </span>' : ''}${icon} ${p.points} pts</small>` : ''}
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <div class="prediction-score" style="text-align: right;">
+                <div style="${scoreStyle} font-size: 1.25rem;">${p.prediction ? `${p.prediction.home} - ${p.prediction.away}` : '? - ?'}</div>
+                ${p.points !== null ? `<small style="${scoreStyle}">${result && result.live ? '<span style="opacity:0.8; font-size:0.75rem;">Con este resultado: </span>' : ''}${icon} ${p.points} pts</small>` : ''}
+              </div>
+              ${p.prediction ? `
+                <button onclick="window.sharePredictionToChat('${p.name.replace(/'/g, "\\'")}', '${home.name} vs ${away.name}', '${p.prediction.home} - ${p.prediction.away}')" class="btn btn-sm" style="background: transparent; color: var(--color-mixon-main); padding: 0.3rem; border: 1px solid rgba(255,255,255,0.1);" title="Compartir al chat">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </button>
+              ` : ''}
             </div>
           </div>
         `;

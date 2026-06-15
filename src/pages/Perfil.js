@@ -65,7 +65,14 @@ export function Perfil(participantId) {
           <span>${item.result ? `${item.result.home}-${item.result.away}` : 'Pendiente'}</span>
           <small>Resultado</small>
         </div>
-        <div class="history-points">${item.points ?? '-'} pts</div>
+        <div class="history-points" style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end;">
+          <span>${item.points ?? '-'} pts</span>
+          ${item.prediction ? `
+            <button onclick="window.sharePredictionToChat('${participant.name.replace(/'/g, "\\'")}', '${item.label.replace(/'/g, "\\'")}', '${item.prediction.home} - ${item.prediction.away}')" class="btn btn-sm" style="background: transparent; color: var(--color-mixon-main); padding: 0.3rem; border: 1px solid rgba(255,255,255,0.1);" title="Compartir al chat">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </button>
+          ` : ''}
+        </div>
       </div>
     `;
   }).join('');

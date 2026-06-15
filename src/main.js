@@ -42,6 +42,23 @@ export function setChatReplyingTo(msg) {
   router();
 }
 
+window.sharePredictionToChat = (name, matchStr, predStr) => {
+  setChatReplyingTo({
+    isPrediction: true,
+    name,
+    matchStr,
+    predStr
+  });
+  if (!isChatOpen) {
+    isChatOpen = true;
+    document.body.style.overflow = 'hidden';
+    router();
+  }
+  setTimeout(() => {
+    document.getElementById('chat-input')?.focus();
+  }, 100);
+};
+
 function LoadingScreen() {
   return `
     <div class="loading-screen">
