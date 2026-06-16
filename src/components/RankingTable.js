@@ -45,7 +45,7 @@ export function RankingTable(participantsData) {
           <div class="ranking-bar bar-fill" style="background: linear-gradient(90deg, ${prog.theme.main}, ${prog.theme.accent})"></div>
         </div>
         
-        <div class="ranking-points">
+        <div class="ranking-points" title="Puntos: ${points} | Exactos: ${p.exacts || 0} | Desempate de anticipación: +${Math.round((p.timeInAdvance || 0) / 60000)} min">
           <strong>${points}</strong> pts
           <small>${p.exacts || 0} exactos</small>
         </div>

@@ -295,15 +295,25 @@ export function getMatchStats(matchId) {
 
 export function getParticipantStats(participantId) {
   const predictions = getPredictions();
-  const stats = { totalPoints: 0, played: 0, hits: 0, exacts: 0, currentStreak: 0, exactStreak: 0, badges: [] };
+  const stats = { totalPoints: 0, played: 0, hits: 0, exacts: 0, currentStreak: 0, exactStreak: 0, maxStreak: 0, timeInAdvance: 0, badges: [] };
   let totalLikes = 0;
 
-  matches.forEach(match => {
+  const sortedMatches = [...matches].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  sortedMatches.forEach(match => {
     const prediction = predictions[String(match.id)]?.[participantId];
     if (prediction && prediction.likes) totalLikes += prediction.likes.length;
 
     const result = getMatchResult(match);
-    if (!prediction || !result || result.live) return;
+    if (!result || result.live) return;
+
+    if (!prediction) {
+      if (stats.played > 0) {
+        stats.currentStreak = 0;
+        stats.exactStreak = 0;
+      }
+      return;
+    }
 
     const points = calculatePoints(prediction.home, prediction.away, result.home, result.away, match.stage);
     stats.totalPoints += points;
@@ -312,6 +322,7 @@ export function getParticipantStats(participantId) {
     if (points > 0) {
       stats.hits += 1;
       stats.currentStreak += 1;
+      if (stats.currentStreak > stats.maxStreak) stats.maxStreak = stats.currentStreak;
       
       if (!stats.badges.includes('El Contra')) {
         const matchStats = getMatchStats(match.id);
@@ -335,21 +346,28 @@ export function getParticipantStats(participantId) {
       stats.exactStreak = 0;
     }
 
-    if (prediction.timestamp && !stats.badges.includes('Buzzer Beater')) {
-       const matchTime = new Date(match.date).getTime();
-       const predTime = prediction.timestamp.toMillis ? prediction.timestamp.toMillis() : prediction.timestamp;
-       if (matchTime - predTime <= 5 * 60 * 1000 && matchTime - predTime >= 0) {
-           stats.badges.push('Buzzer Beater');
-       }
+    let predTime = 0;
+    if (prediction.timestamp) {
+      predTime = prediction.timestamp.toMillis ? prediction.timestamp.toMillis() : new Date(prediction.timestamp).getTime();
+    }
+    const matchTime = new Date(match.date).getTime();
+
+    if (predTime > 0 && matchTime >= predTime) {
+      stats.timeInAdvance += (matchTime - predTime);
+      if (!stats.badges.includes('Buzzer Beater') && matchTime - predTime <= 5 * 60 * 1000) {
+        stats.badges.push('Buzzer Beater');
+      }
     }
   });
 
-  if (stats.exacts >= 10) stats.badges.push('El Oráculo');
-  if (totalLikes >= 50) stats.badges.push('Influencer');
+  if (stats.exacts >= 10 && !stats.badges.includes('El Oráculo')) stats.badges.push('El Oráculo');
+  if (totalLikes >= 50 && !stats.badges.includes('Influencer')) stats.badges.push('Influencer');
+  if (stats.maxStreak >= 5 && !stats.badges.includes('Racha de Fuego')) stats.badges.push('Racha de Fuego');
 
   const mvpDates = getHistoricalMVPCounts()[participantId] || [];
   stats.mvpCount = mvpDates.length;
   stats.mvpDates = mvpDates;
+  if (stats.mvpCount >= 3 && !stats.badges.includes('MVP x3')) stats.badges.push('MVP x3');
 
   return stats;
 }
@@ -369,7 +387,7 @@ export function getRankedParticipants(programId = null) {
         ...participant,
         ...getParticipantStats(participant.id)
       }))
-      .sort((a, b) => b.totalPoints - a.totalPoints || b.exacts - a.exacts || a.name.localeCompare(b.name));
+      .sort((a, b) => b.totalPoints - a.totalPoints || b.exacts - a.exacts || b.timeInAdvance - a.timeInAdvance || a.name.localeCompare(b.name));
   }
 
   return cachedRankings.filter(participant => !programId || isParticipantInProgram(participant, programId));
@@ -381,8 +399,8 @@ export function getDailyMVP() {
   
   const getLogicalDate = (dateString) => {
     const d = new Date(dateString);
-    d.setHours(d.getHours() - 4);
-    return d.toDateString();
+    d.setUTCHours(d.getUTCHours() - 4);
+    return d.toISOString().split('T')[0];
   };
 
   const matchdays = {};
@@ -401,9 +419,13 @@ export function getDailyMVP() {
   Object.keys(matchdays).forEach(d => {
     const day = matchdays[d];
     if (day.finishedCount === day.matches.length && day.matches.length > 0) {
-      const dayTime = new Date(d).getTime();
-      if (dayTime > maxTime) {
-        maxTime = dayTime;
+      let dayMaxTime = 0;
+      day.matches.forEach(m => {
+        const mt = new Date(m.date).getTime();
+        if (mt > dayMaxTime) dayMaxTime = mt;
+      });
+      if (dayMaxTime > maxTime) {
+        maxTime = dayMaxTime;
         latestCompleteDate = d;
       }
     }
@@ -431,7 +453,7 @@ export function getDailyMVP() {
         const pt = calculatePoints(p.home, p.away, r.home, r.away, match.stage);
         pts += pt;
         if (pt === calculatePoints(r.home, r.away, r.home, r.away, match.stage) && pt > 0) exacts++;
-        const ts = p.timestamp ? (p.timestamp.toMillis ? p.timestamp.toMillis() : new Date(p.timestamp).getTime()) : 0;
+        const ts = p.timestamp ? (p.timestamp.toMillis ? p.timestamp.toMillis() : new Date(p.timestamp).getTime()) : Infinity;
         if (ts > latestTimestamp) latestTimestamp = ts;
         userMatchesInfo.push({ match, prediction: p, result: r, points: pt });
       }
@@ -444,7 +466,7 @@ export function getDailyMVP() {
         if (exacts > maxExacts) {
           maxExacts = exacts; minTimestamp = latestTimestamp; bestUser = user; bestMatchesInfo = userMatchesInfo;
         } else if (exacts === maxExacts) {
-          if (latestTimestamp < minTimestamp && latestTimestamp > 0) {
+          if (latestTimestamp < minTimestamp) {
             minTimestamp = latestTimestamp; bestUser = user; bestMatchesInfo = userMatchesInfo;
           }
         }
@@ -464,8 +486,8 @@ export function getHistoricalMVPCounts() {
   
   const getLogicalDate = (dateString) => {
     const d = new Date(dateString);
-    d.setHours(d.getHours() - 4);
-    return d.toDateString();
+    d.setUTCHours(d.getUTCHours() - 4);
+    return d.toISOString().split('T')[0];
   };
 
   const matchdays = {};
@@ -502,7 +524,7 @@ export function getHistoricalMVPCounts() {
           const pt = calculatePoints(p.home, p.away, r.home, r.away, match.stage);
           pts += pt;
           if (pt === calculatePoints(r.home, r.away, r.home, r.away, match.stage) && pt > 0) exacts++;
-          const ts = p.timestamp ? (p.timestamp.toMillis ? p.timestamp.toMillis() : new Date(p.timestamp).getTime()) : 0;
+          const ts = p.timestamp ? (p.timestamp.toMillis ? p.timestamp.toMillis() : new Date(p.timestamp).getTime()) : Infinity;
           if (ts > latestTimestamp) latestTimestamp = ts;
         }
       });
@@ -514,9 +536,9 @@ export function getHistoricalMVPCounts() {
           if (exacts > maxExacts) {
             maxExacts = exacts; minTimestamp = latestTimestamp; bestUsers = [user];
           } else if (exacts === maxExacts) {
-            if (latestTimestamp < minTimestamp && latestTimestamp > 0) {
+            if (latestTimestamp < minTimestamp) {
               minTimestamp = latestTimestamp; bestUsers = [user];
-            } else if (latestTimestamp === minTimestamp || latestTimestamp === 0) {
+            } else if (latestTimestamp === minTimestamp) {
               bestUsers.push(user);
             }
           }
