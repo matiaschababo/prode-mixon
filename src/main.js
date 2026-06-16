@@ -5,7 +5,7 @@ import './styles/layout.css';
 import './styles/animations.css';
 
 import { ChatWidget } from './components/ChatWidget.js';
-import { Navbar, setupNavbar, updateNavbarAuthUI } from './components/Navbar.js';
+import { Navbar } from './components/Navbar.js';
 import { Ticker } from './components/Ticker.js';
 import { Home, attachHomeEvents } from './pages/Home.js';
 import { Fixture, attachFixtureEvents } from './pages/Fixture.js';
