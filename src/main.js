@@ -28,7 +28,7 @@ const routes = {
   '/fixture': Fixture,
   '/llaves': Llaves,
   '/programas': Programas,
-  '/puntajes': Puntajes,
+  '/reglas': Reglas,
   '/perfil': Perfil,
   '/admin': Admin
 };
@@ -827,35 +827,27 @@ function updateNavbarAuthUI() {
     `;
 
     container.innerHTML = `
-      <div class="user-profile">
+      <div class="user-profile" style="display: flex; align-items: center;">
         ${notifsHtml}
         <div class="user-info desktop-only">
           <span class="user-name">${currentUserDynamic?.name || user.displayName}</span>
           ${badgeHtml}
         </div>
-        <a href="/perfil/${user.uid}" data-link style="display: flex; align-items: center;">
-          <img src="${customPhoto}" alt="Avatar" class="avatar-small">
+        <a href="/perfil/${user.uid}" data-link style="display: flex; align-items: center; text-decoration: none;">
+          <img src="${customPhoto}" alt="Avatar" class="avatar-small" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.1); transition: border-color 0.3s ease;">
         </a>
-        <div class="user-actions desktop-only" style="display: flex; gap: 0.25rem; margin-left: 0.25rem;">
-          ${MASTER_ADMINS.includes(user.email) ? '<a href="/admin" class="btn btn-secondary btn-small" data-link style="padding: 0.4rem 0.6rem; font-size: 0.7rem;">ADMIN</a>' : ''}
-          <button id="btn-logout" class="btn btn-secondary btn-small" style="padding: 0.4rem 0.6rem; font-size: 0.7rem;">SALIR</button>
+        <div class="user-actions" style="display: flex; gap: 0.5rem; margin-left: 0.8rem; align-items: center;">
+          ${MASTER_ADMINS.includes(user.email) ? '<a href="/admin" class="desktop-only" data-link style="color: rgba(255,255,255,0.5); transition: color 0.3s;" title="Admin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></a>' : ''}
+          <button id="btn-logout" style="background: transparent; border: none; padding: 0.2rem; cursor: pointer; color: rgba(255,59,48,0.7); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;" title="Salir">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          </button>
         </div>
       </div>
     `;
 
     // Add logic for mobile nav buttons
     const navAdmin = document.getElementById('nav-admin');
-    const navLogout = document.getElementById('nav-logout');
     if (navAdmin) navAdmin.style.display = MASTER_ADMINS.includes(user.email) ? 'block' : 'none';
-    if (navLogout) {
-      navLogout.style.display = 'block';
-      navLogout.onclick = async (e) => {
-        e.preventDefault();
-        await auth.signOut();
-        const mobileMenuClose = document.getElementById('mobile-menu-close');
-        if (mobileMenuClose) mobileMenuClose.click();
-      };
-    }
 
     document.getElementById('btn-notifs')?.addEventListener('click', (e) => {
       const drop = document.getElementById('notif-dropdown');

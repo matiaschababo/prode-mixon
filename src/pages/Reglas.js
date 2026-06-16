@@ -1,6 +1,6 @@
 import { MULTIPLIERS } from '../services/scoring.js';
 
-export function Puntajes() {
+export function Reglas() {
   const phaseCards = Object.entries(MULTIPLIERS)
     .map(([phase, multiplier]) => `
       <div class="score-phase-card">
@@ -13,8 +13,9 @@ export function Puntajes() {
     <div class="puntajes-page animate-fade-in">
       <section class="score-hero">
         <div>
-          <p class="eyebrow">Sistema de puntos</p>
+          <p class="eyebrow">Reglamento Oficial</p>
           <h1>Acertar mejor vale más. Acertar en fases grandes vale muchísimo más.</h1>
+          <p style="color: var(--text-secondary); margin-top: 1rem; font-size: 1.1rem; max-width: 600px;">Conocé cómo sumar puntos, los multiplicadores por fase, los desempates del Ranking Global y los logros exclusivos.</p>
         </div>
         <div class="score-wheel" aria-label="Resumen visual de puntajes">
           <div class="score-chip exact">3</div>
@@ -58,6 +59,52 @@ export function Puntajes() {
           <div><strong>3</strong><span>¿Ganador o empate?</span><b>1 pt</b></div>
           <div><strong>4</strong><span>¿Nada de eso?</span><b>0 pts</b></div>
         </div>
+      <section class="score-decision glass-card" style="margin-top: 3rem;">
+        <div>
+          <p class="eyebrow">Desempates y MVP</p>
+          <h2>El camino a la gloria</h2>
+        </div>
+        <div style="display: grid; gap: 1.5rem; margin-top: 2rem;">
+          <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #ffd700;">
+            <h3 style="color: #ffd700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">👑 MVP de la Jornada</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">Al finalizar todos los partidos del día (horario UTC), el jugador con más puntos se corona MVP. Si hay empate, se decide por:</p>
+            <ol style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem; margin-left: 1.5rem;">
+              <li>Mayor cantidad de resultados exactos en esa jornada.</li>
+              <li>Menor tiempo de anticipación (el que cargó sus pronósticos primero).</li>
+            </ol>
+          </div>
+          <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 12px; border-left: 4px solid var(--accent-blue);">
+            <h3 style="color: white; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">🥇 Ranking Global</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">Si dos o más participantes tienen los mismos puntos totales en la tabla, el sistema desempatará automáticamente priorizando a quien tenga más resultados exactos. Si persite el empate, ganará el que haya acumulado más minutos de anticipación al cargar sus pronósticos a lo largo del torneo.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="score-cases" style="margin-top: 3rem;">
+        <div style="grid-column: 1 / -1; margin-bottom: 1rem;">
+          <p class="eyebrow">Colección</p>
+          <h2>Medallas y Rachas</h2>
+        </div>
+        <article style="border-top-color: #ffd700;">
+          <span class="case-label">MVP x3 🏆</span>
+          <h3>Leyenda Diaria</h3>
+          <p>Se otorga al ganar el MVP de la jornada 3 veces a lo largo del torneo.</p>
+        </article>
+        <article style="border-top-color: #ff4757;">
+          <span class="case-label">Racha de Fuego ☄️</span>
+          <h3>Implacable</h3>
+          <p>Mantener una racha de 5 partidos consecutivos sumando al menos 1 punto. Si no cargás un pronóstico, la racha se rompe y vuelve a 0.</p>
+        </article>
+        <article style="border-top-color: #9b59b6;">
+          <span class="case-label">El Oráculo 🔮</span>
+          <h3>Visionario</h3>
+          <p>Conseguir 10 resultados EXACTOS a lo largo del torneo. Solo para los verdaderos adivinos.</p>
+        </article>
+        <article style="border-top-color: #f39c12;">
+          <span class="case-label">Buzzer Beater ⏳</span>
+          <h3>Sobre la hora</h3>
+          <p>Cargar tu pronóstico menos de 5 minutos antes de que empiece el partido.</p>
+        </article>
       </section>
 
       <section class="score-cases">

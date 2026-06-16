@@ -38,7 +38,7 @@ export function Home() {
             <div class="mvp-header">
               <div class="mvp-crown">👑</div>
               <div class="mvp-info">
-                <div class="mvp-title">MVP de la Jornada • ${mvp.matchdayDate ? new Date(mvp.matchdayDate).toLocaleDateString('es-AR', { weekday: 'long', month: 'long', day: 'numeric' }) : ''}</div>
+                <div class="mvp-title">MVP de la Jornada • ${mvp.matchdayDate ? new Date(mvp.matchdayDate).toLocaleDateString('es-AR', { timeZone: 'UTC', weekday: 'long', month: 'long', day: 'numeric' }) : ''}</div>
                 <div class="mvp-name">${mvp.name}</div>
                 <div class="mvp-stats">Sumó <strong>${mvp.dailyPoints} pts</strong> en ${mvp.matchCount} partidos (${mvp.dailyExacts} resultados exactos)</div>
               </div>
