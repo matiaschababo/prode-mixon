@@ -18,6 +18,12 @@ export function Perfil(participantId) {
   const predictions = getPredictions();
   const stats = getParticipantStats(participantId);
 
+  const getLogicalDate = (dateString) => {
+    const d = new Date(dateString);
+    d.setUTCHours(d.getUTCHours() - 10);
+    return d.toISOString().split('T')[0];
+  };
+
   const history = matches.map(match => {
     const prediction = predictions[String(match.id)]?.[participantId];
     const result = getMatchResult(match);
@@ -65,7 +71,7 @@ export function Perfil(participantId) {
     }
 
     return `
-      <div class="history-row ${item.points === null ? 'pending' : ''}" id="match-${item.match.id}">
+      <div class="history-row ${item.points === null ? 'pending' : ''}" id="match-${item.match.id}" data-date="${getLogicalDate(item.match.date)}">
         <div>
           <strong>${item.label}</strong>
           <small>${item.match.round}</small>
@@ -121,8 +127,13 @@ export function Perfil(participantId) {
           </h1>
           
           ${stats.badges?.length > 0 || stats.mvpCount > 0 ? `
-            <div class="badges-container" style="justify-content: flex-start; margin-bottom: 0.8rem;">
-              ${stats.mvpCount > 0 ? `<div class="mvp-badge-icon" title="MVP en las jornadas:\n${stats.mvpDates ? stats.mvpDates.map(d => new Date(d).toLocaleDateString('es-AR', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })).join('\n') : ''}">👑 MVP x${stats.mvpCount}</div>` : ''}
+            <div class="badges-container" style="justify-content: flex-start; margin-bottom: 0.8rem; gap: 0.5rem; flex-wrap: wrap;">
+              ${stats.mvpDates?.length > 0 ? stats.mvpDates.map(d => {
+                const [y, m, day] = d.split('-');
+                const dateObj = new Date(y, m - 1, day);
+                const dateStr = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
+                return `<div class="badge-item mvp-badge-single" data-tooltip="Clic para ver tus predicciones\nde la jornada MVP (${dateStr})" data-filter-date="${d}" onclick="window.filterHistoryByDate('${d}')" style="cursor: pointer; transition: all 0.2s;">👑 MVP ${dateStr.split(' ')[1]} ${dateStr.split(' ')[2]}</div>`;
+              }).join('') : ''}
               ${stats.badges?.length > 0 ? stats.badges.map(b => {
                 let badgeIcon = '⭐';
                 let badgeDesc = 'Insignia especial por logros en el prode.';
@@ -132,7 +143,7 @@ export function Perfil(participantId) {
                 else if (b === 'Racha de Fuego') { badgeIcon = '☄️'; badgeDesc = 'Acertó 3 o más resultados exactos de forma consecutiva.'; }
                 else if (b === 'MVP x3') { badgeIcon = '🏆'; badgeDesc = 'Ganó el MVP de la jornada 3 o más veces.'; }
                 else if (b === 'Influencer') { badgeIcon = '📱'; badgeDesc = 'Invitó a 5 o más amigos a la plataforma.'; }
-                return `<div class="badge-item" title="${badgeDesc}">${badgeIcon} ${b}</div>`;
+                return `<div class="badge-item" data-tooltip="${badgeDesc}">${badgeIcon} ${b}</div>`;
               }).join('') : ''}
             </div>
           ` : ''}
@@ -147,7 +158,18 @@ export function Perfil(participantId) {
       </section>
 
       <section style="margin-top: 2rem;">
-        <h2 style="margin-bottom: 1rem;">Historial de predicciones</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+          <h2 style="margin: 0;">Historial de predicciones</h2>
+          <select id="history-filter" onchange="window.filterHistoryByDate(this.value)" style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: white; cursor: pointer; outline: none; font-size: 0.9rem;">
+            <option value="all">Todas las jornadas</option>
+            ${[...new Set(history.map(h => getLogicalDate(h.match.date)))].sort().map(d => {
+              const [y, m, day] = d.split('-');
+              const dateObj = new Date(y, m - 1, day);
+              const label = dateObj.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+              return `<option value="${d}">Jornada ${label}</option>`;
+            }).join('')}
+          </select>
+        </div>
         <div class="glass-card history-table">
           ${rows}
         </div>
@@ -157,6 +179,31 @@ export function Perfil(participantId) {
 }
 
 export function attachPerfilEvents() {
+  window.filterHistoryByDate = (dateStr) => {
+    const filterSelect = document.getElementById('history-filter');
+    if (filterSelect && filterSelect.value !== dateStr) {
+      filterSelect.value = dateStr;
+    }
+    
+    document.querySelectorAll('.history-row').forEach(row => {
+      if (dateStr === 'all' || row.dataset.date === dateStr) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    document.querySelectorAll('.mvp-badge-single').forEach(b => {
+      if (dateStr !== 'all' && b.dataset.filterDate === dateStr) {
+        b.style.boxShadow = '0 0 0 2px var(--color-mixon-main)';
+        b.style.background = 'rgba(255,215,0,0.2)';
+      } else {
+        b.style.boxShadow = 'none';
+        b.style.background = '';
+      }
+    });
+  };
+
   document.querySelectorAll('.admin-pred-input').forEach(input => {
     if (input.dataset.eventsAttached) return;
     input.dataset.eventsAttached = 'true';

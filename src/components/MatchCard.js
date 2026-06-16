@@ -107,7 +107,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
       
       communityStatsHTML = `
         <div class="community-stats">
-          <div class="stats-label">Sabiduría de la Multitud (${stats.total} votos)</div>
+          <div class="stats-label">¿Qué votó la mayoría? (${stats.total} votos)</div>
           <div class="stats-bar">
             <div class="stat-home" style="width: ${homePct}%" title="${escapeHTML(home.name)} (${homePct}%)"></div>
             <div class="stat-draw" style="width: ${drawPct}%" title="Empate (${drawPct}%)"></div>
