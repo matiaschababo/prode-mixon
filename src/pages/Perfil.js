@@ -122,8 +122,8 @@ export function Perfil(participantId) {
           
           ${stats.badges?.length > 0 || stats.mvpCount > 0 ? `
             <div class="badges-container" style="justify-content: flex-start; margin-bottom: 0.8rem;">
-              ${stats.mvpCount > 0 ? `<div class="badge-item" title="MVP en las jornadas:\n${stats.mvpDates ? stats.mvpDates.map(d => new Date(d).toLocaleDateString('es-AR', {weekday: 'short', day: 'numeric', month: 'short'})).join('\n') : ''}" style="background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.4); color: #ffd700;">👑 MVP x${stats.mvpCount}</div>` : ''}
-              ${stats.badges?.length > 0 ? stats.badges.map(b => `<div class="badge-item">${b === 'El Oráculo' ? '🔮' : b === 'Buzzer Beater' ? '⏳' : b === 'El Contra' ? '🧠' : '⭐'} ${b}</div>`).join('') : ''}
+              ${stats.mvpCount > 0 ? `<div class="mvp-badge-icon" title="MVP en las jornadas:\n${stats.mvpDates ? stats.mvpDates.map(d => new Date(d).toLocaleDateString('es-AR', {weekday: 'short', day: 'numeric', month: 'short'})).join('\n') : ''}">👑 MVP x${stats.mvpCount}</div>` : ''}
+              ${stats.badges?.length > 0 ? stats.badges.map(b => `<div class="badge-item">${b === 'El Oráculo' ? '🔮' : b === 'Buzzer Beater' ? '⏳' : b === 'El Contra' ? '🧠' : b === 'Racha de Fuego' ? '☄️' : b === 'MVP x3' ? '🏆' : b === 'Influencer' ? '📱' : '⭐'} ${b}</div>`).join('') : ''}
             </div>
           ` : ''}
 

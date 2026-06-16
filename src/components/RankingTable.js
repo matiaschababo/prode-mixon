@@ -3,8 +3,7 @@ import { getParticipantProgramLabel, getPrimaryProgram } from '../data/participa
 const escapeHTML = (str) => String(str || '').replace(/"/g, '&quot;');
 
 export function RankingTable(participantsData) {
-  // Sort participants by points descending
-  const sorted = [...participantsData].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
+  const sorted = participantsData;
 
   let rows = '';
   sorted.forEach((p, index) => {
@@ -34,7 +33,7 @@ export function RankingTable(participantsData) {
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <a href="/perfil/${p.id}" class="ranking-name" data-link>${p.name}</a>
             ${p.currentStreak >= 3 ? `<span title="¡Racha de ${p.currentStreak} partidos sumando puntos!" style="font-size: 0.8rem;">🔥</span>` : ''}
-            ${p.mvpCount > 0 ? `<span class="badge-item" title="MVP en las jornadas:\n${p.mvpDates ? p.mvpDates.map(d => new Date(d).toLocaleDateString('es-AR', {weekday: 'short', day: 'numeric', month: 'short'})).join('\n') : ''}" style="background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.4); color: #ffd700; padding: 0.1rem 0.4rem; font-size: 0.65rem; border-radius: 12px; white-space: nowrap;">👑 MVP x${p.mvpCount}</span>` : ''}
+            ${p.mvpCount > 0 ? `<span class="mvp-badge-icon" title="MVP en las jornadas:\n${p.mvpDates ? p.mvpDates.map(d => new Date(d).toLocaleDateString('es-AR', {weekday: 'short', day: 'numeric', month: 'short'})).join('\n') : ''}">👑 MVP x${p.mvpCount}</span>` : ''}
           </div>
           <div class="ranking-program" style="color: ${prog.theme.accent}; display: flex; align-items: center; gap: 0.5rem;">
             ${prog.logo ? `<img src="${prog.logo}" alt="${escapeHTML(prog.name)}" class="program-mini-logo" style="height: 18px; width: auto; object-fit: contain;">` : ''}
