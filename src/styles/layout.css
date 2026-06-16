@@ -240,6 +240,13 @@
   
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
   .main-content { padding-top: 1.5rem; }
+  
+  .desktop-only { display: none !important; }
+  .mobile-only { display: inline-block !important; }
+}
+
+@media (min-width: 769px) {
+  .mobile-only { display: none !important; }
 }
 
 /* HERO COLLAB REDESIGN */

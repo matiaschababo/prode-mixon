@@ -1,7 +1,7 @@
 import { matches } from '../data/matches.js';
 import { isParticipantInProgram } from '../data/participants.js';
 import { calculatePoints } from './scoring.js';
-import { db, doc, getDoc, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, collection, query, where, addDoc, serverTimestamp, orderBy, limit } from './firebase.js';
+import { db, doc, getDoc, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, collection, query, where, addDoc, serverTimestamp, orderBy, limit, increment, deleteField } from './firebase.js';
 import { getAuth } from 'firebase/auth';
 
 let prodeState = {
@@ -12,6 +12,9 @@ let prodeState = {
 };
 
 let loadingState = { results: false, predictions: false, users: false };
+let cachedRankings = null;
+let cachedMatchStats = null;
+let cachedMVPCounts = null;
 
 export function isDataReady() {
   return loadingState.results && loadingState.predictions && loadingState.users;
@@ -23,6 +26,8 @@ export function initializeFirebaseSync(onUpdateCallback) {
   onSnapshot(doc(db, "global", "results"), (docSnap) => {
     if (docSnap.exists()) {
       prodeState.results = docSnap.data();
+      cachedRankings = null;
+      cachedMVPCounts = null;
     }
     loadingState.results = true;
     onUpdateCallback();
@@ -41,6 +46,9 @@ export function initializeFirebaseSync(onUpdateCallback) {
       });
     });
     prodeState.predictions = newPredictions;
+    cachedRankings = null;
+    cachedMatchStats = null;
+    cachedMVPCounts = null;
     loadingState.predictions = true;
     onUpdateCallback();
   });
@@ -52,6 +60,8 @@ export function initializeFirebaseSync(onUpdateCallback) {
       newUsers[docSnap.id] = docSnap.data();
     });
     prodeState.users = newUsers;
+    cachedRankings = null;
+    cachedMVPCounts = null;
     loadingState.users = true;
     onUpdateCallback();
   });
@@ -175,13 +185,14 @@ export async function saveMyPrediction(matchId, home, away) {
   const userDocRef = doc(db, 'predictions', user.uid);
   
   if (home === '' || away === '') {
-    // We would need to use FieldValue.delete() to remove it, but for simplicity we can just set it to null or update the whole doc
-    const currentPreds = (await getDoc(userDocRef)).data() || {};
-    delete currentPreds[matchId];
-    await setDoc(userDocRef, currentPreds);
+    await updateDoc(userDocRef, {
+      [matchId]: deleteField()
+    }).catch(async (e) => {
+      // If doc doesn't exist yet, updateDoc fails. We can safely ignore or set empty object.
+    });
   } else {
     await setDoc(userDocRef, {
-      [matchId]: { home: Number(home), away: Number(away) }
+      [matchId]: { home: Number(home), away: Number(away), timestamp: serverTimestamp() }
     }, { merge: true });
   }
 }
@@ -194,28 +205,27 @@ export async function adminSavePrediction(userId, matchId, home, away) {
   const userDocRef = doc(db, 'predictions', userId);
   
   if (home === '' || away === '') {
-    const currentPreds = (await getDoc(userDocRef)).data() || {};
-    delete currentPreds[matchId];
-    await setDoc(userDocRef, currentPreds);
+    await updateDoc(userDocRef, {
+      [matchId]: deleteField()
+    }).catch(() => {});
   } else {
     await setDoc(userDocRef, {
-      [matchId]: { home: Number(home), away: Number(away) }
+      [matchId]: { home: Number(home), away: Number(away), timestamp: serverTimestamp() }
     }, { merge: true });
   }
 }
 
 // Admin save result function
-export async function saveResult(matchId, home, away) {
   const resultsRef = doc(db, "global", "results");
-  const currentResults = (await getDoc(resultsRef)).data() || {};
-  
   if (home === '' || away === '') {
-    delete currentResults[matchId];
+    await updateDoc(resultsRef, {
+      [matchId]: deleteField()
+    }).catch(() => {});
   } else {
-    currentResults[matchId] = { home: Number(home), away: Number(away) };
+    await setDoc(resultsRef, {
+      [matchId]: { home: Number(home), away: Number(away), timestamp: serverTimestamp() }
+    }, { merge: true });
   }
-  
-  await setDoc(resultsRef, currentResults);
 }
 
 export function getMatchResult(match) {
@@ -232,7 +242,7 @@ function capitalizeName(name) {
   return name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
-function getCustomLocalPhoto(name) {
+export function getCustomLocalPhoto(name) {
   const n = name ? name.toLowerCase() : '';
   if (n.includes('matias') && n.includes('chababo')) return '/assets/matias.jpg';
   if (n.includes('abril') && n.includes('zabaleta')) return '/assets/abril.jpg';
@@ -265,42 +275,207 @@ export async function updateUserRole(uid, program, role) {
   await setDoc(userRef, { program, role }, { merge: true });
 }
 
+export function getMatchStats(matchId) {
+  if (cachedMatchStats && cachedMatchStats[matchId]) return cachedMatchStats[matchId];
+  if (!cachedMatchStats) cachedMatchStats = {};
+  
+  const predsForMatch = getPredictions()[String(matchId)] || {};
+  let total = 0, home = 0, away = 0, draw = 0;
+  Object.values(predsForMatch).forEach(p => {
+    if (p.home > p.away) home++;
+    else if (p.away > p.home) away++;
+    else draw++;
+    total++;
+  });
+  
+  cachedMatchStats[matchId] = { total, home, away, draw };
+  return cachedMatchStats[matchId];
+}
+
 export function getParticipantStats(participantId) {
   const predictions = getPredictions();
+  const stats = { totalPoints: 0, played: 0, hits: 0, exacts: 0, currentStreak: 0, exactStreak: 0, badges: [] };
+  let totalLikes = 0;
 
-  return matches.reduce((stats, match) => {
+  matches.forEach(match => {
     const prediction = predictions[String(match.id)]?.[participantId];
+    if (prediction && prediction.likes) totalLikes += prediction.likes.length;
+
     const result = getMatchResult(match);
-    if (!prediction || !result || result.live) return stats;
+    if (!prediction || !result || result.live) return;
 
     const points = calculatePoints(prediction.home, prediction.away, result.home, result.away, match.stage);
     stats.totalPoints += points;
     stats.played += 1;
-    if (points > 0) stats.hits += 1;
+    
+    if (points > 0) {
+      stats.hits += 1;
+      stats.currentStreak += 1;
+      
+      if (!stats.badges.includes('El Contra')) {
+        const matchStats = getMatchStats(match.id);
+        if (matchStats.total > 0) {
+          let pickedPct = 0;
+          if (prediction.home > prediction.away) pickedPct = matchStats.home / matchStats.total;
+          else if (prediction.away > prediction.home) pickedPct = matchStats.away / matchStats.total;
+          else pickedPct = matchStats.draw / matchStats.total;
+          
+          if (pickedPct < 0.15) stats.badges.push('El Contra');
+        }
+      }
+    } else {
+      stats.currentStreak = 0;
+    }
+
     if (points === calculatePoints(result.home, result.away, result.home, result.away, match.stage)) {
       stats.exacts += 1;
+      stats.exactStreak += 1;
+    } else {
+      stats.exactStreak = 0;
     }
-    return stats;
-  }, { totalPoints: 0, played: 0, hits: 0, exacts: 0 });
+
+    if (prediction.timestamp && !stats.badges.includes('Buzzer Beater')) {
+       const matchTime = new Date(match.date).getTime();
+       const predTime = prediction.timestamp.toMillis ? prediction.timestamp.toMillis() : prediction.timestamp;
+       if (matchTime - predTime <= 5 * 60 * 1000 && matchTime - predTime >= 0) {
+           stats.badges.push('Buzzer Beater');
+       }
+    }
+  });
+
+  if (stats.exacts >= 10) stats.badges.push('El Oráculo');
+  if (totalLikes >= 50) stats.badges.push('Influencer');
+
+  const mvpCounts = getHistoricalMVPCounts();
+  stats.mvpCount = mvpCounts[participantId] || 0;
+
+  return stats;
 }
 
 export function getRankedParticipants(programId = null) {
-  const dynamicUsers = Object.values(prodeState.users).map(u => ({
-    id: u.uid,
-    name: capitalizeName(u.displayName),
-    photo: u.photo || getCustomLocalPhoto(u.displayName) || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
-    program: u.program || 'viewers',
-    role: u.role || 'Viewer'
-  }));
+  if (!cachedRankings) {
+    const dynamicUsers = Object.values(prodeState.users).map(u => ({
+      id: u.uid,
+      name: capitalizeName(u.displayName),
+      photo: u.photo || getCustomLocalPhoto(u.displayName) || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
+      program: u.program || 'viewers',
+      role: u.role || 'Viewer'
+    }));
 
-  return dynamicUsers
-    .filter(participant => !programId || isParticipantInProgram(participant, programId))
-    .map(participant => ({
-      ...participant,
-      ...getParticipantStats(participant.id)
-    }))
-    .sort((a, b) => b.totalPoints - a.totalPoints || b.exacts - a.exacts || a.name.localeCompare(b.name));
+    cachedRankings = dynamicUsers
+      .map(participant => ({
+        ...participant,
+        ...getParticipantStats(participant.id)
+      }))
+      .sort((a, b) => b.totalPoints - a.totalPoints || b.exacts - a.exacts || a.name.localeCompare(b.name));
+  }
+
+  return cachedRankings.filter(participant => !programId || isParticipantInProgram(participant, programId));
 }
+
+export function getDailyMVP() {
+  const dynamicUsers = getDynamicUsers();
+  const preds = getPredictions();
+  
+  const finishedMatches = matches.filter(m => {
+    const res = getMatchResult(m);
+    return res && !res.live;
+  });
+  
+  if (finishedMatches.length === 0) return null;
+  
+  finishedMatches.sort((a,b) => new Date(b.date) - new Date(a.date));
+  const latestDate = new Date(finishedMatches[0].date).toDateString();
+  
+  const dailyMatches = finishedMatches.filter(m => new Date(m.date).toDateString() === latestDate);
+  
+  let bestUser = null;
+  let maxPoints = -1;
+  let maxExacts = -1;
+  
+  dynamicUsers.forEach(user => {
+    let pts = 0;
+    let exacts = 0;
+    dailyMatches.forEach(match => {
+      const p = preds[String(match.id)]?.[user.id];
+      const r = getMatchResult(match);
+      if (p && r) {
+        const pt = calculatePoints(p.home, p.away, r.home, r.away, match.stage);
+        pts += pt;
+        if (pt === calculatePoints(r.home, r.away, r.home, r.away, match.stage) && pt > 0) exacts++;
+      }
+    });
+    
+    if (pts > maxPoints || (pts === maxPoints && exacts > maxExacts)) {
+      maxPoints = pts;
+      maxExacts = exacts;
+      bestUser = user;
+    }
+  });
+  
+  if (maxPoints > 0) return { ...bestUser, dailyPoints: maxPoints, dailyExacts: maxExacts, matchCount: dailyMatches.length };
+  return null;
+}
+
+export function getHistoricalMVPCounts() {
+  if (cachedMVPCounts) return cachedMVPCounts;
+  
+  const dynamicUsers = getDynamicUsers();
+  const preds = getPredictions();
+  
+  const finishedMatches = matches.filter(m => {
+    const res = getMatchResult(m);
+    return res && !res.live;
+  });
+  
+  const matchesByDate = {};
+  finishedMatches.forEach(m => {
+    const d = new Date(m.date).toDateString();
+    if (!matchesByDate[d]) matchesByDate[d] = [];
+    matchesByDate[d].push(m);
+  });
+  
+  const counts = {};
+  
+  Object.keys(matchesByDate).forEach(date => {
+    const dailyMatches = matchesByDate[date];
+    let maxPoints = -1;
+    let maxExacts = -1;
+    let bestUsers = [];
+    
+    dynamicUsers.forEach(user => {
+      let pts = 0;
+      let exacts = 0;
+      dailyMatches.forEach(match => {
+        const p = preds[String(match.id)]?.[user.id];
+        const r = getMatchResult(match);
+        if (p && r) {
+          const pt = calculatePoints(p.home, p.away, r.home, r.away, match.stage);
+          pts += pt;
+          if (pt === calculatePoints(r.home, r.away, r.home, r.away, match.stage) && pt > 0) exacts++;
+        }
+      });
+      
+      if (pts > maxPoints || (pts === maxPoints && exacts > maxExacts)) {
+        maxPoints = pts;
+        maxExacts = exacts;
+        bestUsers = [user];
+      } else if (pts === maxPoints && exacts === maxExacts && pts > 0) {
+        bestUsers.push(user); // Tie for MVP
+      }
+    });
+    
+    if (maxPoints > 0) {
+      bestUsers.forEach(u => {
+        counts[u.id] = (counts[u.id] || 0) + 1;
+      });
+    }
+  });
+  
+  cachedMVPCounts = counts;
+  return counts;
+}
+
 
 export async function ensureUserExists(user) {
   const userRef = doc(db, "users", user.uid);
@@ -387,21 +562,26 @@ export async function togglePredictionLike(matchId, targetUserId) {
   
   if (!current[matchId]) return;
 
-  const currentLikes = current[matchId].likes || [];
+  const currentLikes = current[matchId]?.likes || [];
   const userLikedIndex = currentLikes.findIndex(l => l.uid === user.uid);
   
-  const updatedLikes = [...currentLikes];
+  const uid = user.uid;
+  const name = user.displayName || 'Usuario';
+  const photo = user.photoURL || '';
+
   let isLiking = false;
 
   if (userLikedIndex >= 0) {
-    updatedLikes.splice(userLikedIndex, 1);
+    const existingLike = currentLikes[userLikedIndex];
+    await updateDoc(predRef, {
+      [`${matchId}.likes`]: arrayRemove(existingLike)
+    });
   } else {
     isLiking = true;
-    updatedLikes.push({ uid: user.uid, name: user.displayName || 'Usuario', photo: user.photoURL || '' });
+    await updateDoc(predRef, {
+      [`${matchId}.likes`]: arrayUnion({ uid, name, photo })
+    });
   }
-
-  current[matchId].likes = updatedLikes;
-  await setDoc(predRef, current);
 
   // Send Notification
   if (isLiking && targetUserId !== user.uid) {
@@ -429,8 +609,9 @@ export async function incrementPredictionShares(matchId, targetUserId) {
   
   if (!current[matchId]) return;
 
-  current[matchId].shares = (current[matchId].shares || 0) + 1;
-  await setDoc(predRef, current);
+  await updateDoc(predRef, {
+    [`${matchId}.shares`]: increment(1)
+  });
 
   if (targetUserId !== user.uid) {
     await addDoc(collection(db, 'notifications'), {

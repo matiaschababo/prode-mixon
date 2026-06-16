@@ -42,6 +42,13 @@ export function setChatReplyingTo(msg) {
   router();
 }
 
+window.closeChat = () => {
+  isChatOpen = false;
+  document.body.style.overflow = '';
+  document.body.classList.remove('chat-open-mobile');
+  router();
+};
+
 window.sharePredictionToChat = async (uid, name, matchStr, predStr, matchId) => {
   if (matchId) await incrementPredictionShares(matchId, uid);
   setChatReplyingTo({
@@ -53,6 +60,7 @@ window.sharePredictionToChat = async (uid, name, matchStr, predStr, matchId) => 
   if (!isChatOpen) {
     isChatOpen = true;
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('chat-open-mobile');
     router();
   }
   setTimeout(() => {
@@ -245,6 +253,28 @@ function setupChat() {
       }
     });
   }
+  
+  if (bubble && !bubble.dataset.events) {
+    bubble.dataset.events = "true";
+    bubble.addEventListener('click', () => {
+      isChatOpen = true;
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('chat-open-mobile');
+      lastReadChatLength = getChatMessages().length;
+      router();
+      setTimeout(() => {
+        document.getElementById('chat-input')?.focus();
+      }, 300);
+    });
+  }
+
+  if (closeBtn && !closeBtn.dataset.events) {
+    closeBtn.dataset.events = "true";
+    closeBtn.addEventListener('click', () => {
+      window.closeChat();
+    });
+  }
+  
   if (scrollToBottomBtn && !scrollToBottomBtn.dataset.events) {
     scrollToBottomBtn.dataset.events = "true";
     scrollToBottomBtn.addEventListener('click', () => {
@@ -563,8 +593,8 @@ function setupChat() {
     gifResults.innerHTML = '<div style="padding:1rem;text-align:center;color:white;">Buscando...</div>';
     try {
       const endpoint = query 
-        ? `https://tenor.googleapis.com/v2/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=12`
-        : `https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&limit=12`;
+        ? `https://api.tenor.com/v1/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=12`
+        : `https://api.tenor.com/v1/trending?key=${TENOR_API_KEY}&limit=12`;
         
       const res = await fetch(endpoint);
       const { results } = await res.json();
@@ -779,7 +809,7 @@ function updateNavbarAuthUI() {
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-primary);"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         ${unreadCount > 0 ? `<span class="notif-badge" style="position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border-radius: 50%; padding: 0.1rem 0.3rem; font-size: 0.6rem; font-weight: bold;">${unreadCount}</span>` : ''}
         
-        <div id="notif-dropdown" class="glass-card notif-dropdown" style="display: none; position: absolute; top: 120%; right: 0; width: 300px; max-width: 85vw; max-height: 350px; overflow-y: auto; z-index: 1000; padding: 0.5rem; text-align: left;">
+        <div id="notif-dropdown" class="glass-card notif-dropdown hidden">
           <h4 style="margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem;">Notificaciones</h4>
           ${window.userNotifications && window.userNotifications.length > 0 
             ? window.userNotifications.map(n => `
@@ -829,13 +859,13 @@ function updateNavbarAuthUI() {
 
     document.getElementById('btn-notifs')?.addEventListener('click', (e) => {
       const drop = document.getElementById('notif-dropdown');
-      if (drop.style.display === 'none') {
-        drop.style.display = 'block';
+      if (drop.classList.contains('hidden')) {
+        drop.classList.remove('hidden');
         if (unreadCount > 0) {
           markNotificationsAsRead(user.uid);
         }
       } else {
-        drop.style.display = 'none';
+        drop.classList.add('hidden');
       }
       e.stopPropagation();
     });
@@ -843,7 +873,7 @@ function updateNavbarAuthUI() {
     document.addEventListener('click', (e) => {
       const drop = document.getElementById('notif-dropdown');
       if (drop && !e.target.closest('#btn-notifs')) {
-        drop.style.display = 'none';
+        drop.classList.add('hidden');
       }
     });
 
@@ -853,7 +883,10 @@ function updateNavbarAuthUI() {
   } else {
     if (myPredsLink) myPredsLink.style.display = 'none';
     container.innerHTML = `
-      <button id="btn-login-google" class="btn btn-primary btn-small">Ingresar con Google</button>
+      <button id="btn-login-google" class="btn btn-primary btn-small">
+        <span class="desktop-only">Ingresar con Google</span>
+        <span class="mobile-only">Ingresar</span>
+      </button>
     `;
     document.getElementById('btn-login-google')?.addEventListener('click', async () => {
       try {

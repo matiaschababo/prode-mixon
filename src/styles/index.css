@@ -68,6 +68,7 @@
 
 html {
   overflow-x: hidden;
+  touch-action: manipulation; /* Prevents double-tap zoom */
 }
 
 body {
@@ -78,11 +79,14 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   overflow-x: hidden;
+  touch-action: manipulation;
   /* Premium animated background gradient */
   background: radial-gradient(circle at top right, rgba(123, 45, 142, 0.15), transparent 40%),
               radial-gradient(circle at bottom left, rgba(108, 60, 224, 0.1), transparent 40%),
               var(--bg-primary);
   background-attachment: fixed;
+  width: 100vw;
+  max-width: 100%;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -103,4 +107,9 @@ ul {
 img {
   max-width: 100%;
   display: block;
+}
+
+/* Prevent iOS Zoom on focus */
+input, textarea, select {
+  font-size: 16px !important;
 }
