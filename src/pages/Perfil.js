@@ -123,7 +123,17 @@ export function Perfil(participantId) {
           ${stats.badges?.length > 0 || stats.mvpCount > 0 ? `
             <div class="badges-container" style="justify-content: flex-start; margin-bottom: 0.8rem;">
               ${stats.mvpCount > 0 ? `<div class="mvp-badge-icon" title="MVP en las jornadas:\n${stats.mvpDates ? stats.mvpDates.map(d => new Date(d).toLocaleDateString('es-AR', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })).join('\n') : ''}">👑 MVP x${stats.mvpCount}</div>` : ''}
-              ${stats.badges?.length > 0 ? stats.badges.map(b => `<div class="badge-item">${b === 'El Oráculo' ? '🔮' : b === 'Buzzer Beater' ? '⏳' : b === 'El Contra' ? '🧠' : b === 'Racha de Fuego' ? '☄️' : b === 'MVP x3' ? '🏆' : b === 'Influencer' ? '📱' : '⭐'} ${b}</div>`).join('') : ''}
+              ${stats.badges?.length > 0 ? stats.badges.map(b => {
+                let badgeIcon = '⭐';
+                let badgeDesc = 'Insignia especial por logros en el prode.';
+                if (b === 'El Oráculo') { badgeIcon = '🔮'; badgeDesc = 'Acertó 5 o más resultados exactos en el torneo.'; }
+                else if (b === 'Buzzer Beater') { badgeIcon = '⏳'; badgeDesc = 'Cargó un pronóstico exacto en los últimos 5 minutos antes de que empiece el partido.'; }
+                else if (b === 'El Contra') { badgeIcon = '🧠'; badgeDesc = 'Fue la única persona en todo el prode en acertar el ganador de un partido.'; }
+                else if (b === 'Racha de Fuego') { badgeIcon = '☄️'; badgeDesc = 'Acertó 3 o más resultados exactos de forma consecutiva.'; }
+                else if (b === 'MVP x3') { badgeIcon = '🏆'; badgeDesc = 'Ganó el MVP de la jornada 3 o más veces.'; }
+                else if (b === 'Influencer') { badgeIcon = '📱'; badgeDesc = 'Invitó a 5 o más amigos a la plataforma.'; }
+                return `<div class="badge-item" title="${badgeDesc}">${badgeIcon} ${b}</div>`;
+              }).join('') : ''}
             </div>
           ` : ''}
 
