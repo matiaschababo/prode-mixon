@@ -2303,9 +2303,13 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
 .stat-highlight {
   position: relative;
   z-index: 2;
-  box-shadow: 0 0 12px 2px #39ff14, inset 0 0 4px rgba(255, 255, 255, 0.5) !important;
-  border: 1px solid #39ff14;
-  border-radius: 6px !important;
+  box-shadow: 0 0 10px rgba(255,255,255,0.5);
+  filter: brightness(1.2);
+}
+
+.text-highlight {
+  color: #39FF14 !important;
+  text-shadow: 0 0 8px rgba(57, 255, 20, 0.6);
 }
 
 .stats-text {

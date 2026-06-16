@@ -127,9 +127,9 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
             <div class="stat-away ${winner === 'away' ? 'stat-winner' : ''}" style="width: ${awayPct}%" title="${escapeHTML(away.name)} (${awayPct}%)"></div>
           </div>
           <div class="stats-text">
-            <span class="${actualResult === 'home' ? 'text-highlight' : ''}">${home.flag} ${homePct}%</span>
-            <span class="${actualResult === 'draw' ? 'text-highlight' : ''}">➖ ${drawPct}%</span>
-            <span class="${actualResult === 'away' ? 'text-highlight' : ''}">${away.flag} ${awayPct}%</span>
+            <span class="${winner === 'home' ? 'text-highlight' : ''}">${home.flag} ${homePct}%</span>
+            <span class="${winner === 'draw' ? 'text-highlight' : ''}">➖ ${drawPct}%</span>
+            <span class="${winner === 'away' ? 'text-highlight' : ''}">${away.flag} ${awayPct}%</span>
           </div>
         </div>
       `;
