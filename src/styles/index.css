@@ -289,3 +289,8 @@ input, textarea, select {
   50% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
   100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.2); }
 }
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}

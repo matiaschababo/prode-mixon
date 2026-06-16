@@ -1,12 +1,76 @@
 import { RankingTable } from '../components/RankingTable.js';
-import { getRankedParticipants, ensureUserExists, getDailyMVP } from '../services/prodeStore.js';
+import { getRankedParticipants, ensureUserExists, getDailyMVP, getMatchResult } from '../services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup } from '../services/firebase.js';
 import { getProgramChartHTML } from './Programas.js';
+import { matches } from '../data/matches.js';
+import { teams } from '../data/teams.js';
 
 export function Home() {
   const user = auth.currentUser;
   return `
     <div class="home-page animate-fade-in">
+      ${(() => {
+        const now = new Date();
+        now.setUTCHours(now.getUTCHours() - 4);
+        const todayLogicalStr = now.toISOString().split('T')[0];
+        
+        const getLogicalDate = (dateString) => {
+          const d = new Date(dateString);
+          d.setUTCHours(d.getUTCHours() - 4);
+          return d.toISOString().split('T')[0];
+        };
+
+        let tickerMatches = matches.filter(m => getLogicalDate(m.date) === todayLogicalStr);
+        if (tickerMatches.length === 0) {
+          const futureMatches = matches.filter(m => new Date(m.date) > new Date());
+          if (futureMatches.length > 0) {
+            const nextDayStr = getLogicalDate(futureMatches[0].date);
+            tickerMatches = matches.filter(m => getLogicalDate(m.date) === nextDayStr);
+          } else {
+             const lastDayStr = getLogicalDate(matches[matches.length - 1].date);
+             tickerMatches = matches.filter(m => getLogicalDate(m.date) === lastDayStr);
+          }
+        }
+
+        if (tickerMatches.length === 0) return '';
+
+        const tickerItems = tickerMatches.map(m => {
+          const homeTeam = teams[m.homeTeam] || { name: m.homeTeam, flag: "❓" };
+          const awayTeam = teams[m.awayTeam] || { name: m.awayTeam, flag: "❓" };
+          const res = getMatchResult(m);
+          
+          let statusText = '';
+          let middle = 'vs';
+          
+          if (res) {
+             middle = `${res.home} - ${res.away}`;
+             if (res.live) {
+                statusText = `<span style="color: #4cd137; font-weight: bold; margin-left: 0.5rem; animation: pulse 2s infinite;">EN VIVO</span>`;
+             } else {
+                statusText = `<span style="color: var(--text-secondary); font-size: 0.8rem; margin-left: 0.5rem; font-weight: bold;">FIN</span>`;
+             }
+          } else {
+             const d = new Date(m.date);
+             const timeStr = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+             statusText = `<span style="color: #ffd700; margin-left: 0.5rem; font-weight: 600;">HOY ${timeStr}</span>`;
+          }
+
+          return `<div class="ticker-item" style="display: inline-flex; align-items: center; margin-right: 2.5rem; font-size: 0.95rem;">
+            <span style="margin-right: 0.5rem; font-weight: 600;">${homeTeam.flag} ${homeTeam.name.toUpperCase()}</span>
+            <span style="font-weight: 800; background: rgba(255,255,255,0.1); padding: 0.2rem 0.6rem; border-radius: 4px;">${middle}</span>
+            <span style="margin-left: 0.5rem; font-weight: 600;">${awayTeam.name.toUpperCase()} ${awayTeam.flag}</span>
+            ${statusText}
+          </div>`;
+        }).join('');
+
+        return `
+          <div class="news-ticker-container" style="width: 100%; overflow: hidden; background: rgba(10, 10, 15, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 0.5rem 0; white-space: nowrap; position: relative;">
+            <div class="news-ticker" style="display: inline-block; animation: marquee-scroll 30s linear infinite; padding-left: 100%;">
+              ${tickerItems}
+            </div>
+          </div>
+        `;
+      })()}
       <section class="hero collab-hero">
         <div class="glow-bg"></div>
         
@@ -54,7 +118,7 @@ export function Home() {
                 const isExact = info.points === 3 || info.points === 4 || info.points === 5; // Points depend on scoring.js, but generally >1 implies exact or correct difference.
                 return `
                 <div class="mvp-match-badge ${isExact ? 'mvp-match-exact' : 'mvp-match-normal'}">
-                  <span style="color: white; font-weight: 600;">${info.match.homeTeam} ${info.prediction.home}-${info.prediction.away} ${info.match.awayTeam}</span>
+                  <span style="color: white; font-weight: 600;">${teams[info.match.homeTeam]?.flag || ''} ${info.match.homeTeam} ${info.prediction.home}-${info.prediction.away} ${info.match.awayTeam} ${teams[info.match.awayTeam]?.flag || ''}</span>
                   <span style="color: ${isExact ? '#ffd700' : '#4cd137'}; font-weight: bold;">+${info.points}</span>
                 </div>
                 `;
