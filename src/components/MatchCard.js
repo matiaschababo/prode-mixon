@@ -96,6 +96,13 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
     }
   }
 
+  let actualResult = null;
+  if (hasResult) {
+    if (homeScore > awayScore) actualResult = 'home';
+    else if (homeScore < awayScore) actualResult = 'away';
+    else actualResult = 'draw';
+  }
+
   // Community Stats (Sabiduría de la Multitud)
   let communityStatsHTML = '';
   if (userPred !== null) { // Only show stats if user is logged in (i.e. userPred is provided, even if empty)
@@ -104,19 +111,25 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
       const homePct = Math.round((stats.home / stats.total) * 100);
       const drawPct = Math.round((stats.draw / stats.total) * 100);
       const awayPct = Math.round((stats.away / stats.total) * 100);
-      
+      let winner = null;
+      if (hasResult) {
+        if (homeScore > awayScore) winner = 'home';
+        else if (awayScore > homeScore) winner = 'away';
+        else winner = 'draw';
+      }
+
       communityStatsHTML = `
         <div class="community-stats">
           <div class="stats-label">¿Qué votó la mayoría? (${stats.total} votos)</div>
           <div class="stats-bar">
-            <div class="stat-home" style="width: ${homePct}%" title="${escapeHTML(home.name)} (${homePct}%)"></div>
-            <div class="stat-draw" style="width: ${drawPct}%" title="Empate (${drawPct}%)"></div>
-            <div class="stat-away" style="width: ${awayPct}%" title="${escapeHTML(away.name)} (${awayPct}%)"></div>
+            <div class="stat-home ${winner === 'home' ? 'stat-winner' : ''}" style="width: ${homePct}%" title="${escapeHTML(home.name)} (${homePct}%)"></div>
+            <div class="stat-draw ${winner === 'draw' ? 'stat-winner' : ''}" style="width: ${drawPct}%" title="Empate (${drawPct}%)"></div>
+            <div class="stat-away ${winner === 'away' ? 'stat-winner' : ''}" style="width: ${awayPct}%" title="${escapeHTML(away.name)} (${awayPct}%)"></div>
           </div>
           <div class="stats-text">
-            <span>${home.flag} ${homePct}%</span>
-            <span>➖ ${drawPct}%</span>
-            <span>${away.flag} ${awayPct}%</span>
+            <span class="${actualResult === 'home' ? 'text-highlight' : ''}">${home.flag} ${homePct}%</span>
+            <span class="${actualResult === 'draw' ? 'text-highlight' : ''}">➖ ${drawPct}%</span>
+            <span class="${actualResult === 'away' ? 'text-highlight' : ''}">${away.flag} ${awayPct}%</span>
           </div>
         </div>
       `;
