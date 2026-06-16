@@ -4,7 +4,9 @@ import './styles/components.css';
 import './styles/layout.css';
 import './styles/animations.css';
 
-import { Navbar } from './components/Navbar.js';
+import { ChatWidget } from './components/ChatWidget.js';
+import { Navbar, setupNavbar, updateNavbarAuthUI } from './components/Navbar.js';
+import { Ticker } from './components/Ticker.js';
 import { Home, attachHomeEvents } from './pages/Home.js';
 import { Fixture, attachFixtureEvents } from './pages/Fixture.js';
 import { Programas } from './pages/Programas.js';
@@ -18,7 +20,6 @@ import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
 import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady, getChatMessages, sendChatMessage, deleteChatMessage, banUser, toggleLikeChatMessage, listenToNotifications, markNotificationsAsRead, togglePredictionLike, incrementPredictionShares } from './services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
-import { ChatWidget } from './components/ChatWidget.js';
 
 const app = document.getElementById('app');
 let isInitialized = false;
@@ -164,6 +165,7 @@ function router() {
 
   const newHtml = `
     ${Navbar()}
+    ${Ticker()}
     <main class="main-content container">
       ${dataReady ? renderPage(path) : LoadingScreen()}
     </main>
