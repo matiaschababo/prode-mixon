@@ -56,7 +56,7 @@ export function Home() {
                 const isExact = info.points === 3 || info.points === 4 || info.points === 5; // Points depend on scoring.js, but generally >1 implies exact or correct difference.
                 return `
                 <div class="mvp-match-badge ${isExact ? 'mvp-match-exact' : 'mvp-match-normal'}" onclick="event.stopPropagation(); window.history.pushState(null, null, '/perfil/${mvp.id}?hl=${info.match.id}'); window.router();" style="cursor: pointer; position: relative; z-index: 2;">
-                  <span style="color: white; font-weight: 600;">${teams[info.match.homeTeam]?.flag || ''} ${info.match.homeTeam} ${info.prediction.home}-${info.prediction.away} ${info.match.awayTeam} ${teams[info.match.awayTeam]?.flag || ''}</span>
+                  <span style="color: white; font-weight: 600;">${teams[info.match.homeTeam]?.flag || ''} ${teams[info.match.homeTeam]?.codeEsp || info.match.homeTeam} ${info.prediction.home}-${info.prediction.away} ${teams[info.match.awayTeam]?.codeEsp || info.match.awayTeam} ${teams[info.match.awayTeam]?.flag || ''}</span>
                   <span style="color: ${isExact ? '#ffd700' : '#4cd137'}; font-weight: bold;">+${info.points}</span>
                 </div>
                 `;

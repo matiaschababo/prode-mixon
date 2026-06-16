@@ -49,9 +49,9 @@ export function Ticker() {
     }
 
     return `<div class="ticker-item">
-      <span class="ticker-team">${homeTeam.flag} ${homeTeam.name.toUpperCase()}</span>
+      <span class="ticker-team">${homeTeam.flag} ${(homeTeam.codeEsp || m.homeTeam).toUpperCase()}</span>
       <span class="ticker-middle">${middle}</span>
-      <span class="ticker-team">${awayTeam.name.toUpperCase()} ${awayTeam.flag}</span>
+      <span class="ticker-team">${(awayTeam.codeEsp || m.awayTeam).toUpperCase()} ${awayTeam.flag}</span>
       ${statusText}
     </div>`;
   }).join('');
