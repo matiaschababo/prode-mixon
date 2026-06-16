@@ -38,6 +38,24 @@
   --font-display: 'Outfit', sans-serif;
 }
 
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .container {
+    padding: 0 1rem;
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .history-row {
+    flex-direction: column;
+  }
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

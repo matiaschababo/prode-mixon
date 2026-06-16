@@ -29,6 +29,7 @@ export function Navbar() {
           <a href="/puntajes" class="nav-link" data-link>Puntajes</a>
           <a href="/mis-predicciones" class="nav-link" data-link id="nav-my-predictions" style="display:none;">Mis Predicciones</a>
           <a href="/admin" class="nav-link" data-link id="nav-admin" style="display:none;">Admin</a>
+          <a href="#" class="nav-link" id="nav-logout" style="display:none; color: var(--color-danger);">Salir</a>
         </div>
         <div class="nav-auth" id="auth-container">
           <!-- Auth state will be injected here by main.js -->

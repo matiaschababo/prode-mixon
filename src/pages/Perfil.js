@@ -29,7 +29,7 @@ export function Perfil(participantId) {
       prediction,
       result,
       points,
-      label: `${home.flag} ${home.name} vs ${away.name} ${away.flag}`
+      label: `<img src="${home.flagUrl}" class="flag-icon" style="width:16px; height:auto; display:inline-block; vertical-align:middle; border-radius:2px;"> ${home.name} vs ${away.name} <img src="${away.flagUrl}" class="flag-icon" style="width:16px; height:auto; display:inline-block; vertical-align:middle; border-radius:2px;">`
     };
   });
 

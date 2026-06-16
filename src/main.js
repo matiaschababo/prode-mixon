@@ -346,6 +346,10 @@ function setupChat() {
     }
     try {
       await sendChatMessage(val, 'text', '', replyData);
+      // Fix iOS Safari viewport shift bug after sending/closing keyboard
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+      }, 50);
     } catch (error) {
       console.error("Error sending message:", error);
       input.value = val;
@@ -355,11 +359,14 @@ function setupChat() {
       const currentSendBtn = document.getElementById('chat-send-btn');
       if (currentSendBtn) {
         currentSendBtn.disabled = false;
-        currentSendBtn.textContent = 'Enviar'; // Wait, in ChatWidget it's an SVG icon, not text!
         currentSendBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: translateX(-1px) translateY(1px);"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
       }
-      const currentInput = document.getElementById('chat-input');
-      if (currentInput) currentInput.focus();
+      setTimeout(() => {
+        const currentInput = document.getElementById('chat-input');
+        if (currentInput) {
+          currentInput.focus();
+        }
+      }, 50);
     }
   };
 
@@ -368,6 +375,10 @@ function setupChat() {
   if (input) {
     input.onkeypress = (e) => {
       if (e.key === 'Enter') handleSend();
+    };
+    input.onblur = () => {
+      // Fix iOS keyboard closing shift
+      window.scrollTo(0, 0);
     };
     
     // Mentions Autocomplete
@@ -768,7 +779,7 @@ function updateNavbarAuthUI() {
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-primary);"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         ${unreadCount > 0 ? `<span class="notif-badge" style="position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border-radius: 50%; padding: 0.1rem 0.3rem; font-size: 0.6rem; font-weight: bold;">${unreadCount}</span>` : ''}
         
-        <div id="notif-dropdown" class="glass-card" style="display: none; position: absolute; top: 120%; right: -10px; width: 300px; max-height: 350px; overflow-y: auto; z-index: 1000; padding: 0.5rem; text-align: left;">
+        <div id="notif-dropdown" class="glass-card notif-dropdown" style="display: none; position: absolute; top: 120%; right: 0; width: 300px; max-width: 85vw; max-height: 350px; overflow-y: auto; z-index: 1000; padding: 0.5rem; text-align: left;">
           <h4 style="margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem;">Notificaciones</h4>
           ${window.userNotifications && window.userNotifications.length > 0 
             ? window.userNotifications.map(n => `
@@ -788,19 +799,33 @@ function updateNavbarAuthUI() {
     container.innerHTML = `
       <div class="user-profile">
         ${notifsHtml}
-        <div class="user-info">
+        <div class="user-info desktop-only">
           <span class="user-name">${currentUserDynamic?.name || user.displayName}</span>
           ${badgeHtml}
         </div>
         <a href="/perfil/${user.uid}" data-link style="display: flex; align-items: center;">
           <img src="${customPhoto}" alt="Avatar" class="avatar-small">
         </a>
-        <div class="user-actions" style="display: flex; gap: 0.25rem; margin-left: 0.25rem;">
+        <div class="user-actions desktop-only" style="display: flex; gap: 0.25rem; margin-left: 0.25rem;">
           ${MASTER_ADMINS.includes(user.email) ? '<a href="/admin" class="btn btn-secondary btn-small" data-link style="padding: 0.4rem 0.6rem; font-size: 0.7rem;">ADMIN</a>' : ''}
           <button id="btn-logout" class="btn btn-secondary btn-small" style="padding: 0.4rem 0.6rem; font-size: 0.7rem;">SALIR</button>
         </div>
       </div>
     `;
+
+    // Add logic for mobile nav buttons
+    const navAdmin = document.getElementById('nav-admin');
+    const navLogout = document.getElementById('nav-logout');
+    if (navAdmin) navAdmin.style.display = MASTER_ADMINS.includes(user.email) ? 'block' : 'none';
+    if (navLogout) {
+      navLogout.style.display = 'block';
+      navLogout.onclick = async (e) => {
+        e.preventDefault();
+        await auth.signOut();
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        if (mobileMenuClose) mobileMenuClose.click();
+      };
+    }
 
     document.getElementById('btn-notifs')?.addEventListener('click', (e) => {
       const drop = document.getElementById('notif-dropdown');
