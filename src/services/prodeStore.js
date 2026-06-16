@@ -399,7 +399,7 @@ export function getDailyMVP() {
   
   const getLogicalDate = (dateString) => {
     const d = new Date(dateString);
-    d.setUTCHours(d.getUTCHours() - 4);
+    d.setUTCHours(d.getUTCHours() - 10);
     return d.toISOString().split('T')[0];
   };
 
@@ -486,7 +486,7 @@ export function getHistoricalMVPCounts() {
   
   const getLogicalDate = (dateString) => {
     const d = new Date(dateString);
-    d.setUTCHours(d.getUTCHours() - 4);
+    d.setUTCHours(d.getUTCHours() - 10);
     return d.toISOString().split('T')[0];
   };
 

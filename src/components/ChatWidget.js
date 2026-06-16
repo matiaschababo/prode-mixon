@@ -96,7 +96,7 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
           <div class="chat-bubble-content">
             ${!isMe ? `<div class="chat-author">${customName}</div>` : ''}
             ${msg.replyTo ? `
-              <div class="chat-replied-msg" ${!msg.replyTo.isPrediction ? `onclick="document.getElementById('msg-${msg.replyTo.id}')?.scrollIntoView({behavior: 'smooth', block: 'center'})"` : ''}>
+              <div class="chat-replied-msg" ${!msg.replyTo.isPrediction ? `onclick="document.getElementById('msg-${msg.replyTo.id}')?.scrollIntoView({behavior: 'smooth', block: 'center'})"` : `onclick="window.closeChat(); window.history.pushState(null, null, '/perfil/${msg.replyTo.uid}?hl=${msg.replyTo.matchId}'); window.router();"`} style="cursor: pointer;">
                 <div class="reply-name">${msg.replyTo.isPrediction ? '⚽ Pronóstico de ' + msg.replyTo.name : msg.replyTo.name}</div>
                 <div class="reply-text">${msg.replyTo.isPrediction ? `<strong>${msg.replyTo.matchStr}</strong>: ${msg.replyTo.predStr}` : (msg.replyTo.text || 'GIF')}</div>
               </div>

@@ -65,7 +65,7 @@ export function Perfil(participantId) {
     }
 
     return `
-      <div class="history-row ${item.points === null ? 'pending' : ''}">
+      <div class="history-row ${item.points === null ? 'pending' : ''}" id="match-${item.match.id}">
         <div>
           <strong>${item.label}</strong>
           <small>${item.match.round}</small>

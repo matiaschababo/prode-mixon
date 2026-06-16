@@ -4,12 +4,12 @@ import { getMatchResult } from '../services/prodeStore.js';
 
 export function Ticker() {
   const now = new Date();
-  now.setUTCHours(now.getUTCHours() - 4);
+  now.setUTCHours(now.getUTCHours() - 10);
   const todayLogicalStr = now.toISOString().split('T')[0];
   
   const getLogicalDate = (dateString) => {
     const d = new Date(dateString);
-    d.setUTCHours(d.getUTCHours() - 4);
+    d.setUTCHours(d.getUTCHours() - 10);
     return d.toISOString().split('T')[0];
   };
 

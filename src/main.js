@@ -56,7 +56,9 @@ window.sharePredictionToChat = async (uid, name, matchStr, predStr, matchId) => 
     isPrediction: true,
     name,
     matchStr,
-    predStr
+    predStr,
+    uid,
+    matchId
   });
   if (!isChatOpen) {
     isChatOpen = true;
@@ -225,6 +227,18 @@ function router() {
   setupNavbar(path);
   if (dataReady) {
     setupChat();
+    const urlParams = new URLSearchParams(window.location.search);
+    const hl = urlParams.get('hl');
+    if (hl) {
+      setTimeout(() => {
+        const el = document.getElementById('match-' + hl);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('highlight-animation');
+          window.history.replaceState(null, null, window.location.pathname); // remove hl param so it doesn't run again on refresh if not wanted, or leave it. Actually replaceState is good.
+        }
+      }, 300);
+    }
   }
 }
 
