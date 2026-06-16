@@ -347,8 +347,9 @@ export function getParticipantStats(participantId) {
   if (stats.exacts >= 10) stats.badges.push('El Oráculo');
   if (totalLikes >= 50) stats.badges.push('Influencer');
 
-  const mvpCounts = getHistoricalMVPCounts();
-  stats.mvpCount = mvpCounts[participantId] || 0;
+  const mvpDates = getHistoricalMVPCounts()[participantId] || [];
+  stats.mvpCount = mvpDates.length;
+  stats.mvpDates = mvpDates;
 
   return stats;
 }
@@ -525,7 +526,8 @@ export function getHistoricalMVPCounts() {
     
     if (maxPoints > 0) {
       bestUsers.forEach(u => {
-        counts[u.id] = (counts[u.id] || 0) + 1;
+        if (!counts[u.id]) counts[u.id] = [];
+        counts[u.id].push(date);
       });
     }
   });
