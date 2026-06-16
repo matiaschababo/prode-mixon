@@ -129,29 +129,6 @@ export function Home() {
         `;
       })()}
 
-      <div class="home-features grid-3 animate-fade-in" style="margin-bottom: 3.5rem; gap: 1.5rem;">
-        <div class="feature-card split-layout theme-purple">
-          <div class="feature-card-img" style="background-image: url('/assets/pronosticos-bg.png');"></div>
-          <div class="feature-card-text">
-            <h3 class="feature-card-title">Pronósticos</h3>
-            <p class="feature-card-desc">Cargá y editá tus resultados partido a partido, hasta el inicio de cada encuentro. ¡No hace falta completar todo el fixture de una!</p>
-          </div>
-        </div>
-        <div class="feature-card split-layout theme-blue">
-          <div class="feature-card-img" style="background-image: url('/assets/comparar-votos-bg.png');"></div>
-          <div class="feature-card-text">
-            <h3 class="feature-card-title">Comparar Votos</h3>
-            <p class="feature-card-desc">Hacé clic en <strong>"Comparar pronósticos"</strong> en cualquier tarjeta para ver qué votó el resto.</p>
-          </div>
-        </div>
-        <div class="feature-card split-layout theme-red">
-          <div class="feature-card-img" style="background-image: url('/assets/eventos-vivo-bg.png');"></div>
-          <div class="feature-card-text">
-            <h3 class="feature-card-title">Eventos en Vivo</h3>
-            <p class="feature-card-desc">Goles, rojas y cronómetro actualizados al instante en tiempo real.</p>
-          </div>
-        </div>
-      </div>
 
       <section class="ranking-section">
         <h2 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; justify-content: center;">
