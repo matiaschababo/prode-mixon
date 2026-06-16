@@ -10,7 +10,7 @@ import { Fixture, attachFixtureEvents } from './pages/Fixture.js';
 import { Programas } from './pages/Programas.js';
 import { Predicciones } from './pages/Predicciones.js';
 import { Admin, attachAdminEvents } from './pages/Admin.js';
-import { Puntajes } from './pages/Puntajes.js';
+import { Reglas } from './pages/Reglas.js';
 import { Perfil, attachPerfilEvents } from './pages/Perfil.js';
 import { Llaves } from './pages/Llaves.js';
 import { TeamProfile } from './pages/TeamProfile.js';
