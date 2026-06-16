@@ -216,6 +216,7 @@ export async function adminSavePrediction(userId, matchId, home, away) {
 }
 
 // Admin save result function
+export async function adminSaveResult(matchId, home, away) {
   const resultsRef = doc(db, "global", "results");
   if (home === '' || away === '') {
     await updateDoc(resultsRef, {
