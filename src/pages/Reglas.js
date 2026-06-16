@@ -59,6 +59,8 @@ export function Reglas() {
           <div><strong>3</strong><span>¿Ganador o empate?</span><b>1 pt</b></div>
           <div><strong>4</strong><span>¿Nada de eso?</span><b>0 pts</b></div>
         </div>
+      </section>
+
       <section class="score-decision glass-card" style="margin-top: 3rem;">
         <div>
           <p class="eyebrow">Desempates y MVP</p>

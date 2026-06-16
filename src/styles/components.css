@@ -2395,7 +2395,7 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
 .global-ticker-track {
   display: flex;
   width: max-content;
-  animation: marquee-seamless 45s linear infinite;
+  animation: marquee-seamless 35s linear infinite;
 }
 
 .global-ticker-track:hover {
@@ -2428,10 +2428,35 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
 }
 
+.ticker-item-pending {
+  border-left: 3px solid rgba(243, 156, 18, 0.6);
+}
+
+.ticker-item-finished {
+  border-left: 3px solid rgba(155, 89, 182, 0.6);
+  opacity: 0.85;
+}
+
+.ticker-item-live {
+  border-left: 3px solid #ff4d6d;
+  background: rgba(255, 77, 109, 0.1);
+}
+
 .ticker-team {
   font-weight: 600;
   letter-spacing: 0.5px;
   color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ticker-flag {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 3px rgba(0,0,0,0.5);
 }
 
 .ticker-middle {

@@ -34,13 +34,16 @@ export function Ticker() {
     
     let statusText = '';
     let middle = 'vs';
+    let itemClass = 'ticker-item-pending';
     
     if (res) {
        middle = `${res.home} - ${res.away}`;
        if (res.live) {
           statusText = `<span class="ticker-status-live">EN VIVO</span>`;
+          itemClass = 'ticker-item-live';
        } else {
           statusText = `<span class="ticker-status-end">FIN</span>`;
+          itemClass = 'ticker-item-finished';
        }
     } else {
        const d = new Date(m.date);
@@ -48,12 +51,12 @@ export function Ticker() {
        statusText = `<span class="ticker-status-time">HOY ${timeStr}</span>`;
     }
 
-    return `<div class="ticker-item">
-      <span class="ticker-team">${homeTeam.flag} ${(homeTeam.codeEsp || m.homeTeam).toUpperCase()}</span>
+    return `<a href="/fixture#match-${m.id}" data-link class="ticker-item ${itemClass}" style="text-decoration: none; color: inherit;">
+      <span class="ticker-team"><img src="${homeTeam.flagUrl}" class="ticker-flag" alt="${homeTeam.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="flag-emoji" style="display:none">${homeTeam.flag}</span> ${(homeTeam.codeEsp || m.homeTeam).toUpperCase()}</span>
       <span class="ticker-middle">${middle}</span>
-      <span class="ticker-team">${(awayTeam.codeEsp || m.awayTeam).toUpperCase()} ${awayTeam.flag}</span>
+      <span class="ticker-team">${(awayTeam.codeEsp || m.awayTeam).toUpperCase()} <img src="${awayTeam.flagUrl}" class="ticker-flag" alt="${awayTeam.name}" onerror="this.style.display='none';this.previousElementSibling.style.display='inline'"><span class="flag-emoji" style="display:none">${awayTeam.flag}</span></span>
       ${statusText}
-    </div>`;
+    </a>`;
   }).join('');
 
   const itemsHtml = renderItems();
