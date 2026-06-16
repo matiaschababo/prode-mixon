@@ -1,5 +1,8 @@
 // src/components/MatchCard.js
 import { teams } from '../data/teams.js';
+import { getMatchStats } from '../services/prodeStore.js';
+
+const escapeHTML = (str) => String(str || '').replace(/"/g, '&quot;');
 
 export function MatchCard(match, resultOverride = null, userPred = null) {
   const home = teams[match.homeTeam] || { name: match.homeTeam, flag: "❓" };
@@ -93,6 +96,44 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
     }
   }
 
+  // Community Stats (Sabiduría de la Multitud)
+  let communityStatsHTML = '';
+  if (userPred !== null) { // Only show stats if user is logged in (i.e. userPred is provided, even if empty)
+    const stats = getMatchStats(match.id);
+    if (stats.total > 0) {
+      const homePct = Math.round((stats.home / stats.total) * 100);
+      const drawPct = Math.round((stats.draw / stats.total) * 100);
+      const awayPct = Math.round((stats.away / stats.total) * 100);
+      
+      communityStatsHTML = `
+        <div class="community-stats">
+          <div class="stats-label">Sabiduría de la Multitud (${stats.total} votos)</div>
+          <div class="stats-bar">
+            <div class="stat-home" style="width: ${homePct}%" title="${escapeHTML(home.name)} (${homePct}%)"></div>
+            <div class="stat-draw" style="width: ${drawPct}%" title="Empate (${drawPct}%)"></div>
+            <div class="stat-away" style="width: ${awayPct}%" title="${escapeHTML(away.name)} (${awayPct}%)"></div>
+          </div>
+          <div class="stats-text">
+            <span>${home.flag} ${homePct}%</span>
+            <span>➖ ${drawPct}%</span>
+            <span>${away.flag} ${awayPct}%</span>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // Formatting prediction timestamp
+  let timestampHTML = '';
+  if (userPred && userPred.timestamp) {
+    const d = userPred.timestamp.toDate ? userPred.timestamp.toDate() : new Date(userPred.timestamp);
+    if (!isNaN(d)) {
+      const formattedDate = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+      const formattedTime = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      timestampHTML = `<div class="pred-timestamp" style="font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-top: 4px;">Guardado: ${formattedDate} a las ${formattedTime}</div>`;
+    }
+  }
+
   // Main score display (result or time)
   let scoreDisplay;
   if (hasResult) {
@@ -109,10 +150,10 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
       </div>
       
       <div class="match-teams">
-        <div class="team home" onclick="window.router.navigate('/equipo/${home.id}')" style="cursor: pointer;">
-          <img src="${home.flagUrl}" alt="${home.name}" class="flag-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+        <div class="team home" onclick="window.router.navigate('/equipo/${match.homeTeam}')" style="cursor: pointer;">
+          <img src="${home.flagUrl}" alt="${escapeHTML(home.name)}" class="flag-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
           <span class="flag-emoji" style="display:none">${home.flag}</span>
-          <span class="name">${home.name}</span>
+          <span class="name">${escapeHTML(home.name)}</span>
         </div>
         
         <div class="match-center">
@@ -120,10 +161,10 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
           <div class="match-date">${dateStr}</div>
         </div>
         
-        <div class="team away" onclick="window.router.navigate('/equipo/${away.id}')" style="cursor: pointer;">
-          <img src="${away.flagUrl}" alt="${away.name}" class="flag-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+        <div class="team away" onclick="window.router.navigate('/equipo/${match.awayTeam}')" style="cursor: pointer;">
+          <img src="${away.flagUrl}" alt="${escapeHTML(away.name)}" class="flag-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
           <span class="flag-emoji" style="display:none">${away.flag}</span>
-          <span class="name">${away.name}</span>
+          <span class="name">${escapeHTML(away.name)}</span>
         </div>
       </div>
 
@@ -149,6 +190,8 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
       })()}
 
       ${predictionArea}
+      ${timestampHTML}
+      ${communityStatsHTML}
       
       <div class="match-footer">
         <span>📍 ${match.venue}</span>

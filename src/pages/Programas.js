@@ -15,7 +15,7 @@ export function Programas(programId = null) {
         <a href="/programas" class="btn btn-secondary btn-sm" data-link style="margin-bottom: 1rem;">Volver</a>
         <section class="program-detail-hero glass-card" style="border-color: ${program.theme.main}">
           <div class="program-detail-cover" style="background-image: linear-gradient(90deg, rgba(10,10,15,0.9), rgba(10,10,15,0.35)), url('${program.cover || program.logo}')">
-            <img src="${program.logo}" alt="${program.name}" class="program-detail-logo">
+            <img src="${program.logo}" alt="${String(program.name).replace(/"/g, '&quot;')}" class="program-detail-logo">
             <div>
               <p class="eyebrow">Ranking interno</p>
               <h1>${program.name}</h1>
@@ -78,7 +78,7 @@ export function getProgramChartHTML() {
             </div>
             
             <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 100%; margin: 1rem 0;">
-              <img src="${prog.logo}" alt="${prog.name}" class="program-chart-logo" 
+              <img src="${prog.logo}" alt="${String(prog.name).replace(/"/g, '&quot;')}" class="program-chart-logo" 
                    style="width: ${logoSize}px; height: ${logoSize}px; 
                           border-color: ${prog.theme.main}; 
                           box-shadow: 0 0 ${ratio * 25}px ${prog.theme.main}; 

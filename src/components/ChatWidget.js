@@ -1,4 +1,6 @@
-import { getDynamicUsers } from '../services/prodeStore.js';
+import { getDynamicUsers, getCustomLocalPhoto } from '../services/prodeStore.js';
+
+const escapeHTML = (str) => String(str || '').replace(/"/g, '&quot;');
 
 function parseMessage(text, user) {
   if (!text) return '';
@@ -30,7 +32,7 @@ function parseMessage(text, user) {
     const color = isMe ? '#ffb300' : '#5CB8E4';
     const bg = isMe ? 'rgba(255, 179, 0, 0.2)' : 'rgba(92, 184, 228, 0.2)';
     const glow = isMe ? `box-shadow: 0 0 10px rgba(255,179,0,0.5);` : '';
-    return `<a href="${profileLink}" data-link onclick="document.getElementById('chat-close-btn')?.click();" class="chat-mention-link" style="color: ${color}; background: ${bg}; padding: 0 4px; border-radius: 4px; font-weight: 700; ${glow}; text-decoration: none;">@${nameWithSpaces}</a>`;
+    return `<a href="${profileLink}" data-link onclick="window.closeChat();" class="chat-mention-link" style="color: ${color}; background: ${bg}; padding: 0 4px; border-radius: 4px; font-weight: 700; ${glow}; text-decoration: none;">@${nameWithSpaces}</a>`;
   });
 
   return parsed;
@@ -53,8 +55,8 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
     messagesHTML = messages.map(msg => {
       const isMe = user && user.uid === msg.uid;
       const dynamicUser = dynamicUsers.find(u => u.id === msg.uid);
-      const customPhoto = dynamicUser?.photo || msg.photo || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + msg.uid;
-      const customName = dynamicUser?.name || msg.name;
+      const customName = dynamicUser?.name || msg.name || 'Usuario';
+      const customPhoto = dynamicUser?.photo || getCustomLocalPhoto(customName) || msg.photo || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + msg.uid;
 
       let timeStr = '';
       let msgDateStr = '';
@@ -90,7 +92,7 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
       return `
         ${dateDividerHTML}
         <div class="chat-message ${isMe ? 'chat-message-me' : 'chat-message-other'}" id="msg-${msg.id}">
-          ${!isMe ? `<a href="/perfil/${msg.uid}" data-link onclick="document.getElementById('chat-close-btn')?.click();"><img src="${customPhoto}" class="chat-avatar" alt="${customName}" style="cursor: pointer; display: block; object-fit: cover;"></a>` : ''}
+          ${!isMe ? `<a href="/perfil/${msg.uid}" data-link onclick="window.closeChat();"><img src="${customPhoto}" class="chat-avatar" alt="${escapeHTML(customName)}" style="cursor: pointer; display: block; object-fit: cover;"></a>` : ''}
           <div class="chat-bubble-content">
             ${!isMe ? `<div class="chat-author">${customName}</div>` : ''}
             ${msg.replyTo ? `
@@ -113,7 +115,7 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>
               ` : ''}
-              <button class="chat-mod-reply ${isMe ? '' : 'chat-action-left'}" data-id="${msg.id}" data-name="${msg.name}" data-text="${msg.type === 'gif' ? 'GIF' : msg.text.replace(/"/g, '&quot;')}" style="background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; padding: 2px 4px; margin-right: ${isMe ? '0' : 'auto'};" title="Responder">
+              <button class="chat-mod-reply ${isMe ? '' : 'chat-action-left'}" data-id="${msg.id}" data-name="${escapeHTML(msg.name)}" data-text="${msg.type === 'gif' ? 'GIF' : escapeHTML(msg.text)}" style="background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; padding: 2px 4px; margin-right: ${isMe ? '0' : 'auto'};" title="Responder">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
               </button>
               <button class="chat-like-btn ${msg.likes && msg.likes.find(l => l.uid === user?.uid) ? 'liked' : ''}" data-id="${msg.id}">
@@ -122,7 +124,7 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
                 ${msg.likes && msg.likes.length > 0 ? `
                   <div class="chat-like-tooltip">
                     <div class="chat-like-avatars">
-                      ${msg.likes.map(l => `<img src="${l.photo || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + l.uid}" class="chat-like-avatar" alt="${l.name}" title="${l.name}">`).join('')}
+                      ${msg.likes.map(l => `<img src="${l.photo || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + l.uid}" class="chat-like-avatar" alt="${escapeHTML(l.name)}" title="${escapeHTML(l.name)}">`).join('')}
                     </div>
                   </div>
                 ` : ''}

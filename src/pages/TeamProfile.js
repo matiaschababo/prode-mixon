@@ -48,7 +48,7 @@ export function TeamProfile() {
   return `
     <section class="team-profile-page" style="max-width: 800px; margin: 0 auto;">
       <div class="team-profile-header animate-fade-in">
-        <img src="${team.flagUrl}" alt="${team.name}" class="team-profile-flag">
+        <img src="${team.flagUrl}" alt="${String(team.name).replace(/"/g, '&quot;')}" class="team-profile-flag">
         <div class="team-profile-info">
           <h1 class="page-title" style="margin-bottom: 0.25rem;">${team.name}</h1>
           <div class="team-profile-group">Grupo ${team.group}</div>

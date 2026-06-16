@@ -1,5 +1,5 @@
 import { RankingTable } from '../components/RankingTable.js';
-import { getRankedParticipants, ensureUserExists } from '../services/prodeStore.js';
+import { getRankedParticipants, ensureUserExists, getDailyMVP } from '../services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup } from '../services/firebase.js';
 import { getProgramChartHTML } from './Programas.js';
 
@@ -29,6 +29,22 @@ export function Home() {
           <a href="/puntajes" class="btn btn-secondary glass-btn" data-link>PUNTAJES</a>
         </div>
       </section>
+
+      ${(() => {
+        const mvp = getDailyMVP();
+        if (!mvp) return '';
+        return `
+          <div class="mvp-banner glass-card animate-fade-in" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.2)); border-color: rgba(255, 215, 0, 0.3); display: flex; align-items: center; gap: 1rem; padding: 1rem; cursor: pointer;" onclick="window.router.navigate('/perfil/${mvp.id}')">
+            <div style="font-size: 2.5rem; filter: drop-shadow(0 0 10px rgba(255,215,0,0.5));">👑</div>
+            <div style="flex: 1;">
+              <div style="font-size: 0.7rem; color: #ffd700; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">MVP del Día</div>
+              <div style="font-size: 1.2rem; font-weight: 800; color: white;">${mvp.name}</div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary);">Sumó <strong>${mvp.dailyPoints} pts</strong> en ${mvp.matchCount} partidos (${mvp.dailyExacts} resultados exactos)</div>
+            </div>
+            <img src="${mvp.photo}" alt="${String(mvp.name || '').replace(/"/g, '&quot;')}" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid #ffd700; object-fit: cover;">
+          </div>
+        `;
+      })()}
 
       <div class="home-features grid-3 animate-fade-in" style="margin-bottom: 3.5rem; gap: 1.5rem;">
         <div class="feature-card split-layout theme-purple">

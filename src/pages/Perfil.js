@@ -5,6 +5,9 @@ import { calculatePoints } from '../services/scoring.js';
 import { getMatchResult, getPredictions, getParticipantStats, getDynamicUsers, isMasterAdmin, adminSavePrediction, updateUserPhoto, updateUserDisplayName } from '../services/prodeStore.js';
 import { auth } from '../services/firebase.js';
 
+const escapeJS = (str) => String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+const escapeHTML = (str) => String(str || '').replace(/"/g, '&quot;');
+
 export function Perfil(participantId) {
   const dynamicUsers = getDynamicUsers();
   const participant = dynamicUsers.find(item => item.id === participantId);
@@ -29,7 +32,8 @@ export function Perfil(participantId) {
       prediction,
       result,
       points,
-      label: `<img src="${home.flagUrl}" class="flag-icon" style="width:16px; height:auto; display:inline-block; vertical-align:middle; border-radius:2px;"> ${home.name} vs ${away.name} <img src="${away.flagUrl}" class="flag-icon" style="width:16px; height:auto; display:inline-block; vertical-align:middle; border-radius:2px;">`
+      label: `<span style="font-size:1.1rem; vertical-align:middle; margin-right:4px;">${home.flag}</span> ${home.name} vs ${away.name} <span style="font-size:1.1rem; vertical-align:middle; margin-left:4px;">${away.flag}</span>`,
+      plainLabel: `${home.flag} ${home.name} vs ${away.name} ${away.flag}`
     };
   });
 
@@ -48,7 +52,16 @@ export function Perfil(participantId) {
         </div>
       `;
     } else {
-      predictionHtml = `<span>${item.prediction ? `${item.prediction.home}-${item.prediction.away}` : 'Sin predicción'}</span>`;
+      let tsHtml = '';
+      if (item.prediction?.timestamp) {
+        const d = item.prediction.timestamp.toDate ? item.prediction.timestamp.toDate() : new Date(item.prediction.timestamp);
+        if (!isNaN(d)) {
+          const dateStr = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+          const timeStr = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+          tsHtml = `<div style="font-size:0.6rem; color:var(--text-muted); margin-top:2px;" title="${dateStr} ${timeStr}">${dateStr} ${timeStr}</div>`;
+        }
+      }
+      predictionHtml = `<div style="display:flex; flex-direction:column; align-items:center;"><span>${item.prediction ? `${item.prediction.home}-${item.prediction.away}` : 'Sin predicción'}</span>${tsHtml}</div>`;
     }
 
     return `
@@ -76,7 +89,8 @@ export function Perfil(participantId) {
                 ${item.prediction.likes?.length > 0 ? `<span style="cursor:pointer;" onclick="window.showLikesModal('${escape(JSON.stringify(item.prediction.likes))}')">${item.prediction.likes.length}</span>` : ''}
               </div>
               <div style="display: flex; align-items: center; gap: 0.2rem;">
-                <button onclick="window.sharePredictionToChat('${participantId}', '${participant.name.replace(/'/g, "\\'")}', '${item.label.replace(/'/g, "\\'")}', '${item.prediction.home} - ${item.prediction.away}', '${item.match.id}')" class="btn btn-sm" style="background: transparent; color: var(--color-mixon-main); padding: 0.2rem; border: none; box-shadow: none;" title="Compartir al chat">
+                <button onclick="window.sharePredictionToChat('${participantId}', '${participant.name.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${item.plainLabel.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${item.prediction.home} - ${item.prediction.away}', '${item.match.id}')" class="btn btn-sm" style="background: transparent; color: var(--color-mixon-main); padding: 0.2rem; border: none; box-shadow: none;" title="Compartir al chat">
+
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 </button>
                 ${item.prediction.shares > 0 ? `<span>${item.prediction.shares}</span>` : ''}
@@ -94,7 +108,7 @@ export function Perfil(participantId) {
 
       <section class="profile-hero glass-card" style="border-color: ${program.theme.main}">
         <div style="position: relative; display: inline-block;">
-          <img src="${participant.photo}" class="profile-photo" alt="${participant.name}">
+          <img src="${participant.photo}" class="profile-photo" alt="${escapeHTML(participant.name)}">
           ${isAdmin ? `
             <button class="btn btn-secondary btn-sm change-photo-btn" data-uid="${participantId}" style="position: absolute; bottom: 0; left: 50%; transform: translate(-50%, 50%); padding: 0.2rem 0.5rem; font-size: 0.7rem; white-space: nowrap; border-radius: 20px;">✏️ Cambiar foto</button>
           ` : ''}
@@ -102,8 +116,17 @@ export function Perfil(participantId) {
         <div>
           <p class="eyebrow">${participant.role || 'Participante'} · ${getParticipantProgramLabel(participant)}</p>
           <h1 style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">${participant.name}
+            ${stats.currentStreak >= 3 ? `<span class="streak-fire" title="¡Racha de ${stats.currentStreak} partidos sumando puntos!">🔥 ${stats.currentStreak}</span>` : ''}
             ${isOwnProfile ? `<button class="btn btn-secondary btn-sm edit-name-btn" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">✏️ Cambiar nombre</button>` : ''}
           </h1>
+          
+          ${stats.badges?.length > 0 || stats.mvpCount > 0 ? `
+            <div class="badges-container" style="justify-content: flex-start; margin-bottom: 0.8rem;">
+              ${stats.mvpCount > 0 ? `<div class="badge-item" title="MVP del día ${stats.mvpCount} veces" style="background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.4); color: #ffd700;">👑 MVP x${stats.mvpCount}</div>` : ''}
+              ${stats.badges?.length > 0 ? stats.badges.map(b => `<div class="badge-item">${b === 'El Oráculo' ? '🔮' : b === 'Buzzer Beater' ? '⏳' : b === 'El Contra' ? '🧠' : '⭐'} ${b}</div>`).join('') : ''}
+            </div>
+          ` : ''}
+
           <div class="profile-stats">
             <div><strong>${stats.totalPoints}</strong><span>puntos</span></div>
             <div><strong>${stats.played}</strong><span>partidos puntuados</span></div>

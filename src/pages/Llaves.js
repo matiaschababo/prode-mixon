@@ -12,7 +12,7 @@ function renderGroupMini(group, standings) {
       <tr class="${posClass}" onclick="window.router.navigate('/equipo/${team.id}')" style="cursor: pointer;">
         <td class="group-mini-pos">${i + 1}</td>
         <td class="group-mini-team">
-          <img src="${team.flagUrl}" alt="${team.name}" class="group-mini-flag" onerror="this.style.display='none'">
+          <img src="${team.flagUrl}" alt="${String(team.name).replace(/"/g, '&quot;')}" class="group-mini-flag" onerror="this.style.display='none'">
           <span class="group-mini-name">${team.name}</span>
         </td>
         <td>${team.played}</td>

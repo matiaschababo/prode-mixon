@@ -5,6 +5,9 @@ import { getParticipantProgramLabel } from '../data/participants.js';
 import { getPredictions, getMatchResult, getDynamicUsers } from '../services/prodeStore.js';
 import { calculatePoints, getHitType } from '../services/scoring.js';
 
+const escapeJS = (str) => String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+const escapeHTML = (str) => String(str || '').replace(/"/g, '&quot;');
+
 export function Predicciones(matchId) {
   const match = matches.find(m => m.id === parseInt(matchId));
   if (!match) return `<h2>Partido no encontrado</h2>`;
@@ -68,6 +71,13 @@ export function Predicciones(matchId) {
               <div class="prediction-score" style="text-align: right;">
                 <div style="${scoreStyle} font-size: 1.25rem;">${p.prediction ? `${p.prediction.home} - ${p.prediction.away}` : '? - ?'}</div>
                 ${p.points !== null ? `<small style="${scoreStyle}">${result && result.live ? '<span style="opacity:0.8; font-size:0.75rem;">Con este resultado: </span>' : ''}${icon} ${p.points} pts</small>` : ''}
+                ${(() => {
+                  if (p.prediction && p.prediction.timestamp) {
+                    const d = p.prediction.timestamp.toDate ? p.prediction.timestamp.toDate() : new Date(p.prediction.timestamp);
+                    if (!isNaN(d)) return `<div style="font-size:0.6rem; color:var(--text-muted); margin-top:4px;">${d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'})} ${d.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'})}</div>`;
+                  }
+                  return '';
+                })()}
               </div>
               <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.8rem;">
                 <div style="display: flex; align-items: center; gap: 0.2rem;">
@@ -77,7 +87,7 @@ export function Predicciones(matchId) {
                   ${likes.length > 0 ? `<span style="cursor:pointer;" onclick="window.showLikesModal('${escape(JSON.stringify(likes))}')">${likes.length}</span>` : ''}
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.2rem;">
-                  <button onclick="window.sharePredictionToChat('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${home.name} vs ${away.name}', '${p.prediction.home} - ${p.prediction.away}', '${match.id}')" class="btn btn-sm" style="background: transparent; color: var(--color-mixon-main); padding: 0.2rem; border: none; box-shadow: none;" title="Compartir al chat">
+                  <button onclick="window.sharePredictionToChat('${p.id}', '${p.name.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${(home.name + " vs " + away.name).replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${p.prediction.home} - ${p.prediction.away}', '${match.id}')" class="btn btn-sm" style="background: transparent; color: var(--color-mixon-main); padding: 0.2rem; border: none; box-shadow: none;" title="Compartir al chat">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                   </button>
                   ${shares > 0 ? `<span>${shares}</span>` : ''}

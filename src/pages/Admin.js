@@ -41,7 +41,7 @@ export function Admin() {
   const userRows = users.map(u => `
     <div class="glass-card" style="margin-bottom: 1rem; padding: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
       <div style="display: flex; align-items: center; gap: 1rem;">
-        <img src="${u.photo}" class="avatar" alt="${u.name}">
+        <img src="${u.photo}" class="avatar" alt="${String(u.name || '').replace(/"/g, '&quot;')}">
         <div>
           <strong style="display:block;">${u.name}</strong>
           <small style="color:var(--text-secondary);">${u.email}</small>
