@@ -34,14 +34,31 @@ export function Home() {
         const mvp = getDailyMVP();
         if (!mvp) return '';
         return `
-          <div class="mvp-banner glass-card animate-fade-in" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.2)); border-color: rgba(255, 215, 0, 0.3); display: flex; align-items: center; gap: 1rem; padding: 1rem; cursor: pointer;" onclick="window.router.navigate('/perfil/${mvp.id}')">
-            <div style="font-size: 2.5rem; filter: drop-shadow(0 0 10px rgba(255,215,0,0.5));">👑</div>
-            <div style="flex: 1;">
-              <div style="font-size: 0.7rem; color: #ffd700; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">MVP del Día</div>
-              <div style="font-size: 1.2rem; font-weight: 800; color: white;">${mvp.name}</div>
-              <div style="font-size: 0.85rem; color: var(--text-secondary);">Sumó <strong>${mvp.dailyPoints} pts</strong> en ${mvp.matchCount} partidos (${mvp.dailyExacts} resultados exactos)</div>
+          <div class="mvp-banner glass-card animate-fade-in" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.2)); border-color: rgba(255, 215, 0, 0.3); display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; cursor: pointer;" onclick="window.router.navigate('/perfil/${mvp.id}')">
+            <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+              <div style="font-size: 2.5rem; filter: drop-shadow(0 0 10px rgba(255,215,0,0.5));">👑</div>
+              <div style="flex: 1;">
+                <div style="font-size: 0.7rem; color: #ffd700; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">MVP de la Jornada • ${mvp.matchdayDate ? new Date(mvp.matchdayDate).toLocaleDateString('es-AR', { weekday: 'long', month: 'long', day: 'numeric' }) : ''}</div>
+                <div style="font-size: 1.2rem; font-weight: 800; color: white;">${mvp.name}</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">Sumó <strong>${mvp.dailyPoints} pts</strong> en ${mvp.matchCount} partidos (${mvp.dailyExacts} resultados exactos)</div>
+              </div>
+              <img src="${mvp.photo}" alt="${String(mvp.name || '').replace(/"/g, '&quot;')}" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid #ffd700; object-fit: cover;">
             </div>
-            <img src="${mvp.photo}" alt="${String(mvp.name || '').replace(/"/g, '&quot;')}" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid #ffd700; object-fit: cover;">
+            
+            ${mvp.matchesInfo && mvp.matchesInfo.length > 0 ? `
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,215,0,0.1); padding-top: 1rem;">
+              ${mvp.matchesInfo.map(info => {
+                // Determine if it was an exact match (for styling)
+                const isExact = info.points === 3 || info.points === 4 || info.points === 5; // Points depend on scoring.js, but generally >1 implies exact or correct difference.
+                return `
+                <div style="background: rgba(0,0,0,0.4); padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid ${isExact ? 'rgba(255,215,0,0.5)' : 'rgba(255,255,255,0.1)'}; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+                  <span style="color: white; font-weight: 600;">${info.match.homeTeam} ${info.prediction.home}-${info.prediction.away} ${info.match.awayTeam}</span>
+                  <span style="color: ${isExact ? '#ffd700' : '#4cd137'}; font-weight: bold;">+${info.points}</span>
+                </div>
+                `;
+              }).join('')}
+            </div>
+            ` : ''}
           </div>
         `;
       })()}
