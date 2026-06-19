@@ -938,7 +938,7 @@ function updateNavbarAuthUI() {
                   <img src="${n.fromUserPhoto || 'https://api.dicebear.com/7.x/avataaars/svg?seed='+n.fromUserId}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
                   <div style="font-size: 0.8rem; line-height: 1.2;">
                     <strong>${n.fromUserName}</strong> 
-                    ${n.type === 'like' ? 'le dio like a tu pronóstico' : 'compartió tu pronóstico al chat'}
+                    ${n.type === 'system' ? (n.message || 'notificación del sistema') : n.type === 'like' ? 'le dio like a tu pronóstico' : 'compartió tu pronóstico al chat'}
                   </div>
                 </div>
               `).join('')

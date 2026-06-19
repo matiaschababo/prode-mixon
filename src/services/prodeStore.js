@@ -637,6 +637,28 @@ export async function ensureUserExists(user) {
     if (analytics) {
       try { logEvent(analytics, 'sign_up', { method: 'google' }); } catch(e) {}
     }
+    
+    try {
+      const q = query(collection(db, "users"), where("email", "in", MASTER_ADMINS));
+      const adminSnaps = await getDocs(q);
+      adminSnaps.forEach(async (adminDoc) => {
+        const adminData = adminDoc.data();
+        if (adminData.uid !== user.uid) {
+          await addDoc(collection(db, 'notifications'), {
+            userId: adminData.uid,
+            fromUserId: user.uid,
+            fromUserName: user.displayName || 'Nuevo Usuario',
+            fromUserPhoto: user.photoURL || '',
+            type: 'system',
+            message: `se registró en la app (${user.email || 'Sin mail'})`,
+            timestamp: serverTimestamp(),
+            read: false
+          });
+        }
+      });
+    } catch(err) {
+      console.error('Error notifying admins', err);
+    }
   } else {
     if (analytics) {
       try { logEvent(analytics, 'login', { method: 'google' }); } catch(e) {}
