@@ -71,6 +71,7 @@ window.openChat = () => {
     document.body.style.overflow = 'hidden';
   }
   document.body.classList.add('chat-open-mobile');
+  router();
 };
 
 window.shareMVPToChat = (id, name, points) => {
@@ -95,7 +96,9 @@ window.sharePredictionToChat = async (uid, name, matchStr, predStr, matchId) => 
   });
   if (!isChatOpen) {
     isChatOpen = true;
-    document.body.style.overflow = 'hidden';
+    if (window.innerWidth <= 768) {
+      document.body.style.overflow = 'hidden';
+    }
     document.body.classList.add('chat-open-mobile');
     router();
   }
@@ -387,23 +390,10 @@ function setupChat() {
   
   if (bubble && !bubble.dataset.events) {
     bubble.dataset.events = "true";
-    bubble.addEventListener('click', () => {
-      isChatOpen = true;
-      document.body.style.overflow = 'hidden';
-      document.body.classList.add('chat-open-mobile');
-      lastReadChatLength = getChatMessages().length;
-      router();
-      setTimeout(() => {
-        document.getElementById('chat-input')?.focus();
-      }, 300);
-    });
   }
 
   if (closeBtn && !closeBtn.dataset.events) {
     closeBtn.dataset.events = "true";
-    closeBtn.addEventListener('click', () => {
-      window.closeChat();
-    });
   }
   
   if (scrollToBottomBtn && !scrollToBottomBtn.dataset.events) {
@@ -464,12 +454,23 @@ function setupChat() {
   const toggleChat = () => {
     isChatOpen = !isChatOpen;
     if (isChatOpen) {
-      document.body.style.overflow = 'hidden';
+      if (window.innerWidth <= 768) {
+        document.body.style.overflow = 'hidden';
+      }
+      document.body.classList.add('chat-open-mobile');
+      lastReadChatLength = getChatMessages().length;
+      router();
+      setTimeout(() => {
+        document.getElementById('chat-input')?.focus();
+      }, 300);
     } else {
-      document.body.style.overflow = '';
+      if (window.innerWidth <= 768) {
+        document.body.style.overflow = '';
+      }
+      document.body.classList.remove('chat-open-mobile');
       if (chatReplyingTo) setChatReplyingTo(null);
+      router();
     }
-    router();
   };
 
   if (bubble) bubble.onclick = toggleChat;
