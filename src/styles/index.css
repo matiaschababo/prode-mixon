@@ -69,6 +69,7 @@
 html {
   overflow-x: clip;
   touch-action: manipulation; /* Prevents double-tap zoom */
+  overscroll-behavior-y: none; /* Prevents pull-to-refresh */
 }
 
 body {
@@ -80,6 +81,7 @@ body {
   min-height: 100vh;
   overflow-x: clip;
   touch-action: manipulation;
+  overscroll-behavior-y: none;
   /* Premium animated background gradient */
   background: radial-gradient(circle at top right, rgba(123, 45, 142, 0.15), transparent 40%),
               radial-gradient(circle at bottom left, rgba(108, 60, 224, 0.1), transparent 40%),

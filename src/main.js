@@ -525,8 +525,7 @@ function setupChat() {
       if (e.key === 'Enter') handleSend();
     };
     input.onblur = () => {
-      // Fix iOS keyboard closing shift
-      window.scrollTo(0, 0);
+      // Removed window.scrollTo(0, 0) to prevent page jumping to top
     };
     
     // Mentions Autocomplete
@@ -627,6 +626,8 @@ function setupChat() {
   // Like Chat Messages
   document.querySelectorAll('.chat-like-btn').forEach(btn => {
     btn.onclick = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const target = e.target.closest('.chat-like-btn');
       const id = target.getAttribute('data-id');
       try {
