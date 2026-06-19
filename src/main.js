@@ -182,7 +182,62 @@ function LoadingScreen() {
   `;
 }
 
-function router() {
+let routerRafId = null;
+export function router() {
+  if (routerRafId) cancelAnimationFrame(routerRafId);
+  routerRafId = requestAnimationFrame(() => {
+    _router();
+    routerRafId = null;
+  });
+}
+
+export function updateChatOnly() {
+  const dataReady = isDataReady();
+  if (!dataReady || !isInitialized) {
+    router();
+    return;
+  }
+  
+  const msgs = getChatMessages();
+  if (isChatOpen) lastReadChatLength = msgs.length;
+  const unreadCount = msgs.length > lastReadChatLength ? msgs.length - lastReadChatLength : 0;
+  
+  let isMentioned = false;
+  if (unreadCount > 0 && auth.currentUser && auth.currentUser.displayName) {
+    const firstName = auth.currentUser.displayName.split(' ')[0].toLowerCase();
+    const unreadMsgs = msgs.slice(lastReadChatLength);
+    isMentioned = unreadMsgs.some(m => m.text && m.text.toLowerCase().includes('@' + firstName));
+  }
+
+  const isMasterAdmin = auth.currentUser ? MASTER_ADMINS.includes(auth.currentUser.email) : false;
+  
+  const chatHtml = ChatWidget(auth.currentUser, msgs, unreadCount, isChatOpen, isMentioned, isMasterAdmin, chatReplyingTo);
+  const tempEl = document.createElement('div');
+  tempEl.innerHTML = chatHtml;
+  
+  const existingChat = document.getElementById('global-chat-container');
+  if (existingChat) {
+    morphdom(existingChat, tempEl.firstElementChild, {
+      childrenOnly: false,
+      onBeforeElUpdated: function(fromEl, toEl) {
+        if (fromEl.tagName === 'INPUT' && fromEl.id === 'chat-input') {
+          if (fromEl.dataset.cleared === 'true') {
+            toEl.value = '';
+            fromEl.dataset.cleared = 'false';
+          } else {
+            toEl.value = fromEl.value;
+          }
+        }
+        return true;
+      }
+    });
+    setupChat();
+  } else {
+    router();
+  }
+}
+
+function _router() {
   const path = window.location.pathname;
   const dataReady = isDataReady();
 
@@ -544,7 +599,8 @@ function setupChat() {
     
     // Mentions Autocomplete
     const mentionsPanel = document.getElementById('chat-mentions-panel');
-    if (mentionsPanel) {
+    if (mentionsPanel && !input.dataset.mentionsEvents) {
+      input.dataset.mentionsEvents = 'true';
       input.addEventListener('input', (e) => {
         const val = input.value;
         const lastWordMatch = val.match(/@([a-zA-Z0-9_áéíóúñÁÉÍÓÚÑ]*)$/);
@@ -582,11 +638,16 @@ function setupChat() {
       });
       
       // Hide mentions panel on click outside
-      document.addEventListener('click', (e) => {
-        if (!input.contains(e.target) && !mentionsPanel.contains(e.target)) {
-          mentionsPanel.classList.add('hidden');
-        }
-      });
+      if (!window._chatMentionsDocClick) {
+        window._chatMentionsDocClick = true;
+        document.addEventListener('click', (e) => {
+          const mPanel = document.getElementById('chat-mentions-panel');
+          const inp = document.getElementById('chat-input');
+          if (mPanel && inp && !inp.contains(e.target) && !mPanel.contains(e.target)) {
+            mPanel.classList.add('hidden');
+          }
+        });
+      }
     }
   }
 
@@ -985,32 +1046,43 @@ function updateNavbarAuthUI() {
     const navAdmin = document.getElementById('nav-admin');
     if (navAdmin) navAdmin.style.display = MASTER_ADMINS.includes(user.email) ? 'block' : 'none';
 
-    document.getElementById('btn-notifs')?.addEventListener('click', (e) => {
-      const drop = document.getElementById('notif-dropdown');
-      if (drop.classList.contains('hidden')) {
-        drop.classList.remove('hidden');
-        if (unreadCount > 0) {
-          markNotificationsAsRead(resolvedUid);
+    const btnNotifs = document.getElementById('btn-notifs');
+    if (btnNotifs && !btnNotifs.dataset.clickEvents) {
+      btnNotifs.dataset.clickEvents = 'true';
+      btnNotifs.addEventListener('click', (e) => {
+        const drop = document.getElementById('notif-dropdown');
+        if (drop.classList.contains('hidden')) {
+          drop.classList.remove('hidden');
+          if (unreadCount > 0) {
+            markNotificationsAsRead(resolvedUid);
+          }
+        } else {
+          drop.classList.add('hidden');
         }
-      } else {
-        drop.classList.add('hidden');
-      }
-      e.stopPropagation();
-    });
+        e.stopPropagation();
+      });
+    }
     
-    document.addEventListener('click', (e) => {
-      const drop = document.getElementById('notif-dropdown');
-      if (drop && !e.target.closest('#btn-notifs')) {
-        drop.classList.add('hidden');
-      }
-    });
+    if (!window._notifsDocClick) {
+      window._notifsDocClick = true;
+      document.addEventListener('click', (e) => {
+        const drop = document.getElementById('notif-dropdown');
+        if (drop && !e.target.closest('#btn-notifs')) {
+          drop.classList.add('hidden');
+        }
+      });
+    }
 
-    document.getElementById('btn-logout')?.addEventListener('click', () => {
-      if (analytics) {
-        try { logEvent(analytics, 'logout'); } catch(e) {}
-      }
-      signOut(auth).then(() => router());
-    });
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout && !btnLogout.dataset.clickEvents) {
+      btnLogout.dataset.clickEvents = 'true';
+      btnLogout.addEventListener('click', () => {
+        if (analytics) {
+          try { logEvent(analytics, 'logout'); } catch(e) {}
+        }
+        signOut(auth).then(() => router());
+      });
+    }
   } else {
     if (myPredsLink) myPredsLink.style.display = 'none';
     container.innerHTML = `
@@ -1019,16 +1091,20 @@ function updateNavbarAuthUI() {
         <span class="mobile-only">Ingresar</span>
       </button>
     `;
-    document.getElementById('btn-login-google')?.addEventListener('click', async () => {
-      try {
-        const result = await signInWithPopup(auth, googleProvider);
-        await ensureUserExists(result.user);
-        router();
-      } catch (error) {
-        console.error("Login falló", error);
-        alert("Ocurrió un error al iniciar sesión.");
-      }
-    });
+    const btnLoginGoogle = document.getElementById('btn-login-google');
+    if (btnLoginGoogle && !btnLoginGoogle.dataset.clickEvents) {
+      btnLoginGoogle.dataset.clickEvents = 'true';
+      btnLoginGoogle.addEventListener('click', async () => {
+        try {
+          const result = await signInWithPopup(auth, googleProvider);
+          await ensureUserExists(result.user);
+          router();
+        } catch (error) {
+          console.error("Login falló", error);
+          alert("Ocurrió un error al iniciar sesión.");
+        }
+      });
+    }
   }
 }
 
@@ -1063,7 +1139,12 @@ onAuthStateChanged(auth, (user) => {
   }
 
   if (!isInitialized) {
-    initializeFirebaseSync(() => {
+    initializeFirebaseSync((type) => {
+      if (type === 'chat' && isDataReady() && app.hasChildNodes()) {
+        updateChatOnly();
+        return;
+      }
+
       if (analytics && auth.currentUser) {
         try {
           const uid = resolveUid(auth.currentUser.uid);
