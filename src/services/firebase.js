@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { initializeFirestore, persistentLocalCache, persistentSingleTabManager, doc, setDoc, getDoc, collection, getDocs, writeBatch, query, where, onSnapshot, serverTimestamp, addDoc, orderBy, limit, deleteDoc, updateDoc, arrayUnion, arrayRemove, increment, deleteField } from 'firebase/firestore';
+import { getAnalytics, logEvent, setUserId, setUserProperties } from 'firebase/analytics';
 
 const firebaseConfig = {
   projectId: "prode-mixon-2026-36579",
@@ -14,6 +15,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
 // Enable offline persistence — returning users get instant cached data
 const db = initializeFirestore(app, {
@@ -22,4 +24,4 @@ const db = initializeFirestore(app, {
 
 const googleProvider = new GoogleAuthProvider();
 
-export { auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged, doc, setDoc, getDoc, collection, getDocs, writeBatch, query, onSnapshot, serverTimestamp, addDoc, orderBy, limit, deleteDoc, updateDoc, arrayUnion, arrayRemove, where, increment, deleteField };
+export { auth, db, googleProvider, analytics, logEvent, setUserId, setUserProperties, signInWithPopup, signOut, onAuthStateChanged, doc, setDoc, getDoc, collection, getDocs, writeBatch, query, onSnapshot, serverTimestamp, addDoc, orderBy, limit, deleteDoc, updateDoc, arrayUnion, arrayRemove, where, increment, deleteField };

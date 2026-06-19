@@ -39,7 +39,15 @@ export function Ticker() {
     if (res) {
        middle = `${res.home} - ${res.away}`;
        if (res.live) {
-          statusText = `<span class="ticker-status-live">EN VIVO</span>`;
+          let minText = '';
+          if (res.minute) {
+            if (res.minute === 'HT' || String(res.minute).toLowerCase() === 'entretiempo') {
+              minText = ' ET';
+            } else {
+              minText = ` ${res.minute}'`;
+            }
+          }
+          statusText = `<span class="ticker-status-live">EN VIVO${minText}</span>`;
           itemClass = 'ticker-item-live';
        } else {
           statusText = `<span class="ticker-status-end">FIN</span>`;

@@ -45,7 +45,7 @@ export function Perfil(participantId) {
 
   const loggedInUser = auth.currentUser;
   const isAdmin = loggedInUser && isMasterAdmin(loggedInUser.email);
-  const isOwnProfile = loggedInUser && loggedInUser.uid === participantId;
+  const isOwnProfile = loggedInUser && (window.resolveUid ? window.resolveUid(loggedInUser.uid) : loggedInUser.uid) === (window.resolveUid ? window.resolveUid(participantId) : participantId);
 
   const rows = history.map(item => {
     let predictionHtml;
@@ -89,8 +89,8 @@ export function Perfil(participantId) {
           ${item.prediction ? `
             <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.7rem;">
               <div style="display: flex; align-items: center; gap: 0.2rem;">
-                <button onclick="window.toggleLikeOnPrediction('${item.match.id}', '${participantId}')" class="btn btn-sm" style="background: transparent; color: ${item.prediction.likes?.some(l => l.uid === window.auth?.currentUser?.uid) ? '#ff4757' : 'currentColor'}; padding: 0.2rem; border: none; box-shadow: none;" title="Me gusta">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="${item.prediction.likes?.some(l => l.uid === window.auth?.currentUser?.uid) ? '#ff4757' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                <button onclick="window.toggleLikeOnPrediction('${item.match.id}', '${participantId}')" class="btn btn-sm" style="background: transparent; color: ${item.prediction.likes?.some(l => (window.resolveUid ? window.resolveUid(l.uid) : l.uid) === (window.resolveUid ? window.resolveUid(window.auth?.currentUser?.uid) : window.auth?.currentUser?.uid)) ? '#ff4757' : 'currentColor'}; padding: 0.2rem; border: none; box-shadow: none;" title="Me gusta">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="${item.prediction.likes?.some(l => (window.resolveUid ? window.resolveUid(l.uid) : l.uid) === (window.resolveUid ? window.resolveUid(window.auth?.currentUser?.uid) : window.auth?.currentUser?.uid)) ? '#ff4757' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                 </button>
                 ${item.prediction.likes?.length > 0 ? `<span style="cursor:pointer;" onclick="window.showLikesModal('${escape(JSON.stringify(item.prediction.likes))}')">${item.prediction.likes.length}</span>` : ''}
               </div>
@@ -122,7 +122,15 @@ export function Perfil(participantId) {
         <div>
           <p class="eyebrow">${participant.role || 'Participante'} · ${getParticipantProgramLabel(participant)}</p>
           <h1 style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">${participant.name}
-            ${stats.currentStreak >= 3 ? `<span class="streak-fire" title="¡Racha de ${stats.currentStreak} partidos sumando puntos!">🔥 ${stats.currentStreak}</span>` : ''}
+            ${stats.currentStreak >= 3 ? `
+              <div class="streak-badge-container" style="font-size: 0.9rem;">
+                <span class="streak-badge-icon">🔥 Racha x${stats.currentStreak}</span>
+                <div class="streak-popover" style="text-transform: none;">
+                  <h4 style="font-size: 0.8rem;">Racha Activa</h4>
+                  <p style="font-size: 0.8rem;">Sumando puntos hace ${stats.currentStreak} partidos consecutivos</p>
+                </div>
+              </div>
+            ` : ''}
             ${isOwnProfile ? `<button class="btn btn-secondary btn-sm edit-name-btn" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">✏️ Cambiar nombre</button>` : ''}
           </h1>
           
@@ -132,7 +140,7 @@ export function Perfil(participantId) {
                 const [y, m, day] = d.split('-');
                 const dateObj = new Date(y, m - 1, day);
                 const dateStr = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
-                return `<div class="badge-item mvp-badge-single" data-tooltip="Clic para ver tus predicciones\nde la jornada MVP (${dateStr})" data-filter-date="${d}" onclick="window.filterHistoryByDate('${d}')" style="cursor: pointer; transition: all 0.2s;">👑 MVP ${dateStr.split(' ')[1]} ${dateStr.split(' ')[2]}</div>`;
+                return `<div class="badge-item mvp-badge-single" data-tooltip="Clic para ver tus predicciones\nde la jornada MVP (${dateStr})" data-filter-date="${d}" onclick="window.filterHistoryByDate('${d}', true)" style="cursor: pointer; transition: all 0.2s;">👑 MVP ${dateStr.split(' ')[1]} ${dateStr.split(' ')[2]}</div>`;
               }).join('') : ''}
               ${stats.badges?.length > 0 ? stats.badges.map(b => {
                 let badgeIcon = '⭐';
@@ -160,15 +168,18 @@ export function Perfil(participantId) {
       <section style="margin-top: 2rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
           <h2 style="margin: 0;">Historial de predicciones</h2>
-          <select id="history-filter" onchange="window.filterHistoryByDate(this.value)" style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: white; cursor: pointer; outline: none; font-size: 0.9rem;">
-            <option value="all">Todas las jornadas</option>
-            ${[...new Set(history.map(h => getLogicalDate(h.match.date)))].sort().map(d => {
-              const [y, m, day] = d.split('-');
-              const dateObj = new Date(y, m - 1, day);
-              const label = dateObj.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
-              return `<option value="${d}">Jornada ${label}</option>`;
-            }).join('')}
-          </select>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <select id="history-filter" onchange="window.filterHistoryByDate(this.value)" style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: white; cursor: pointer; outline: none; font-size: 0.9rem;">
+              <option value="all">Todas las jornadas</option>
+              ${[...new Set(history.map(h => getLogicalDate(h.match.date)))].sort().map(d => {
+                const [y, m, day] = d.split('-');
+                const dateObj = new Date(y, m - 1, day);
+                const label = dateObj.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+                return `<option value="${d}">Jornada ${label}</option>`;
+              }).join('')}
+            </select>
+            <button id="clear-history-filter" class="btn btn-secondary btn-sm" style="display: none; padding: 0.4rem 0.8rem; font-size: 0.9rem; border-radius: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: white; cursor: pointer;" onclick="window.filterHistoryByDate('all')">Ver todas</button>
+          </div>
         </div>
         <div class="glass-card history-table">
           ${rows}
@@ -179,14 +190,23 @@ export function Perfil(participantId) {
 }
 
 export function attachPerfilEvents() {
-  window.filterHistoryByDate = (dateStr) => {
+  window.filterHistoryByDate = (dateStr, isBadgeClick) => {
     const filterSelect = document.getElementById('history-filter');
-    if (filterSelect && filterSelect.value !== dateStr) {
-      filterSelect.value = dateStr;
+    let targetDate = dateStr;
+    if (filterSelect) {
+      if (isBadgeClick && filterSelect.value === dateStr) {
+        targetDate = 'all';
+      }
+      filterSelect.value = targetDate;
+    }
+    
+    const clearBtn = document.getElementById('clear-history-filter');
+    if (clearBtn) {
+      clearBtn.style.display = targetDate === 'all' ? 'none' : 'inline-block';
     }
     
     document.querySelectorAll('.history-row').forEach(row => {
-      if (dateStr === 'all' || row.dataset.date === dateStr) {
+      if (targetDate === 'all' || row.dataset.date === targetDate) {
         row.style.display = '';
       } else {
         row.style.display = 'none';
@@ -194,12 +214,19 @@ export function attachPerfilEvents() {
     });
 
     document.querySelectorAll('.mvp-badge-single').forEach(b => {
-      if (dateStr !== 'all' && b.dataset.filterDate === dateStr) {
+      const filterDate = b.dataset.filterDate;
+      const [y, m, day] = filterDate.split('-');
+      const dateObj = new Date(y, m - 1, day);
+      const label = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
+      
+      if (targetDate !== 'all' && filterDate === targetDate) {
         b.style.boxShadow = '0 0 0 2px var(--color-mixon-main)';
         b.style.background = 'rgba(255,215,0,0.2)';
+        b.setAttribute('data-tooltip', `Clic para quitar filtro\n(Ver todas las jornadas)`);
       } else {
         b.style.boxShadow = 'none';
         b.style.background = '';
+        b.setAttribute('data-tooltip', `Clic para ver tus predicciones\nde la jornada MVP (${label})`);
       }
     });
   };

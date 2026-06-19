@@ -1,8 +1,8 @@
 // src/pages/Llaves.js
 import { teams } from '../data/teams.js';
 import { bracketData, groupsList } from '../data/bracket.js';
-
 import { calculateGroupStandings } from '../services/standings.js';
+import { getTopScorersAndAssists } from '../services/stats.js';
 
 function renderGroupMini(group, standings) {
   const groupTeams = standings[group] || [];
@@ -92,10 +92,36 @@ function expandLabel(label) {
   return label
     .replace(/^1° Grupo (\w)$/, 'El primero del Grupo $1')
     .replace(/^2° Grupo (\w)$/, 'El segundo del Grupo $1')
-    .replace(/^3° Grupo ([A-Z\/]+)$/, 'El mejor tercero de los Grupos $1')
-    .replace(/^G\. M(\d+)$/, 'Ganador del Partido $1')
-    .replace(/^P\. SF(\d)$/, 'Perdedor de Semifinal $1')
-    .replace(/^G\. SF(\d)$/, 'Ganador de Semifinal $1');
+    .replace(/^3° Grupo ([A-Z\\/]+)$/, 'El mejor tercero de los Grupos $1')
+    .replace(/^G\\. M(\\d+)$/, 'Ganador del Partido $1')
+    .replace(/^P\\. SF(\\d)$/, 'Perdedor de Semifinal $1')
+    .replace(/^G\\. SF(\\d)$/, 'Ganador de Semifinal $1');
+}
+
+export function attachLlavesEvents() {
+  const tabGrupos = document.getElementById('tab-grupos');
+  const tabStats = document.getElementById('tab-stats');
+  const panelGrupos = document.getElementById('panel-grupos');
+  const panelStats = document.getElementById('panel-stats');
+
+  if (tabGrupos && tabStats) {
+    if (tabGrupos.dataset.eventsAttached) return;
+    tabGrupos.dataset.eventsAttached = 'true';
+
+    tabGrupos.addEventListener('click', () => {
+      tabGrupos.classList.add('active');
+      tabStats.classList.remove('active');
+      panelGrupos.classList.add('active');
+      panelStats.classList.remove('active');
+    });
+
+    tabStats.addEventListener('click', () => {
+      tabStats.classList.add('active');
+      tabGrupos.classList.remove('active');
+      panelStats.classList.add('active');
+      panelGrupos.classList.remove('active');
+    });
+  }
 }
 
 export function Llaves() {
@@ -114,42 +140,104 @@ export function Llaves() {
     `;
   };
 
-  return `
-    <section class="llaves-page">
-      <h1 class="page-title animate-fade-in">Llaves del Mundial 2026</h1>
-      <div class="page-subtitle animate-fade-in" style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.5;">
-        Explorá el cuadro completo. Pasá el mouse sobre cada partido para ver quién se enfrenta.<br>
-        <div style="font-size: 0.85rem; color: var(--color-mixon-light); margin-top: 0.8rem; line-height: 1.4;">
-          💡 <strong>Navegación:</strong> Hacé clic en cualquier bandera o selección dentro de las tablas de posiciones de grupos para ver su fixture completo, historial y estadísticas.
-        </div>
-      </div>
-      
-      <h2 class="section-title animate-fade-in">📋 Fase de Grupos</h2>
-      <p class="section-desc animate-fade-in">Los 2 primeros de cada grupo clasifican directo. Los 8 mejores terceros también avanzan.</p>
-      <div class="groups-grid animate-fade-in">
-        ${groups}
-      </div>
+  const { topScorers, topAssists } = getTopScorersAndAssists();
 
-      <h2 class="section-title animate-fade-in" style="margin-top: 3rem;">🏆 Cuadro Eliminatorio</h2>
-      <p class="section-desc animate-fade-in">Hacé hover en cada partido para ver cómo se arman las llaves.</p>
-      
-      <div class="bracket-container animate-fade-in">
-        ${renderRound(bracketData.roundOf32, '32avos de Final', 'roundOf32')}
-        ${renderRound(bracketData.roundOf16, 'Octavos de Final', 'roundOf16')}
-        ${renderRound(bracketData.quarterFinals, 'Cuartos de Final', 'quarterFinals')}
-        ${renderRound(bracketData.semiFinals, 'Semifinales', 'semiFinals')}
+  const renderStatsList = (players, statName) => {
+    if (players.length === 0) {
+      return `<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">Los datos se actualizarán cuando comience el torneo.</p>`;
+    }
+    return players.map((p, index) => {
+      let rankClass = 'rank-default';
+      if (index === 0) rankClass = 'rank-1';
+      else if (index === 1) rankClass = 'rank-2';
+      else if (index === 2) rankClass = 'rank-3';
+
+      const statValue = statName === 'goals' ? p.goals : p.assists;
+
+      return `
+        <li class="stats-item">
+          <span class="rank ${rankClass}">${index + 1}</span>
+          <img src="${p.flagUrl}" alt="${p.teamName}" class="player-avatar" loading="lazy" onerror="this.src='https://flagcdn.com/w40/un.png'" />
+          <div class="player-info">
+            <span class="player-name">${p.name}</span>
+            <span class="player-team">${p.teamName}</span>
+          </div>
+          <span class="stat-value">${statValue}</span>
+        </li>
+      `;
+    }).join('');
+  };
+
+  return `
+    <section class="tournament-dashboard">
+      <header class="dashboard-header animate-fade-in">
+        <h1 class="page-title">Seguí el Mundial</h1>
+        <div class="page-subtitle" style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; text-align: center;">
+          Tablas, llaves y estadísticas en un solo lugar.
+        </div>
         
-        <div class="bracket-round bracket-finals">
-          <h3 class="bracket-round-label">Tercer Puesto</h3>
-          <div class="bracket-round-matches">
-            ${renderBracketSlot(bracketData.thirdPlace, 'final')}
+        <div class="glass-tabs-container">
+          <div class="glass-tabs" role="tablist">
+            <div class="tab-indicator"></div>
+            <button role="tab" aria-selected="true" class="tab-btn active" id="tab-grupos" aria-controls="panel-grupos">
+              Llaves y Grupos
+            </button>
+            <button role="tab" aria-selected="false" class="tab-btn" id="tab-stats" aria-controls="panel-stats">
+              Estadísticas
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="tab-content-area">
+        <!-- TAB 1: GRUPOS Y LLAVES -->
+        <div role="tabpanel" id="panel-grupos" class="tab-panel active" aria-labelledby="tab-grupos">
+          <h2 class="section-title animate-fade-in">📋 Fase de Grupos</h2>
+          <p class="section-desc animate-fade-in">Los 2 primeros de cada grupo clasifican directo. Los 8 mejores terceros también avanzan.</p>
+          <div class="groups-grid animate-fade-in">
+            ${groups}
+          </div>
+
+          <h2 class="section-title animate-fade-in" style="margin-top: 3rem;">🏆 Cuadro Eliminatorio</h2>
+          <p class="section-desc animate-fade-in">Hacé hover en cada partido para ver cómo se arman las llaves.</p>
+          
+          <div class="bracket-container animate-fade-in">
+            ${renderRound(bracketData.roundOf32, '32avos de Final', 'roundOf32')}
+            ${renderRound(bracketData.roundOf16, 'Octavos de Final', 'roundOf16')}
+            ${renderRound(bracketData.quarterFinals, 'Cuartos de Final', 'quarterFinals')}
+            ${renderRound(bracketData.semiFinals, 'Semifinales', 'semiFinals')}
+            
+            <div class="bracket-round bracket-finals">
+              <h3 class="bracket-round-label">Tercer Puesto</h3>
+              <div class="bracket-round-matches">
+                ${renderBracketSlot(bracketData.thirdPlace, 'final')}
+              </div>
+            </div>
+
+            <div class="bracket-round bracket-finals">
+              <h3 class="bracket-round-label">Final</h3>
+              <div class="bracket-round-matches">
+                ${renderBracketSlot(bracketData.final, 'final')}
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="bracket-round bracket-finals">
-          <h3 class="bracket-round-label">Final</h3>
-          <div class="bracket-round-matches">
-            ${renderBracketSlot(bracketData.final, 'final')}
+        <!-- TAB 2: ESTADÍSTICAS -->
+        <div role="tabpanel" id="panel-stats" class="tab-panel" aria-labelledby="tab-stats">
+          <div class="stats-grid animate-fade-in">
+            <div class="glass-card" style="padding: 1.5rem;">
+              <h3 style="color: #fff; text-align: center; margin-bottom: 1rem; font-family: var(--font-display);">Goleadores</h3>
+              <ul class="stats-list">
+                ${renderStatsList(topScorers, 'goals')}
+              </ul>
+            </div>
+            <div class="glass-card" style="padding: 1.5rem;">
+              <h3 style="color: #fff; text-align: center; margin-bottom: 1rem; font-family: var(--font-display);">Asistencias</h3>
+              <ul class="stats-list">
+                ${renderStatsList(topAssists, 'assists')}
+              </ul>
+            </div>
           </div>
         </div>
       </div>

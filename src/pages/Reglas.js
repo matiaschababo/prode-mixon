@@ -1,10 +1,20 @@
 import { MULTIPLIERS } from '../services/scoring.js';
 
 export function Reglas() {
+  const phaseTranslations = {
+    "Group Stage": "Fase de Grupos",
+    "Round of 32": "16avos de Final",
+    "Round of 16": "Octavos de Final",
+    "Quarterfinals": "Cuartos de Final",
+    "Semifinals": "Semifinales",
+    "Third Place": "Tercer Puesto",
+    "Final": "Final"
+  };
+
   const phaseCards = Object.entries(MULTIPLIERS)
     .map(([phase, multiplier]) => `
       <div class="score-phase-card">
-        <span>${phase}</span>
+        <span>${phaseTranslations[phase] || phase}</span>
         <strong>x${multiplier}</strong>
       </div>
     `).join('');
@@ -87,25 +97,37 @@ export function Reglas() {
           <p class="eyebrow">Colección</p>
           <h2>Medallas y Rachas</h2>
         </div>
-        <article style="border-top-color: #ffd700;">
-          <span class="case-label">MVP x3 🏆</span>
-          <h3>Leyenda Diaria</h3>
-          <p>Se otorga al ganar el MVP de la jornada 3 veces a lo largo del torneo.</p>
+        <article class="medal-card" style="--medal-color: 255, 215, 0;">
+          <div class="medal-icon-wrapper">🏆</div>
+          <div class="medal-content">
+            <span class="medal-label" style="color: rgb(255, 215, 0);">MVP x3</span>
+            <h3>Leyenda Diaria</h3>
+            <p>Se otorga al ganar el MVP de la jornada 3 veces a lo largo del torneo.</p>
+          </div>
         </article>
-        <article style="border-top-color: #ff4757;">
-          <span class="case-label">Racha de Fuego ☄️</span>
-          <h3>Implacable</h3>
-          <p>Mantener una racha de 5 partidos consecutivos sumando al menos 1 punto. Si no cargás un pronóstico, la racha se rompe y vuelve a 0.</p>
+        <article class="medal-card" style="--medal-color: 255, 71, 87;">
+          <div class="medal-icon-wrapper">☄️</div>
+          <div class="medal-content">
+            <span class="medal-label" style="color: rgb(255, 71, 87);">Racha de Fuego</span>
+            <h3>Implacable</h3>
+            <p>Mantener una racha de 5 partidos consecutivos sumando al menos 1 punto. Si no cargás un pronóstico, la racha se rompe y vuelve a 0.</p>
+          </div>
         </article>
-        <article style="border-top-color: #9b59b6;">
-          <span class="case-label">El Oráculo 🔮</span>
-          <h3>Visionario</h3>
-          <p>Conseguir 10 resultados EXACTOS a lo largo del torneo. Solo para los verdaderos adivinos.</p>
+        <article class="medal-card" style="--medal-color: 155, 89, 182;">
+          <div class="medal-icon-wrapper">🔮</div>
+          <div class="medal-content">
+            <span class="medal-label" style="color: rgb(155, 89, 182);">El Oráculo</span>
+            <h3>Visionario</h3>
+            <p>Conseguir 10 resultados EXACTOS a lo largo del torneo. Solo para los verdaderos adivinos.</p>
+          </div>
         </article>
-        <article style="border-top-color: #f39c12;">
-          <span class="case-label">Buzzer Beater ⏳</span>
-          <h3>Sobre la hora</h3>
-          <p>Cargar tu pronóstico menos de 5 minutos antes de que empiece el partido.</p>
+        <article class="medal-card" style="--medal-color: 243, 156, 18;">
+          <div class="medal-icon-wrapper">⏳</div>
+          <div class="medal-content">
+            <span class="medal-label" style="color: rgb(243, 156, 18);">Buzzer Beater</span>
+            <h3>Sobre la hora</h3>
+            <p>Cargar tu pronóstico menos de 5 minutos antes de que empiece el partido.</p>
+          </div>
         </article>
       </section>
 

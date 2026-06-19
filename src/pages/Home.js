@@ -37,14 +37,16 @@ export function Home() {
         if (!mvp) return '';
         return `
           <div class="mvp-banner animate-fade-in" onclick="window.router.navigate('/perfil/${mvp.id}')" style="position: relative;">
-            <button id="btn-share-mvp" class="btn btn-sm" style="position: absolute; top: 1rem; right: 1rem; background: rgba(255, 215, 0, 0.15); color: #ffd700; border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 20px; z-index: 3; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease;" onclick="event.stopPropagation();" onmouseover="this.style.background='rgba(255, 215, 0, 0.25)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255, 215, 0, 0.15)'; this.style.transform='scale(1)'">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-              <span style="font-weight: 600; font-size: 0.8rem;" class="desktop-only">Compartir</span>
-            </button>
             <div class="mvp-header">
               <div class="mvp-crown">👑</div>
               <div class="mvp-info">
-                <div class="mvp-title">MVP de la Jornada • ${mvp.matchdayDate ? new Date(mvp.matchdayDate).toLocaleDateString('es-AR', { timeZone: 'UTC', weekday: 'long', month: 'long', day: 'numeric' }) : ''}</div>
+                <div class="mvp-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                  <span>MVP de la Jornada • ${mvp.matchdayDate ? new Date(mvp.matchdayDate).toLocaleDateString('es-AR', { timeZone: 'UTC', weekday: 'long', month: 'long', day: 'numeric' }) : ''}</span>
+                  <button id="btn-share-mvp" class="btn btn-sm" style="background: rgba(255, 215, 0, 0.15); color: #ffd700; border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 20px; z-index: 3; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease; padding: 4px 10px;" onclick="event.stopPropagation();" onmouseover="this.style.background='rgba(255, 215, 0, 0.25)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255, 215, 0, 0.15)'; this.style.transform='scale(1)'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                    <span style="font-weight: 600; font-size: 0.8rem; letter-spacing: normal;">Compartir</span>
+                  </button>
+                </div>
                 <div class="mvp-name">${mvp.name}</div>
                 <div class="mvp-stats">Sumó <strong>${mvp.dailyPoints} pts</strong> en ${mvp.matchCount} partidos (${mvp.dailyExacts} resultados exactos)</div>
               </div>

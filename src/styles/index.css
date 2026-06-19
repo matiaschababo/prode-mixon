@@ -67,7 +67,7 @@
 }
 
 html {
-  overflow-x: hidden;
+  overflow-x: clip;
   touch-action: manipulation; /* Prevents double-tap zoom */
 }
 
@@ -78,7 +78,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   touch-action: manipulation;
   /* Premium animated background gradient */
   background: radial-gradient(circle at top right, rgba(123, 45, 142, 0.15), transparent 40%),

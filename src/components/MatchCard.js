@@ -1,6 +1,7 @@
 // src/components/MatchCard.js
 import { teams } from '../data/teams.js';
 import { getMatchStats } from '../services/prodeStore.js';
+import { calculatePoints } from '../services/scoring.js';
 
 const escapeHTML = (str) => String(str || '').replace(/"/g, '&quot;');
 
@@ -17,7 +18,15 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
   let statusText = 'Programado';
   if (resultOverride?.live || match.status === 'live') {
     badgeClass = 'badge-live';
-    statusText = `🔴 EN VIVO ${resultOverride?.minute ? '- ' + resultOverride.minute + "'" : ''}`;
+    let minText = '';
+    if (resultOverride?.minute) {
+      if (resultOverride.minute === 'HT' || String(resultOverride.minute).toLowerCase() === 'entretiempo') {
+        minText = ' - Entretiempo';
+      } else {
+        minText = ` - ${resultOverride.minute}'`;
+      }
+    }
+    statusText = `🔴 EN VIVO${minText}`;
   } else if (match.status === 'finished' || (isPast && !resultOverride?.live && (resultOverride?.home !== undefined || match.homeScore !== null))) {
     badgeClass = 'badge-finished';
     statusText = 'Finalizado';
@@ -76,11 +85,20 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
     } else {
       // Match already started — show prediction as read-only
       if (hasPrediction) {
+        let pointsHTML = '';
+        if (hasResult) {
+          const pts = calculatePoints(userPred.home, userPred.away, homeScore, awayScore, match.stage);
+          const ptsClass = pts >= 3 ? 'points-exact' : pts === 2 ? 'points-diff' : pts === 1 ? 'points-winner' : 'points-miss';
+          const ptsSign = pts > 0 ? '+' : '';
+          pointsHTML = `<span class="pred-points ${ptsClass}" style="margin-left: 10px; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; background: rgba(255,255,255,0.1);">${ptsSign}${pts} pts</span>`;
+        }
+        
         predictionArea = `
           <div class="pred-area pred-area-locked">
-            <div class="pred-saved">
+            <div class="pred-saved" style="display: flex; align-items: center;">
               <span class="pred-label">Tu pronóstico</span>
               <span class="pred-value">${userPred.home} - ${userPred.away}</span>
+              ${pointsHTML}
             </div>
             <span class="pred-lock">🔒</span>
           </div>
@@ -139,7 +157,14 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
   // Formatting prediction timestamp
   let timestampHTML = '';
   if (userPred && userPred.timestamp) {
-    const d = userPred.timestamp.toDate ? userPred.timestamp.toDate() : new Date(userPred.timestamp);
+    let d;
+    if (typeof userPred.timestamp.toDate === 'function') {
+      d = userPred.timestamp.toDate();
+    } else if (userPred.timestamp.seconds) {
+      d = new Date(userPred.timestamp.seconds * 1000);
+    } else {
+      d = new Date(userPred.timestamp);
+    }
     if (!isNaN(d)) {
       const formattedDate = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' });
       const formattedTime = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -156,7 +181,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
   }
 
   return `
-    <div class="glass-card match-card animate-slide-up" data-stage="${match.stage}" data-home="${match.homeTeam}" data-away="${match.awayTeam}">
+    <div id="match-${match.id}" class="glass-card match-card animate-slide-up" data-stage="${match.stage}" data-home="${match.homeTeam}" data-away="${match.awayTeam}">
       <div class="match-header">
         <span class="match-round">${match.round}</span>
         <span class="badge ${badgeClass}">${statusText}</span>
@@ -183,10 +208,11 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
 
       ${(() => {
         const events = resultOverride?.events || [];
-        if (events.length === 0) return '';
+        const displayEvents = events.filter(e => e.type === 'goal' || e.type === 'red');
+        if (displayEvents.length === 0) return '';
         
-        const homeEvents = events.filter(e => e.team.toLowerCase() === match.homeTeam.toLowerCase());
-        const awayEvents = events.filter(e => e.team.toLowerCase() === match.awayTeam.toLowerCase());
+        const homeEvents = displayEvents.filter(e => e.team.toLowerCase() === match.homeTeam.toLowerCase());
+        const awayEvents = displayEvents.filter(e => e.team.toLowerCase() === match.awayTeam.toLowerCase());
         
         const renderEvs = (evs) => evs.map(e => `
           <div class="event-item">

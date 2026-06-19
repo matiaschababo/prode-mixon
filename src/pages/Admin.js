@@ -45,6 +45,7 @@ export function Admin() {
         <div>
           <strong style="display:block;">${u.name}</strong>
           <small style="color:var(--text-secondary);">${u.email}</small>
+          <div style="font-size: 0.7rem; color: #ff9800;">UID: ${u.id}</div>
         </div>
       </div>
       <div style="display: flex; gap: 0.5rem; align-items: center;">

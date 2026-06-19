@@ -53,8 +53,8 @@ export function Predicciones(matchId) {
 
         const likes = p.prediction.likes || [];
         const shares = p.prediction.shares || 0;
-        const currentUserId = window.auth?.currentUser?.uid;
-        const hasLiked = likes.some(l => l.uid === currentUserId);
+        const currentUserId = window.auth?.currentUser ? (window.resolveUid ? window.resolveUid(window.auth.currentUser.uid) : window.auth.currentUser.uid) : null;
+        const hasLiked = likes.some(l => (window.resolveUid ? window.resolveUid(l.uid) : l.uid) === currentUserId);
         const heartColor = hasLiked ? '#ff4757' : 'currentColor';
         const heartFill = hasLiked ? '#ff4757' : 'none';
 
@@ -73,7 +73,14 @@ export function Predicciones(matchId) {
                 ${p.points !== null ? `<small style="${scoreStyle}">${result && result.live ? '<span style="opacity:0.8; font-size:0.75rem;">Con este resultado: </span>' : ''}${icon} ${p.points} pts</small>` : ''}
                 ${(() => {
                   if (p.prediction && p.prediction.timestamp) {
-                    const d = p.prediction.timestamp.toDate ? p.prediction.timestamp.toDate() : new Date(p.prediction.timestamp);
+                    let d;
+                    if (typeof p.prediction.timestamp.toDate === 'function') {
+                      d = p.prediction.timestamp.toDate();
+                    } else if (p.prediction.timestamp.seconds) {
+                      d = new Date(p.prediction.timestamp.seconds * 1000);
+                    } else {
+                      d = new Date(p.prediction.timestamp);
+                    }
                     if (!isNaN(d)) return `<div style="font-size:0.6rem; color:var(--text-muted); margin-top:4px;">${d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'})} ${d.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'})}</div>`;
                   }
                   return '';

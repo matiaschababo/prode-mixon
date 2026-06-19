@@ -1038,7 +1038,6 @@
   padding: 1rem;
   border: 1px solid transparent;
   position: relative;
-  overflow: hidden;
 }
 
 .top-1 {
@@ -2362,7 +2361,10 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
 /* GLOBAL TICKER */
 .global-ticker-container {
   width: 100%;
-  overflow: hidden;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  touch-action: pan-x;
   background: linear-gradient(90deg, rgba(15, 15, 20, 1) 0%, rgba(30, 30, 45, 0.95) 50%, rgba(15, 15, 20, 1) 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.5rem 0;
@@ -2370,6 +2372,15 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   position: relative;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   display: flex;
+  cursor: grab;
+}
+
+.global-ticker-container::-webkit-scrollbar {
+  display: none;
+}
+
+.global-ticker-container.ticker-active {
+  cursor: grabbing;
 }
 
 /* Glowing edge overlays */
@@ -2395,11 +2406,18 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
 .global-ticker-track {
   display: flex;
   width: max-content;
-  animation: marquee-seamless 35s linear infinite;
+  flex-shrink: 0;
+  animation: ticker-scroll 45s linear infinite;
 }
 
-.global-ticker-track:hover {
+.global-ticker-container:hover .global-ticker-track,
+.global-ticker-container:active .global-ticker-track {
   animation-play-state: paused;
+}
+
+@keyframes ticker-scroll {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
 .global-ticker-content {
@@ -2407,6 +2425,7 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   align-items: center;
   gap: 3rem; /* Space between items */
   padding-right: 3rem; /* Same as gap to keep distance seamless */
+  flex-shrink: 0;
 }
 
 .ticker-item {
@@ -2419,6 +2438,8 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .ticker-item:hover {
@@ -2429,17 +2450,37 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
 }
 
 .ticker-item-pending {
-  border-left: 3px solid rgba(243, 156, 18, 0.6);
+  border-color: rgba(243, 156, 18, 0.3);
+  box-shadow: inset 0 0 10px rgba(243, 156, 18, 0.05);
+}
+
+.ticker-item-pending:hover {
+  border-color: rgba(243, 156, 18, 0.6);
+  box-shadow: inset 0 0 20px rgba(243, 156, 18, 0.1);
 }
 
 .ticker-item-finished {
-  border-left: 3px solid rgba(155, 89, 182, 0.6);
-  opacity: 0.85;
+  border-color: rgba(155, 89, 182, 0.3);
+  background: rgba(0, 0, 0, 0.15);
+  opacity: 0.8;
+}
+
+.ticker-item-finished:hover {
+  border-color: rgba(155, 89, 182, 0.5);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .ticker-item-live {
-  border-left: 3px solid #ff4d6d;
+  border-color: rgba(255, 77, 109, 0.6);
   background: rgba(255, 77, 109, 0.1);
+  box-shadow: inset 0 0 15px rgba(255, 77, 109, 0.15), 0 0 10px rgba(255, 77, 109, 0.2);
+  animation: live-pulse 2s infinite;
+}
+
+@keyframes live-pulse {
+  0% { box-shadow: inset 0 0 15px rgba(255, 77, 109, 0.15), 0 0 10px rgba(255, 77, 109, 0.2); }
+  50% { box-shadow: inset 0 0 15px rgba(255, 77, 109, 0.3), 0 0 20px rgba(255, 77, 109, 0.4); }
+  100% { box-shadow: inset 0 0 15px rgba(255, 77, 109, 0.15), 0 0 10px rgba(255, 77, 109, 0.2); }
 }
 
 .ticker-team {
@@ -2574,4 +2615,232 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
+}
+
+/* Medal Cards */
+.medal-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background: rgba(15, 15, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.medal-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(var(--medal-color), 0.15), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.medal-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(var(--medal-color), 0.3);
+  box-shadow: 0 10px 30px rgba(var(--medal-color), 0.15);
+}
+
+.medal-icon-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(var(--medal-color), 0.1);
+  border: 1px solid rgba(var(--medal-color), 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 1.2rem;
+  box-shadow: inset 0 0 10px rgba(var(--medal-color), 0.2), 0 0 15px rgba(var(--medal-color), 0.1);
+}
+
+.medal-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.medal-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.medal-card h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: white;
+  margin: 0;
+}
+
+.medal-card p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  margin-top: 0.5rem;
+}
+
+/* MVP Popover */
+.mvp-badge-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.mvp-popover {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  min-width: 180px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 100;
+}
+
+.mvp-popover::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(255, 215, 0, 0.3) transparent transparent transparent;
+}
+
+.mvp-badge-container:hover .mvp-popover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.mvp-popover h4 {
+  margin: 0 0 0.5rem 0;
+  color: #ffd700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+  padding-bottom: 0.3rem;
+  text-align: center;
+}
+
+.mvp-popover ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mvp-popover li {
+  font-size: 0.85rem;
+  color: #fff;
+  padding: 0.4rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.mvp-popover li::before {
+  content: '📅';
+  font-size: 0.8rem;
+}
+
+/* Streak Popover */
+.streak-badge-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.streak-badge-icon {
+  font-size: 0.8rem;
+  background: rgba(255, 87, 34, 0.15);
+  color: #ff5722;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 87, 34, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.streak-popover {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 87, 34, 0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 87, 34, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  min-width: 180px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 100;
+  text-align: center;
+  pointer-events: none;
+}
+
+.streak-popover::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(255, 87, 34, 0.3) transparent transparent transparent;
+}
+
+.streak-badge-container:hover .streak-popover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.streak-popover h4 {
+  margin: 0 0 0.5rem 0;
+  color: #ff5722;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255, 87, 34, 0.2);
+  padding-bottom: 0.3rem;
+}
+
+.streak-popover p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #fff;
+  line-height: 1.4;
 }

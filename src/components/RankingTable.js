@@ -32,8 +32,26 @@ export function RankingTable(participantsData) {
         <div class="ranking-info">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <a href="/perfil/${p.id}" class="ranking-name" data-link>${p.name}</a>
-            ${p.currentStreak >= 3 ? `<span title="¡Racha de ${p.currentStreak} partidos sumando puntos!" style="font-size: 0.8rem;">🔥</span>` : ''}
-            ${p.mvpCount > 0 ? `<span class="mvp-badge-icon" title="MVP en las jornadas:\n${p.mvpDates ? p.mvpDates.map(d => new Date(d).toLocaleDateString('es-AR', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })).join('\n') : ''}">👑 MVP x${p.mvpCount}</span>` : ''}
+            ${p.currentStreak >= 3 ? `
+              <div class="streak-badge-container">
+                <span class="streak-badge-icon">🔥 Racha x${p.currentStreak}</span>
+                <div class="streak-popover">
+                  <h4>Racha Activa</h4>
+                  <p>Sumando puntos hace ${p.currentStreak} partidos consecutivos</p>
+                </div>
+              </div>
+            ` : ''}
+            ${p.mvpCount > 0 ? `
+              <div class="mvp-badge-container">
+                <span class="mvp-badge-icon">👑 MVP x${p.mvpCount}</span>
+                <div class="mvp-popover">
+                  <h4>Jornadas MVP</h4>
+                  <ul>
+                    ${p.mvpDates ? p.mvpDates.map(d => `<li>${new Date(d).toLocaleDateString('es-AR', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })}</li>`).join('') : ''}
+                  </ul>
+                </div>
+              </div>
+            ` : ''}
           </div>
           <div class="ranking-program" style="color: ${prog.theme.accent}; display: flex; align-items: center; gap: 0.5rem;">
             ${prog.logo ? `<img src="${prog.logo}" alt="${escapeHTML(prog.name)}" class="program-mini-logo" style="height: 18px; width: auto; object-fit: contain;">` : ''}

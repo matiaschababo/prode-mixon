@@ -22,14 +22,17 @@ export function Fixture() {
   });
 
   const matchCards = Object.entries(grouped).map(([day, dayMatches]) => {
+    const firstMatch = new Date(dayMatches[0].date);
+    const dayStart = new Date(firstMatch.getFullYear(), firstMatch.getMonth(), firstMatch.getDate()).getTime();
+
     const cards = dayMatches.map(match => {
       const result = getMatchResult(match);
-      const userPred = user ? (allPredictions[match.id]?.[user.uid] || {}) : null;
+      const userPred = user ? (allPredictions[match.id]?.[window.resolveUid ? window.resolveUid(user.uid) : user.uid] || {}) : null;
       return MatchCard(match, result, userPred);
     }).join('');
     
     return `
-      <div class="fixture-day">
+      <div class="fixture-day" data-timestamp="${dayStart}">
         <div class="fixture-day-header">
           <span class="fixture-day-icon">📅</span>
           <h3 class="fixture-day-title">${day.charAt(0).toUpperCase() + day.slice(1)}</h3>
@@ -75,6 +78,24 @@ export function Fixture() {
         ${matchCards}
       </div>
       <p id="fixture-empty" class="empty-state" style="display:none;">No se encontraron partidos para este filtro.</p>
+      
+      <!-- FAB Ir a Hoy -->
+      <button id="fab-hoy" class="btn btn-primary" style="
+        position: fixed; 
+        bottom: 20px; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        z-index: 999; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        border-radius: 99px;
+        background: linear-gradient(135deg, #2ed573, #00b09b);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        font-size: 0.9rem;
+      ">
+        👇 Ir a Hoy
+      </button>
     </section>
   `;
 }
@@ -91,6 +112,39 @@ export function attachFixtureEvents() {
       } catch (error) {
         console.error("Login falló", error);
         alert("Ocurrió un error al iniciar sesión.");
+      }
+    });
+  }
+
+  const fabHoy = document.getElementById('fab-hoy');
+  if (fabHoy && !fabHoy.dataset.eventsAttached) {
+    fabHoy.dataset.eventsAttached = 'true';
+    fabHoy.addEventListener('click', () => {
+      const btnAll = document.querySelector('.fixture-filter[data-filter="all"]');
+      if (btnAll && !btnAll.classList.contains('btn-primary')) {
+         btnAll.click();
+      }
+
+      const today = new Date();
+      // Match the time zone logic used in the render loop by converting to local midnight
+      const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+
+      const days = document.querySelectorAll('.fixture-day');
+      let targetEl = null;
+
+      for (const day of days) {
+        const dayTs = parseInt(day.dataset.timestamp, 10);
+        if (dayTs >= startOfToday) {
+          targetEl = day;
+          break;
+        }
+      }
+
+      if (targetEl) {
+        const y = targetEl.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
       }
     });
   }
