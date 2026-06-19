@@ -102,7 +102,21 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
               </div>
             ` : ''}
             <div style="position: relative; display: flex; flex-direction: column;">
-              ${msg.type === 'gif' 
+              ${msg.type === 'mvp_share' && msg.mvpData ? `
+                <div class="chat-mvp-card" style="background: linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(255,215,0,0.05) 100%); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 12px; margin-bottom: 4px; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(255,215,0,0.1);" onclick="window.closeChat(); window.router.navigate('/perfil/${msg.mvpData.uid}');" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span style="font-size: 1.2rem; filter: drop-shadow(0 2px 4px rgba(255,215,0,0.4));">👑</span>
+                    <span style="color: #ffd700; font-weight: 800; font-size: 0.75rem; letter-spacing: 0.5px; text-transform: uppercase;">MVP de la Jornada</span>
+                  </div>
+                  <div style="display: flex; gap: 12px; align-items: center;">
+                    <img src="${msg.mvpData.photo}" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #ffd700; object-fit: cover;" alt="MVP">
+                    <div style="flex: 1;">
+                      <div style="font-weight: bold; color: white; font-size: 0.95rem; margin-bottom: 2px; line-height: 1.2;">${escapeHTML(msg.mvpData.name)}</div>
+                      <div style="color: rgba(255,255,255,0.7); font-size: 0.75rem;">Sumó <span style="color: #ffd700; font-weight: bold;">${msg.mvpData.points} pts</span> en ${msg.mvpData.matchCount} partidos</div>
+                    </div>
+                  </div>
+                </div>
+              ` : msg.type === 'gif' 
                 ? `<img src="${msg.gifUrl}" class="chat-gif-img" alt="GIF">` 
                 : `<div class="chat-text">${parseMessage(msg.text, user)}</div>`
               }

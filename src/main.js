@@ -3,7 +3,7 @@ import './styles/index.css';
 import './styles/components.css';
 import './styles/layout.css';
 import './styles/animations.css';
-
+import './styles/llaves.css';
 import { ChatWidget } from './components/ChatWidget.js';
 import { Navbar } from './components/Navbar.js';
 import { Ticker } from './components/Ticker.js';
@@ -14,12 +14,25 @@ import { Predicciones } from './pages/Predicciones.js';
 import { Admin, attachAdminEvents } from './pages/Admin.js';
 import { Reglas } from './pages/Reglas.js';
 import { Perfil, attachPerfilEvents } from './pages/Perfil.js';
-import { Llaves } from './pages/Llaves.js';
+import { Llaves, attachLlavesEvents } from './pages/Llaves.js';
 import { TeamProfile } from './pages/TeamProfile.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady, getChatMessages, sendChatMessage, deleteChatMessage, banUser, toggleLikeChatMessage, listenToNotifications, markNotificationsAsRead, togglePredictionLike, incrementPredictionShares } from './services/prodeStore.js';
-import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady, getChatMessages, sendChatMessage, deleteChatMessage, banUser, toggleLikeChatMessage, listenToNotifications, markNotificationsAsRead, togglePredictionLike, incrementPredictionShares, resolveUid } from './services/prodeStore.js';
+import { auth, googleProvider, analytics, logEvent, setUserId, setUserProperties, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
+
+if (analytics) {
+  window.onerror = function(message, source, lineno, colno, error) {
+    try {
+      logEvent(analytics, 'app_error', {
+        error_type: 'JavaScript Error',
+        error_message: message,
+        source: source,
+        lineno: lineno
+      });
+    } catch(e) {}
+  };
+}
 
 const app = document.getElementById('app');
 let isInitialized = false;
@@ -165,6 +178,21 @@ function router() {
 
   const isMasterAdmin = auth.currentUser ? MASTER_ADMINS.includes(auth.currentUser.email) : false;
 
+  if (analytics) {
+    try {
+      logEvent(analytics, 'page_view', { page_path: path });
+      
+      if (path === '/') {
+        logEvent(analytics, 'view_leaderboard', { program: 'all' });
+      }
+      
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.has('hl')) {
+        logEvent(analytics, 'view_match_details', { match_id: searchParams.get('hl') });
+      }
+    } catch(e) { console.error('GA error:', e); }
+  }
+
   const newHtml = `
     ${Navbar()}
     ${Ticker()}
@@ -225,21 +253,88 @@ function router() {
   }
   updateNavbarAuthUI();
   setupNavbar(path);
+  setupTicker();
   if (dataReady) {
     setupChat();
     const urlParams = new URLSearchParams(window.location.search);
     const hl = urlParams.get('hl');
+    const hash = window.location.hash;
+    
+    let targetElId = null;
     if (hl) {
+      targetElId = 'match-' + hl;
+    } else if (hash && hash.startsWith('#match-')) {
+      targetElId = hash.substring(1);
+    }
+
+    if (targetElId) {
       setTimeout(() => {
-        const el = document.getElementById('match-' + hl);
+        const el = document.getElementById(targetElId);
         if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          el.classList.add('highlight-animation');
-          window.history.replaceState(null, null, window.location.pathname); // remove hl param so it doesn't run again on refresh if not wanted, or leave it. Actually replaceState is good.
+          const doScroll = () => {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.remove('highlight-animation');
+            void el.offsetWidth; // trigger reflow
+            el.classList.add('highlight-animation');
+            window.history.replaceState(null, null, window.location.pathname);
+          };
+
+          if (el.style.display === 'none' || el.closest('.fixture-day')?.style.display === 'none') {
+            const allFilterBtn = document.querySelector('.fixture-filter[data-filter="all"]');
+            if (allFilterBtn) {
+              allFilterBtn.click();
+              setTimeout(doScroll, 100);
+            } else {
+              doScroll();
+            }
+          } else {
+            doScroll();
+          }
         }
       }, 300);
     }
   }
+}
+
+let tickerAnimationFrame;
+function setupTicker() {
+  const container = document.querySelector('.global-ticker-container');
+  if (!container || container.dataset.init) return;
+  container.dataset.init = 'true';
+  
+  const content1 = container.querySelector('.global-ticker-content');
+  let isUserScrolling = false;
+  let scrollTimeout;
+  let isHovered = false;
+
+  // Listen to native scroll to detect momentum
+  container.addEventListener('scroll', () => {
+    isUserScrolling = true;
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      isUserScrolling = false;
+    }, 1500);
+  }, { passive: true });
+
+  container.addEventListener('mouseenter', () => isHovered = true);
+  container.addEventListener('mouseleave', () => isHovered = false);
+  container.addEventListener('touchstart', () => isHovered = true, { passive: true });
+  container.addEventListener('touchend', () => {
+    setTimeout(() => isHovered = false, 1500); 
+  }, { passive: true });
+
+  function autoScroll() {
+    if (!isUserScrolling && !isHovered && content1) {
+       container.scrollLeft += 1;
+       if (container.scrollLeft >= content1.offsetWidth) {
+          container.scrollLeft -= content1.offsetWidth;
+       }
+    }
+    tickerAnimationFrame = requestAnimationFrame(autoScroll);
+  }
+  
+  if (tickerAnimationFrame) cancelAnimationFrame(tickerAnimationFrame);
+  autoScroll();
 }
 
 function setupChat() {
@@ -752,6 +847,8 @@ function attachPageEvents(path) {
     attachFixtureEvents();
   } else if (path.startsWith('/perfil/')) {
     attachPerfilEvents();
+  } else if (path === '/llaves') {
+    attachLlavesEvents();
   }
 }
 
@@ -805,10 +902,11 @@ function updateNavbarAuthUI() {
   if (user) {
     if (myPredsLink) myPredsLink.style.display = 'none'; // We don't need the link anymore
     
+    const resolvedUid = resolveUid(user.uid);
     // Check if there is a dynamic user to use custom photo
     const dynamicUsers = getDynamicUsers();
-    const currentUserDynamic = dynamicUsers.find(u => u.id === user.uid);
-    const customPhoto = currentUserDynamic?.photo || user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid;
+    const currentUserDynamic = dynamicUsers.find(u => u.id === resolvedUid);
+    const customPhoto = currentUserDynamic?.photo || user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + resolvedUid;
 
     const currentRole = currentUserDynamic?.role || 'Viewer';
     const currentProgram = currentUserDynamic?.program || '';
@@ -849,7 +947,7 @@ function updateNavbarAuthUI() {
           <span class="user-name">${currentUserDynamic?.name || user.displayName}</span>
           ${badgeHtml}
         </div>
-        <a href="/perfil/${user.uid}" data-link style="display: flex; align-items: center; text-decoration: none;">
+        <a href="/perfil/${resolvedUid}" data-link style="display: flex; align-items: center; text-decoration: none;">
           <img src="${customPhoto}" alt="Avatar" class="avatar-small" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.1); transition: border-color 0.3s ease;">
         </a>
         <div class="user-actions" style="display: flex; gap: 0.5rem; margin-left: 0.8rem; align-items: center;">
@@ -870,7 +968,7 @@ function updateNavbarAuthUI() {
       if (drop.classList.contains('hidden')) {
         drop.classList.remove('hidden');
         if (unreadCount > 0) {
-          markNotificationsAsRead(user.uid);
+          markNotificationsAsRead(resolvedUid);
         }
       } else {
         drop.classList.add('hidden');
@@ -886,6 +984,9 @@ function updateNavbarAuthUI() {
     });
 
     document.getElementById('btn-logout')?.addEventListener('click', () => {
+      if (analytics) {
+        try { logEvent(analytics, 'logout'); } catch(e) {}
+      }
       signOut(auth).then(() => router());
     });
   } else {
@@ -930,7 +1031,7 @@ onAuthStateChanged(auth, (user) => {
     startLiveMatchEngine();
     
     if (notifUnsubscribe) notifUnsubscribe();
-    notifUnsubscribe = listenToNotifications(user.uid, (notifs) => {
+    notifUnsubscribe = listenToNotifications(resolveUid(user.uid), (notifs) => {
       window.userNotifications = notifs;
       router();
     });
@@ -941,6 +1042,21 @@ onAuthStateChanged(auth, (user) => {
 
   if (!isInitialized) {
     initializeFirebaseSync(() => {
+      if (analytics && auth.currentUser) {
+        try {
+          const uid = resolveUid(auth.currentUser.uid);
+          setUserId(analytics, uid);
+          const allRankings = getRankedParticipants();
+          const userStats = allRankings.find(u => u.id === uid);
+          if (userStats) {
+            setUserProperties(analytics, {
+              total_points: userStats.totalPoints,
+              predictions_count: userStats.played,
+              mvp_count: userStats.mvpCount
+            });
+          }
+        } catch(e) {}
+      }
       router();
     });
     isInitialized = true;

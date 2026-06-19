@@ -1,8 +1,16 @@
 import { matches } from '../data/matches.js';
 import { isParticipantInProgram } from '../data/participants.js';
 import { calculatePoints } from './scoring.js';
-import { db, doc, getDoc, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, collection, query, where, addDoc, serverTimestamp, orderBy, limit, increment, deleteField } from './firebase.js';
+import { db, doc, getDoc, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, collection, query, where, addDoc, serverTimestamp, orderBy, limit, increment, deleteField, analytics, logEvent, setUserId, setUserProperties } from './firebase.js';
 import { getAuth } from 'firebase/auth';
+
+export function resolveUid(uid) {
+  if (uid === 'gIXWnRDpFLgy5NzmSzUJHlqcxTv2') {
+    return 'XmaOWGha0UM8eFBX9ACTMtTGyQ23';
+  }
+  return uid;
+}
+window.resolveUid = resolveUid;
 
 let prodeState = {
   predictions: {},
@@ -37,7 +45,7 @@ export function initializeFirebaseSync(onUpdateCallback) {
   onSnapshot(collection(db, "predictions"), (snapshot) => {
     const newPredictions = {};
     snapshot.forEach(docSnap => {
-      const userId = docSnap.id;
+      const userId = resolveUid(docSnap.id);
       const userPreds = docSnap.data();
       
       Object.entries(userPreds).forEach(([matchId, pred]) => {
@@ -57,7 +65,10 @@ export function initializeFirebaseSync(onUpdateCallback) {
   onSnapshot(collection(db, "users"), (snapshot) => {
     const newUsers = {};
     snapshot.forEach(docSnap => {
-      newUsers[docSnap.id] = docSnap.data();
+      const u = docSnap.data();
+      if (resolveUid(docSnap.id) === docSnap.id) {
+        newUsers[docSnap.id] = u;
+      }
     });
     prodeState.users = newUsers;
     cachedRankings = null;
@@ -83,27 +94,44 @@ export function getChatMessages() {
   return prodeState.chatMessages;
 }
 
-export async function sendChatMessage(text, type = 'text', gifUrl = '', replyTo = null) {
+export async function sendChatMessage(text, type = 'text', gifUrl = null, replyTo = null, mvpData = null) {
   const auth = getAuth();
   const user = auth.currentUser;
   if (!user) throw new Error("Debes iniciar sesión para chatear");
 
-  let photo = user.photoURL;
-  if (!photo) {
-    const localUser = prodeState.users[user.uid];
-    photo = localUser?.photo || getCustomLocalPhoto(user.displayName) || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid;
-  }
+  const resolvedUid = resolveUid(user.uid);
+  const localUser = prodeState.users[resolvedUid];
+  let photo = localUser?.photo || user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + resolvedUid;
 
-  await addDoc(collection(db, "chat_messages"), {
-    uid: user.uid,
-    name: capitalizeName(user.displayName),
+  const msgPayload = {
+    uid: resolvedUid,
+    name: localUser?.name || capitalizeName(user.displayName),
     photo: photo,
     text: text ? text.trim() : '',
     type: type,
     gifUrl: gifUrl,
     replyTo: replyTo,
     timestamp: serverTimestamp()
-  });
+  };
+
+  if (mvpData) {
+    msgPayload.mvpData = mvpData;
+  }
+
+  await addDoc(collection(db, "chat_messages"), msgPayload);
+
+  if (analytics) {
+    try { 
+      const cleanText = text ? text.trim() : '';
+      const hasMention = cleanText.includes('@');
+      logEvent(analytics, 'send_chat_message', { 
+        message_type: type, 
+        has_reply: !!replyTo,
+        has_mention: hasMention,
+        character_length: cleanText.length
+      }); 
+    } catch(e) {}
+  }
 }
 
 export async function deleteChatMessage(msgId) {
@@ -117,7 +145,7 @@ export async function deleteChatMessage(msgId) {
   if (!msgDoc.exists()) return;
   const msgData = msgDoc.data();
 
-  const isAuthor = msgData.uid === user.uid;
+  const isAuthor = resolveUid(msgData.uid) === resolveUid(user.uid);
   const isMod = MASTER_ADMINS.includes(user.email);
 
   if (!isAuthor && !isMod) throw new Error("No tienes permisos para borrar este mensaje");
@@ -136,21 +164,24 @@ export async function toggleLikeChatMessage(msgId) {
   
   const data = msgDoc.data();
   const likes = data.likes || [];
-  const uid = user.uid;
+  const uid = resolveUid(user.uid);
   const userName = capitalizeName(user.displayName);
 
-  const existingLike = likes.find(l => l.uid === uid);
+  const existingLike = likes.find(l => resolveUid(l.uid) === uid);
 
   if (existingLike) {
     await updateDoc(msgRef, {
       likes: arrayRemove(existingLike)
     });
   } else {
-    const localUser = prodeState.users[user.uid];
-    const photoUrl = localUser?.photo || getCustomLocalPhoto(user.displayName) || user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid;
+    const localUser = prodeState.users[uid];
+    const photoUrl = localUser?.photo || user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + uid;
     await updateDoc(msgRef, {
       likes: arrayUnion({ uid, name: userName, photo: photoUrl })
     });
+    if (analytics) {
+      try { logEvent(analytics, 'like_chat_message', { msgId: msgId, content_author_id: data.uid }); } catch(e) {}
+    }
   }
 }
 
@@ -182,7 +213,7 @@ export async function saveMyPrediction(matchId, home, away) {
     throw new Error("El partido ya comenzó, no se pueden modificar las predicciones.");
   }
 
-  const userDocRef = doc(db, 'predictions', user.uid);
+  const userDocRef = doc(db, 'predictions', resolveUid(user.uid));
   
   if (home === '' || away === '') {
     await updateDoc(userDocRef, {
@@ -194,6 +225,21 @@ export async function saveMyPrediction(matchId, home, away) {
     await setDoc(userDocRef, {
       [matchId]: { home: Number(home), away: Number(away), timestamp: serverTimestamp() }
     }, { merge: true });
+    
+    if (analytics) {
+      try { 
+        const predicted_outcome = Number(home) > Number(away) ? 'Home Win' : Number(home) < Number(away) ? 'Away Win' : 'Draw';
+        const hours_before_match = (new Date(match.date).getTime() - new Date().getTime()) / (1000 * 60 * 60);
+        logEvent(analytics, 'save_prediction', { 
+          match_id: matchId, 
+          home: home, 
+          away: away,
+          match_stage: match.stage,
+          predicted_outcome: predicted_outcome,
+          hours_before_match: Math.round(hours_before_match * 10) / 10
+        }); 
+      } catch(e) {}
+    }
   }
 }
 
@@ -202,7 +248,7 @@ export async function adminSavePrediction(userId, matchId, home, away) {
   const user = auth.currentUser;
   if (!user || !isMasterAdmin(user.email)) throw new Error("Acceso denegado.");
 
-  const userDocRef = doc(db, 'predictions', userId);
+  const userDocRef = doc(db, 'predictions', resolveUid(userId));
   
   if (home === '' || away === '') {
     await updateDoc(userDocRef, {
@@ -261,14 +307,16 @@ export function getCustomLocalPhoto(name) {
 }
 
 export function getDynamicUsers() {
-  return Object.values(prodeState.users).map(u => ({
-    id: u.uid,
-    name: capitalizeName(u.displayName),
-    email: u.email || '',
-    photo: u.photo || getCustomLocalPhoto(u.displayName) || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
-    program: u.program || 'viewers',
-    role: u.role || 'Viewer'
-  }));
+  return Object.values(prodeState.users)
+    .filter(u => resolveUid(u.uid) === u.uid)
+    .map(u => ({
+      id: u.uid,
+      name: capitalizeName(u.displayName),
+      email: u.email || '',
+      photo: u.photo || getCustomLocalPhoto(u.displayName) || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
+      program: u.program || 'viewers',
+      role: u.role || 'Viewer'
+    }));
 }
 
 export async function updateUserRole(uid, program, role) {
@@ -294,6 +342,7 @@ export function getMatchStats(matchId) {
 }
 
 export function getParticipantStats(participantId) {
+  participantId = resolveUid(participantId);
   const predictions = getPredictions();
   const stats = { totalPoints: 0, played: 0, hits: 0, exacts: 0, currentStreak: 0, exactStreak: 0, maxStreak: 0, timeInAdvance: 0, badges: [] };
   let totalLikes = 0;
@@ -373,8 +422,13 @@ export function getParticipantStats(participantId) {
 }
 
 export function getRankedParticipants(programId = null) {
-  if (!cachedRankings) {
-    const dynamicUsers = Object.values(prodeState.users).map(u => ({
+  if (cachedRankings && cachedRankings[programId || 'all']) {
+    return cachedRankings[programId || 'all'];
+  }
+
+  const dynamicUsers = Object.values(prodeState.users)
+    .filter(u => resolveUid(u.uid) === u.uid)
+    .map(u => ({
       id: u.uid,
       name: capitalizeName(u.displayName),
       photo: u.photo || getCustomLocalPhoto(u.displayName) || u.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u.uid,
@@ -382,13 +436,12 @@ export function getRankedParticipants(programId = null) {
       role: u.role || 'Viewer'
     }));
 
-    cachedRankings = dynamicUsers
+  cachedRankings = dynamicUsers
       .map(participant => ({
         ...participant,
         ...getParticipantStats(participant.id)
       }))
       .sort((a, b) => b.totalPoints - a.totalPoints || b.exacts - a.exacts || b.timeInAdvance - a.timeInAdvance || a.name.localeCompare(b.name));
-  }
 
   return cachedRankings.filter(participant => !programId || isParticipantInProgram(participant, programId));
 }
@@ -468,6 +521,10 @@ export function getDailyMVP() {
         } else if (exacts === maxExacts) {
           if (latestTimestamp < minTimestamp) {
             minTimestamp = latestTimestamp; bestUser = user; bestMatchesInfo = userMatchesInfo;
+          } else if (latestTimestamp === minTimestamp) {
+            if (bestUser && user.name.localeCompare(bestUser.name) < 0) {
+              bestUser = user; bestMatchesInfo = userMatchesInfo;
+            }
           }
         }
       }
@@ -539,7 +596,10 @@ export function getHistoricalMVPCounts() {
             if (latestTimestamp < minTimestamp) {
               minTimestamp = latestTimestamp; bestUsers = [user];
             } else if (latestTimestamp === minTimestamp) {
-              bestUsers.push(user);
+              // Tie breaker for equal timestamps (e.g. Infinity)
+              if (user.name.localeCompare(bestUsers[0].name) < 0) {
+                bestUsers = [user];
+              }
             }
           }
         }
@@ -560,6 +620,9 @@ export function getHistoricalMVPCounts() {
 
 
 export async function ensureUserExists(user) {
+  const resolvedUid = resolveUid(user.uid);
+  if (resolvedUid !== user.uid) return;
+
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
   if (!snap.exists()) {
@@ -571,6 +634,13 @@ export async function ensureUserExists(user) {
       program: 'viewers',
       role: 'Viewer'
     });
+    if (analytics) {
+      try { logEvent(analytics, 'sign_up', { method: 'google' }); } catch(e) {}
+    }
+  } else {
+    if (analytics) {
+      try { logEvent(analytics, 'login', { method: 'google' }); } catch(e) {}
+    }
   }
 }
 
@@ -591,7 +661,7 @@ export async function updateUserPhoto(userId, photoUrl) {
     throw new Error("Solo los Master Admins pueden cambiar las fotos de perfil");
   }
 
-  const userRef = doc(db, 'users', userId);
+  const userRef = doc(db, 'users', resolveUid(userId));
   await setDoc(userRef, { photo: photoUrl || null }, { merge: true });
 }
 
@@ -606,7 +676,7 @@ export async function updateUserDisplayName(newName) {
   if (!user) throw new Error("Debes iniciar sesión");
   if (!newName || !newName.trim()) throw new Error("El nombre no puede estar vacío");
 
-  const userRef = doc(db, 'users', user.uid);
+  const userRef = doc(db, 'users', resolveUid(user.uid));
   await setDoc(userRef, { displayName: newName.trim() }, { merge: true });
 }
 
@@ -638,18 +708,22 @@ export async function togglePredictionLike(matchId, targetUserId) {
   const user = auth.currentUser;
   if (!user) throw new Error("Debes iniciar sesión para dar me gusta");
 
-  const predRef = doc(db, 'predictions', targetUserId);
+  const resolvedTargetUid = resolveUid(targetUserId);
+  const resolvedUserUid = resolveUid(user.uid);
+
+  const predRef = doc(db, 'predictions', resolvedTargetUid);
   const snap = await getDoc(predRef);
   const current = snap.data() || {};
   
   if (!current[matchId]) return;
 
   const currentLikes = current[matchId]?.likes || [];
-  const userLikedIndex = currentLikes.findIndex(l => l.uid === user.uid);
+  const userLikedIndex = currentLikes.findIndex(l => resolveUid(l.uid) === resolvedUserUid);
   
-  const uid = user.uid;
-  const name = user.displayName || 'Usuario';
-  const photo = user.photoURL || '';
+  const uid = resolvedUserUid;
+  const localUser = prodeState.users[resolvedUserUid];
+  const name = localUser?.name || user.displayName || 'Usuario';
+  const photo = localUser?.photo || user.photoURL || '';
 
   let isLiking = false;
 
@@ -663,15 +737,18 @@ export async function togglePredictionLike(matchId, targetUserId) {
     await updateDoc(predRef, {
       [`${matchId}.likes`]: arrayUnion({ uid, name, photo })
     });
+    if (analytics) {
+      try { logEvent(analytics, 'like_prediction', { matchId: matchId, content_author_id: resolvedTargetUid }); } catch(e) {}
+    }
   }
 
   // Send Notification
-  if (isLiking && targetUserId !== user.uid) {
+  if (isLiking && resolvedTargetUid !== resolvedUserUid) {
     await addDoc(collection(db, 'notifications'), {
-      userId: targetUserId,
-      fromUserId: user.uid,
-      fromUserName: user.displayName || 'Alguien',
-      fromUserPhoto: user.photoURL || '',
+      userId: resolvedTargetUid,
+      fromUserId: resolvedUserUid,
+      fromUserName: localUser?.name || user.displayName || 'Alguien',
+      fromUserPhoto: localUser?.photo || user.photoURL || '',
       type: 'like',
       matchId: matchId,
       timestamp: serverTimestamp(),
@@ -685,7 +762,10 @@ export async function incrementPredictionShares(matchId, targetUserId) {
   const user = auth.currentUser;
   if (!user) return;
 
-  const predRef = doc(db, 'predictions', targetUserId);
+  const resolvedTargetUid = resolveUid(targetUserId);
+  const resolvedUserUid = resolveUid(user.uid);
+
+  const predRef = doc(db, 'predictions', resolvedTargetUid);
   const snap = await getDoc(predRef);
   const current = snap.data() || {};
   
@@ -695,25 +775,30 @@ export async function incrementPredictionShares(matchId, targetUserId) {
     [`${matchId}.shares`]: increment(1)
   });
 
-  if (targetUserId !== user.uid) {
+  if (resolvedTargetUid !== resolvedUserUid) {
+    const localUser = prodeState.users[resolvedUserUid];
     await addDoc(collection(db, 'notifications'), {
-      userId: targetUserId,
-      fromUserId: user.uid,
-      fromUserName: user.displayName || 'Alguien',
-      fromUserPhoto: user.photoURL || '',
+      userId: resolvedTargetUid,
+      fromUserId: resolvedUserUid,
+      fromUserName: localUser?.name || user.displayName || 'Alguien',
+      fromUserPhoto: localUser?.photo || user.photoURL || '',
       type: 'share',
       matchId: matchId,
       timestamp: serverTimestamp(),
       read: false
     });
   }
+  if (analytics) {
+    try { logEvent(analytics, 'share_prediction', { matchId: matchId, targetUser: resolvedTargetUid }); } catch(e) {}
+  }
 }
 
 export function listenToNotifications(userId, callback) {
   if (!userId) return () => {};
+  const resolvedUid = resolveUid(userId);
   const q = query(
     collection(db, 'notifications'),
-    where('userId', '==', userId),
+    where('userId', '==', resolvedUid),
     orderBy('timestamp', 'desc'),
     limit(20)
   );
@@ -724,11 +809,10 @@ export function listenToNotifications(userId, callback) {
 }
 
 export async function markNotificationsAsRead(userId) {
-  // Using multiple updateDoc calls since writeBatch can be overkill for a few unread notifications
-  // In a real prod environment with many notifications, we might query unread ones first.
+  const resolvedUid = resolveUid(userId);
   const q = query(
     collection(db, 'notifications'),
-    where('userId', '==', userId),
+    where('userId', '==', resolvedUid),
     where('read', '==', false)
   );
   const snapshot = await getDocs(q);
