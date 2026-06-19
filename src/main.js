@@ -63,6 +63,13 @@ window.closeChat = () => {
   router();
 };
 
+window.openChat = () => {
+  isChatOpen = true;
+  document.body.style.overflow = 'hidden';
+  document.body.classList.add('chat-open-mobile');
+  router();
+};
+
 window.sharePredictionToChat = async (uid, name, matchStr, predStr, matchId) => {
   if (matchId) await incrementPredictionShares(matchId, uid);
   setChatReplyingTo({
