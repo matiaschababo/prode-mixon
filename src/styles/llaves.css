@@ -1,0 +1,163 @@
+/* src/styles/llaves.css */
+
+/* --- TABS NAVIGATION --- */
+.glass-tabs-container {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0 2.5rem 0;
+  width: 100%;
+}
+
+.glass-tabs {
+  position: relative;
+  display: flex;
+  background: rgba(255, 255, 255, 0.05); /* Adjust based on theme */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  padding: 0.35rem;
+  width: 100%;
+  max-width: 450px;
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0.75rem 1rem;
+  border-radius: 99px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  transition: color 0.3s ease;
+}
+
+.tab-btn.active {
+  color: #ffffff;
+}
+
+/* Sliding Indicator */
+.tab-indicator {
+  position: absolute;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  left: 0.35rem;
+  width: calc(50% - 0.35rem);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-radius: 99px;
+  z-index: 1;
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Move indicator when second tab is active */
+.glass-tabs:has(#tab-stats.active) .tab-indicator {
+  transform: translateX(100%);
+}
+
+/* --- TAB PANELS --- */
+.tab-panel {
+  display: none;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeIn 0.4s ease forwards;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- STATS GRID --- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* --- LIST STYLING --- */
+.stats-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stats-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 14px;
+  transition: all 0.2s ease;
+}
+
+.stats-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateX(4px);
+}
+
+/* Ranking Colors */
+.rank {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.4);
+  width: 28px;
+  text-align: center;
+}
+.rank-1 { color: #fbbf24; font-size: 1.4rem; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); } /* Gold */
+.rank-2 { color: #d1d5db; font-size: 1.3rem; } /* Silver */
+.rank-3 { color: #b45309; font-size: 1.2rem; } /* Bronze */
+
+.player-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 1rem;
+  background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.1);
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.player-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.player-team {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+  margin-top: 0.1rem;
+}
+
+.stat-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  padding-left: 1rem;
+}
