@@ -42,9 +42,9 @@ export function Home() {
               <div class="mvp-info">
                 <div class="mvp-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                   <span>MVP de la Jornada • ${mvp.matchdayDate ? new Date(mvp.matchdayDate).toLocaleDateString('es-AR', { timeZone: 'UTC', weekday: 'long', month: 'long', day: 'numeric' }) : ''}</span>
-                  <button id="btn-share-mvp" class="btn btn-sm" style="background: rgba(255, 215, 0, 0.15); color: #ffd700; border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 20px; z-index: 3; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease; padding: 4px 10px;" onclick="event.stopPropagation();" onmouseover="this.style.background='rgba(255, 215, 0, 0.25)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255, 215, 0, 0.15)'; this.style.transform='scale(1)'">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                    <span style="font-weight: 600; font-size: 0.8rem; letter-spacing: normal;">Compartir</span>
+                  <button id="btn-share-mvp" class="btn btn-sm" style="background: rgba(255, 215, 0, 0.15); color: #ffd700; border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 20px; z-index: 3; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease; padding: 4px 10px;" onclick="event.stopPropagation(); window.shareMVPToChat('${mvp.id}', '${String(mvp.name || '').replace(/'/g, "\\'")}', ${mvp.dailyPoints});" onmouseover="this.style.background='rgba(255, 215, 0, 0.25)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255, 215, 0, 0.15)'; this.style.transform='scale(1)'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span style="font-weight: 600; font-size: 0.8rem; letter-spacing: normal;">Comentar en el chat</span>
                   </button>
                 </div>
                 <div class="mvp-name">${mvp.name}</div>

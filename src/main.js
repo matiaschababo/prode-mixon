@@ -58,16 +58,29 @@ export function setChatReplyingTo(msg) {
 
 window.closeChat = () => {
   isChatOpen = false;
-  document.body.style.overflow = '';
+  if (window.innerWidth <= 768) {
+    document.body.style.overflow = '';
+  }
   document.body.classList.remove('chat-open-mobile');
   router();
 };
 
 window.openChat = () => {
   isChatOpen = true;
-  document.body.style.overflow = 'hidden';
+  if (window.innerWidth <= 768) {
+    document.body.style.overflow = 'hidden';
+  }
   document.body.classList.add('chat-open-mobile');
-  router();
+};
+
+window.shareMVPToChat = (id, name, points) => {
+  setChatReplyingTo({
+    isMVP: true,
+    name,
+    points,
+    uid: id
+  });
+  window.openChat();
 };
 
 window.sharePredictionToChat = async (uid, name, matchStr, predStr, matchId) => {
