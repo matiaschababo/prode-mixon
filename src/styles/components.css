@@ -2368,6 +2368,7 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
   background: linear-gradient(90deg, rgba(15, 15, 20, 1) 0%, rgba(30, 30, 45, 0.95) 50%, rgba(15, 15, 20, 1) 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.5rem 0;
+  margin-top: 65px;
   white-space: nowrap;
   position: relative;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);

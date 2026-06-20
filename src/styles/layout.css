@@ -176,7 +176,7 @@
 
 /* Main Layout */
 .main-content {
-  padding-top: calc(2rem + 75px);
+  padding-top: 2rem;
   padding-bottom: 4rem;
   min-height: calc(100vh - 70px);
 }
