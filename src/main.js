@@ -850,12 +850,15 @@ function setupChat() {
 
 }
 
-window.router = {
-  navigate: (url) => {
-    window.history.pushState(null, null, url);
-    router();
-  }
+// Expose router globally for inline onclick handlers
+// window.router() calls the debounced router function
+// window.router.navigate(url) does pushState + router
+const globalRouter = () => router();
+globalRouter.navigate = (url) => {
+  window.history.pushState(null, null, url);
+  router();
 };
+window.router = globalRouter;
 
 function setupNavbar(path) {
   // 1. Highlight active link
