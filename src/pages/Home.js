@@ -5,8 +5,30 @@ import { getProgramChartHTML } from './Programas.js';
 import { matches } from '../data/matches.js';
 import { teams } from '../data/teams.js';
 
+let currentRankingFilter = 'general';
+
 export function Home() {
   const user = auth.currentUser;
+  const mvp = getDailyMVP();
+
+  let participants = getRankedParticipants();
+  let rankingHtml = '';
+
+  if (currentRankingFilter === 'programas') {
+    rankingHtml = getProgramChartHTML();
+  } else {
+    if (currentRankingFilter === 'conductores') {
+      participants = participants.filter(p => p.role === 'Conductor');
+    } else if (currentRankingFilter === 'staff') {
+      participants = participants.filter(p => 
+        p.role === 'Productor' || p.role === 'Operador' || p.role === 'Editor/a' || (p.program !== 'viewers' && p.role !== 'Conductor' && p.role !== 'Viewer')
+      );
+    } else if (currentRankingFilter === 'viewers') {
+      participants = participants.filter(p => p.role === 'Viewer' || p.program === 'viewers');
+    }
+    rankingHtml = RankingTable(participants);
+  }
+
   return `
     <div class="home-page animate-fade-in">
       <section class="hero collab-hero">
@@ -45,34 +67,32 @@ export function Home() {
                 </button>
               </div>
               <div class="mvp-name">${mvp.name}</div>
-              <div class="mvp-points">
-                <span class="pts-val">${mvp.dailyPoints}</span> <span class="pts-lbl">pts diarios</span>
-                <span style="margin: 0 10px; color: rgba(255,255,255,0.3);">|</span>
-                <span class="pts-val">${mvp.dailyExacts || 0}</span> <span class="pts-lbl">plenos</span>
-              </div>
+              <div class="mvp-stats">Sumó <strong>${mvp.dailyPoints} pts</strong> en ${mvp.matchCount} partidos (${mvp.dailyExacts} resultados exactos)</div>
+            </div>
+            <div class="mvp-photo-wrapper">
+              <img src="${mvp.photo}" alt="${String(mvp.name || '').replace(/"/g, '&quot;')}" class="mvp-photo">
             </div>
           </div>
-          <div class="mvp-body">
-            <img src="${mvp.photo}" alt="${String(mvp.name || '').replace(/"/g, '&quot;')}" class="mvp-photo">
-            <div class="mvp-stats">
-              <p>¡El participante con mejor rendimiento en los últimos partidos!</p>
-              <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
-                ${mvp.matchesInfo?.slice(0,2).map(m => `
-                  <div style="background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 8px; font-size: 0.85rem; display: flex; justify-content: space-between;">
-                    <span>${m.home} vs ${m.away}</span>
-                    <span style="color: ${m.points > 0 ? '#4caf50' : '#f44336'}; font-weight: 600;">+${m.points} pts</span>
-                  </div>
-                `).join('') || ''}
+          
+          ${mvp.matchesInfo && mvp.matchesInfo.length > 0 ? `
+          <div class="mvp-matches">
+            ${mvp.matchesInfo.map(info => {
+              const isExact = info.points === 3 || info.points === 4 || info.points === 5;
+              return `
+              <div class="mvp-match-badge ${isExact ? 'mvp-match-exact' : 'mvp-match-normal'}" onclick="event.stopPropagation(); window.history.pushState(null, null, '/perfil/${mvp.id}?hl=${info.match.id}'); window.router();" style="cursor: pointer; position: relative; z-index: 2;">
+                <span style="color: white; font-weight: 600;">${teams[info.match.homeTeam]?.flag || ''} ${teams[info.match.homeTeam]?.codeEsp || info.match.homeTeam} ${info.prediction.home}-${info.prediction.away} ${teams[info.match.awayTeam]?.codeEsp || info.match.awayTeam} ${teams[info.match.awayTeam]?.flag || ''}</span>
+                <span style="color: ${isExact ? '#ffd700' : '#4cd137'}; font-weight: bold;">+${info.points}</span>
               </div>
-            </div>
+              `;
+            }).join('')}
           </div>
+          ` : ''}
         </div>
       ` : ''}
 
-      <section class="rankings animate-fade-in" style="animation-delay: 0.1s;">
-        <h2 class="section-title">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-          Tabla de Posiciones
+      <section class="ranking-section">
+        <h2 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; justify-content: center;">
+          <span style="color: var(--color-mixon-light)">🏆</span> Rankings
         </h2>
         
         <div class="filter-tabs">
