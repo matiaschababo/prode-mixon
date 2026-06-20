@@ -37,6 +37,33 @@ if (analytics) {
 const app = document.getElementById('app');
 let isInitialized = false;
 
+// Prevent empty number inputs from jumping to 1 on first increment
+document.addEventListener('focusin', (e) => {
+  if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+    e.target.dataset.prevVal = e.target.value;
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+    if (e.key === 'ArrowUp' && e.target.value === '') {
+      e.target.value = '0';
+      e.preventDefault();
+      e.target.dispatchEvent(new Event('input', { bubbles: true }));
+      e.target.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+});
+
+document.addEventListener('input', (e) => {
+  if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+    if (e.target.dataset.prevVal === '' && e.target.value === '1' && e.data === null) {
+      e.target.value = '0';
+    }
+    e.target.dataset.prevVal = e.target.value;
+  }
+});
+
 const routes = {
   '/': Home,
   '/fixture': Fixture,
