@@ -52,9 +52,9 @@ export function Perfil(participantId) {
     if (isAdmin) {
       predictionHtml = `
         <div class="prediction-inputs" style="display: flex; gap: 0.5rem; align-items: center;">
-          <input type="number" min="0" class="admin-pred-input admin-pred-home" data-match="${item.match.id}" data-uid="${participantId}" value="${item.prediction?.home ?? '0'}" style="width: 40px; text-align: center; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; padding: 0.25rem;">
+          <input type="number" min="0" class="admin-pred-input admin-pred-home" data-match="${item.match.id}" data-uid="${participantId}" value="${item.prediction?.home ?? ''}" placeholder="-" style="width: 40px; text-align: center; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; padding: 0.25rem;">
           <span>-</span>
-          <input type="number" min="0" class="admin-pred-input admin-pred-away" data-match="${item.match.id}" data-uid="${participantId}" value="${item.prediction?.away ?? '0'}" style="width: 40px; text-align: center; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; padding: 0.25rem;">
+          <input type="number" min="0" class="admin-pred-input admin-pred-away" data-match="${item.match.id}" data-uid="${participantId}" value="${item.prediction?.away ?? ''}" placeholder="-" style="width: 40px; text-align: center; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; padding: 0.25rem;">
         </div>
       `;
     } else {

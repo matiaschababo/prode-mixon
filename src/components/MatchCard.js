@@ -55,9 +55,9 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
             <button class="btn btn-secondary btn-sm pred-change-btn" data-match="${match.id}">✏️ Cambiar</button>
             <div class="pred-edit-form" style="display: none;">
               <div class="pred-inputs-row">
-                <input type="number" min="0" class="pred-input my-pred-home" data-match="${match.id}" value="${userPred.home}">
+                <input type="number" min="0" class="pred-input my-pred-home" data-match="${match.id}" value="${userPred.home}" placeholder="-">
                 <span class="pred-dash">-</span>
-                <input type="number" min="0" class="pred-input my-pred-away" data-match="${match.id}" value="${userPred.away}">
+                <input type="number" min="0" class="pred-input my-pred-away" data-match="${match.id}" value="${userPred.away}" placeholder="-">
               </div>
               <button class="btn btn-primary btn-sm pred-save-btn" data-match="${match.id}">Guardar</button>
             </div>
@@ -73,9 +73,9 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
             </div>
             <div class="pred-edit-form">
               <div class="pred-inputs-row">
-                <input type="number" min="0" class="pred-input my-pred-home" data-match="${match.id}" value="0">
+                <input type="number" min="0" class="pred-input my-pred-home" data-match="${match.id}" value="" placeholder="-">
                 <span class="pred-dash">-</span>
-                <input type="number" min="0" class="pred-input my-pred-away" data-match="${match.id}" value="0">
+                <input type="number" min="0" class="pred-input my-pred-away" data-match="${match.id}" value="" placeholder="-">
               </div>
               <button class="btn btn-primary btn-sm pred-save-btn" data-match="${match.id}">Guardar</button>
             </div>
