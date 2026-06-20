@@ -8,7 +8,7 @@
 
 /* Navbar */
 .navbar {
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -176,7 +176,7 @@
 
 /* Main Layout */
 .main-content {
-  padding-top: 2rem;
+  padding-top: calc(2rem + 75px);
   padding-bottom: 4rem;
   min-height: calc(100vh - 70px);
 }
