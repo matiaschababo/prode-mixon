@@ -673,7 +673,8 @@ function setupChat() {
   // Mod Tools
   document.querySelectorAll('.chat-mod-delete').forEach(btn => {
     btn.onclick = async (e) => {
-      const id = e.target.getAttribute('data-id');
+      const target = e.target.closest('.chat-mod-delete');
+      const id = target ? target.getAttribute('data-id') : null;
       if (confirm('¿Eliminar mensaje de forma permanente?')) {
         try {
           await deleteChatMessage(id);
@@ -686,7 +687,8 @@ function setupChat() {
 
   document.querySelectorAll('.chat-mod-ban').forEach(btn => {
     btn.onclick = async (e) => {
-      const uid = e.target.getAttribute('data-uid');
+      const target = e.target.closest('.chat-mod-ban');
+      const uid = target ? target.getAttribute('data-uid') : null;
       if (confirm('¿Bloquear a este usuario del chat? (No podrá enviar más mensajes)')) {
         try {
           await banUser(uid);
