@@ -222,6 +222,12 @@ export function Llaves() {
         <!-- TAB 1: GRUPOS Y LLAVES -->
         <div role="tabpanel" id="panel-grupos" class="tab-panel active" aria-labelledby="tab-grupos">
           
+          <h2 class="section-title animate-fade-in">📋 Fase de Grupos</h2>
+          <p class="section-desc animate-fade-in">Posiciones actualizadas al instante. Los 2 primeros de cada grupo clasifican directo. Los 8 mejores terceros también avanzan.</p>
+          <div class="groups-grid animate-fade-in" style="margin-bottom: 4rem;">
+            ${groups}
+          </div>
+
           <h2 class="section-title animate-fade-in">🏆 Cuadro Eliminatorio (En Vivo)</h2>
           <p class="section-desc animate-fade-in">Así estarían los cruces si la fase de grupos terminara hoy.</p>
           
@@ -239,12 +245,6 @@ export function Llaves() {
                 </div>
               </div>
             </div>
-          </div>
-
-          <h2 class="section-title animate-fade-in" style="margin-top: 4rem;">📋 Fase de Grupos</h2>
-          <p class="section-desc animate-fade-in">Posiciones actualizadas al instante.</p>
-          <div class="groups-grid animate-fade-in">
-            ${groups}
           </div>
 
         </div>

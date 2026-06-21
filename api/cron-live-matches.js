@@ -84,6 +84,9 @@ export default async function handler(request, response) {
           const state = apiMatch.status.type.state; // 'pre', 'in', 'post'
           const isLive = state === 'in';
           const isFinished = state === 'post';
+          
+          const espnStatus = apiMatch.status.type.name; // e.g. STATUS_HALFTIME
+          const matchStatus = espnStatus === 'STATUS_HALFTIME' ? 'PAUSED' : null;
 
           // Map goals by TEAM ABBREVIATION — structurally impossible to swap
           const homeGoals = teamMap[localMatch.homeTeam.toLowerCase()].score;
@@ -150,8 +153,8 @@ export default async function handler(request, response) {
 
           const saved = currentResults[localMatch.id];
           
-          const newPayloadLive = { home: homeGoals, away: awayGoals, live: true, minute: minuteStr, events: matchEvents };
-          const newPayloadDone = { home: homeGoals, away: awayGoals, events: matchEvents };
+          const newPayloadLive = { home: homeGoals, away: awayGoals, live: true, minute: minuteStr, events: matchEvents, status: matchStatus, updatedAt: new Date().toISOString() };
+          const newPayloadDone = { home: homeGoals, away: awayGoals, events: matchEvents, status: matchStatus, updatedAt: new Date().toISOString() };
           
           if (isLive) {
             if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.minute !== minuteStr || JSON.stringify(saved.events) !== JSON.stringify(matchEvents)) {
