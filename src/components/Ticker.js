@@ -39,15 +39,14 @@ export function Ticker() {
     if (res) {
        middle = `${res.home} - ${res.away}`;
        if (res.live) {
-          let minText = '';
-          if (res.minute) {
-            if (res.minute === 'HT' || String(res.minute).toLowerCase() === 'entretiempo') {
-              minText = ' ET';
-            } else {
-              minText = ` ${res.minute}'`;
-            }
+          let isHalftime = res.status === 'PAUSED' || res.minute === 'HT' || String(res.minute).toLowerCase() === 'entretiempo';
+          if (isHalftime) {
+            statusText = `<span class="ticker-status-live">ENTRETIEMPO</span>`;
+          } else {
+            let minText = '';
+            if (res.minute) minText = ` ${res.minute}'`;
+            statusText = `<span class="ticker-status-live">EN VIVO${minText}</span>`;
           }
-          statusText = `<span class="ticker-status-live">EN VIVO${minText}</span>`;
           itemClass = 'ticker-item-live';
        } else {
           statusText = `<span class="ticker-status-end">FIN</span>`;

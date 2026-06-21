@@ -11,7 +11,7 @@
 .glass-tabs {
   position: relative;
   display: flex;
-  background: rgba(255, 255, 255, 0.05); /* Adjust based on theme */
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -40,7 +40,6 @@
   color: #ffffff;
 }
 
-/* Sliding Indicator */
 .tab-indicator {
   position: absolute;
   top: 0.35rem;
@@ -54,12 +53,10 @@
   transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* Move indicator when second tab is active */
 .glass-tabs:has(#tab-stats.active) .tab-indicator {
   transform: translateX(100%);
 }
 
-/* --- TAB PANELS --- */
 .tab-panel {
   display: none;
   opacity: 0;
@@ -78,6 +75,197 @@
   }
 }
 
+/* --- GROUPS MINI TABLES --- */
+.group-status-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  z-index: 10;
+}
+
+.group-status-badge.parcial {
+  background: #f39c12;
+  color: #fff;
+  border: 1px solid #f1c40f;
+  animation: pulse-orange 2s infinite;
+}
+
+.group-status-badge.definitivo {
+  background: #27ae60;
+  color: #fff;
+  border: 1px solid #2ecc71;
+}
+
+/* --- BRACKET TREE DESIGN --- */
+
+.bracket-tree-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding: 1rem 0 3rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 215, 0, 0.4) rgba(0, 0, 0, 0.2);
+  /* Snap behavior for mobile */
+  scroll-snap-type: x mandatory;
+}
+
+.bracket-tree-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+.bracket-tree-wrapper::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.bracket-tree-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.4);
+  border-radius: 4px;
+}
+
+.bracket-tree-container {
+  display: flex;
+  gap: 3rem;
+  min-width: max-content;
+  padding: 0 1rem;
+}
+
+.bracket-round-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 260px;
+  scroll-snap-align: start;
+}
+
+.bracket-round-title {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.bracket-round-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex: 1;
+  justify-content: space-around;
+}
+
+/* Connectors spacing */
+.bracket-round-col:nth-child(2) .bracket-round-slots { gap: 3rem; }
+.bracket-round-col:nth-child(3) .bracket-round-slots { gap: 6rem; }
+.bracket-round-col:nth-child(4) .bracket-round-slots { justify-content: center; gap: 12rem; }
+.finals-slots { justify-content: center; gap: 4rem; }
+
+/* MATCH CARD */
+.bracket-match-card {
+  position: relative;
+  background: rgba(20, 20, 25, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.bracket-match-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 215, 0, 0.4);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
+}
+
+.bracket-match-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  z-index: 5;
+}
+
+.bracket-match-badge.parcial {
+  background: rgba(243, 156, 18, 0.9);
+  color: #fff;
+  border: 1px solid #f1c40f;
+  animation: pulse-orange 2s infinite;
+}
+
+.bracket-match-badge.definitivo {
+  background: rgba(39, 174, 96, 0.9);
+  color: #fff;
+  border: 1px solid #2ecc71;
+}
+
+@keyframes pulse-orange {
+  0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(243, 156, 18, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); }
+}
+
+.bracket-match-header {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.2rem;
+}
+
+.bracket-team-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  height: 24px; /* Ensure consistent height even if TBD */
+}
+
+.bracket-flag {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.bracket-team-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #ffffff;
+}
+
+.bracket-team-label {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+.bracket-match-vs {
+  text-align: center;
+  font-size: 0.75rem;
+  color: rgba(255, 215, 0, 0.5);
+  font-weight: 700;
+  margin: -0.2rem 0;
+}
+
 /* --- STATS GRID --- */
 .stats-grid {
   display: grid;
@@ -92,7 +280,6 @@
   }
 }
 
-/* --- LIST STYLING --- */
 .stats-list {
   list-style: none;
   padding: 0;
@@ -115,7 +302,6 @@
   transform: translateX(4px);
 }
 
-/* Ranking Colors */
 .rank {
   font-weight: 700;
   font-size: 1.1rem;
@@ -123,9 +309,9 @@
   width: 28px;
   text-align: center;
 }
-.rank-1 { color: #fbbf24; font-size: 1.4rem; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); } /* Gold */
-.rank-2 { color: #d1d5db; font-size: 1.3rem; } /* Silver */
-.rank-3 { color: #b45309; font-size: 1.2rem; } /* Bronze */
+.rank-1 { color: #fbbf24; font-size: 1.4rem; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+.rank-2 { color: #d1d5db; font-size: 1.3rem; }
+.rank-3 { color: #b45309; font-size: 1.2rem; }
 
 .player-avatar {
   width: 44px;

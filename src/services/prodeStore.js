@@ -502,13 +502,17 @@ export function getDailyMVP() {
     dailyMatches.forEach(match => {
       const p = preds[String(match.id)]?.[user.id];
       const r = getMatchResult(match);
-      if (p && r) {
-        const pt = calculatePoints(p.home, p.away, r.home, r.away, match.stage);
-        pts += pt;
-        if (pt === calculatePoints(r.home, r.away, r.home, r.away, match.stage) && pt > 0) exacts++;
-        const ts = p.timestamp ? (p.timestamp.toMillis ? p.timestamp.toMillis() : new Date(p.timestamp).getTime()) : Infinity;
-        if (ts > latestTimestamp) latestTimestamp = ts;
-        userMatchesInfo.push({ match, prediction: p, result: r, points: pt });
+      if (r) {
+        let pt = 0;
+        let ts = Infinity;
+        if (p) {
+          pt = calculatePoints(p.home, p.away, r.home, r.away, match.stage);
+          pts += pt;
+          if (pt === calculatePoints(r.home, r.away, r.home, r.away, match.stage) && pt > 0) exacts++;
+          ts = p.timestamp ? (p.timestamp.toMillis ? p.timestamp.toMillis() : new Date(p.timestamp).getTime()) : Infinity;
+          if (ts > latestTimestamp) latestTimestamp = ts;
+        }
+        userMatchesInfo.push({ match, prediction: p || null, result: r, points: pt });
       }
     });
     

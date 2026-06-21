@@ -1,12 +1,15 @@
-// src/pages/Llaves.js
 import { teams } from '../data/teams.js';
 import { bracketData, groupsList } from '../data/bracket.js';
-import { calculateGroupStandings } from '../services/standings.js';
+import { calculateGroupStandings, getProvisionalBracket } from '../services/standings.js';
 import { getTopScorersAndAssists } from '../services/stats.js';
 
 function renderGroupMini(group, standings) {
   const groupTeams = standings[group] || [];
+  const isFinished = groupTeams.length > 0 && groupTeams.every(t => t.played === 3);
+  
   const rows = groupTeams.map((team, i) => {
+    // Top 2 classify directly. 3rd might classify. 
+    // We visually highlight top 2 always. We could highlight 3rd if they are among best 8, but we will leave them yellow.
     const posClass = i < 2 ? 'group-qualified' : (i === 2 ? 'group-third' : 'group-eliminated');
     return `
       <tr class="${posClass}" onclick="window.router.navigate('/equipo/${team.id}')" style="cursor: pointer;">
@@ -28,7 +31,8 @@ function renderGroupMini(group, standings) {
   }).join('');
 
   return `
-    <div class="glass-card group-mini animate-slide-up">
+    <div class="glass-card group-mini animate-slide-up" style="position: relative;">
+      ${isFinished ? '<div class="group-status-badge definitivo">Terminado</div>' : '<div class="group-status-badge parcial">En Juego</div>'}
       <div class="group-mini-header">Grupo ${group}</div>
       <table class="group-standings-table">
         <thead>
@@ -53,49 +57,72 @@ function renderGroupMini(group, standings) {
   `;
 }
 
-function renderBracketSlot(slot, round) {
-  const homeLabel = slot.home;
-  const awayLabel = slot.away;
+function renderProvisionalSlot(slotData, round) {
+  // Support both fully provisional and static bracket slots
+  // For round of 32 we use the parsed provisional data
+  // For other rounds, we just show "Ganador Partido X"
   
-  // Build detailed tooltip text
-  let tooltipHome = homeLabel;
-  let tooltipAway = awayLabel;
-  
-  if (round === 'roundOf32') {
-    tooltipHome = expandLabel(homeLabel);
-    tooltipAway = expandLabel(awayLabel);
+  let homeTeamNode = '';
+  let awayTeamNode = '';
+  let homeLabel = slotData.home;
+  let awayLabel = slotData.away;
+  let isProvisional = true;
+
+  if (slotData.homeResolved || slotData.awayResolved) {
+    // This is from getProvisionalBracket
+    isProvisional = slotData.homeResolved?.isProvisional || slotData.awayResolved?.isProvisional;
+    
+    if (slotData.homeResolved?.team) {
+      homeTeamNode = `
+        <img src="${slotData.homeResolved.team.flagUrl}" class="bracket-flag" onerror="this.style.display='none'">
+        <span class="bracket-team-name">${slotData.homeResolved.team.name}</span>
+      `;
+    } else {
+      homeTeamNode = `<span class="bracket-team-label">${slotData.homeResolved?.originalLabel || homeLabel}</span>`;
+    }
+
+    if (slotData.awayResolved?.team) {
+      awayTeamNode = `
+        <img src="${slotData.awayResolved.team.flagUrl}" class="bracket-flag" onerror="this.style.display='none'">
+        <span class="bracket-team-name">${slotData.awayResolved.team.name}</span>
+      `;
+    } else {
+      awayTeamNode = `<span class="bracket-team-label">${slotData.awayResolved?.originalLabel || awayLabel}</span>`;
+    }
+  } else {
+    // Static slot
+    homeTeamNode = `<span class="bracket-team-label">${expandLabel(homeLabel)}</span>`;
+    awayTeamNode = `<span class="bracket-team-label">${expandLabel(awayLabel)}</span>`;
   }
 
+  const badgeHtml = round === 'roundOf32' ? (isProvisional 
+    ? '<div class="bracket-match-badge parcial" title="Cruce sujeto a cambios">Parcial</div>' 
+    : '<div class="bracket-match-badge definitivo" title="Cruce confirmado">Definitivo</div>') : '';
+
   return `
-    <div class="bracket-slot glass-card" data-match="${slot.matchId}">
-      <div class="bracket-slot-round">Partido ${slot.matchId}</div>
-      <div class="bracket-slot-team">
-        <span class="bracket-team-label">${homeLabel}</span>
+    <div class="bracket-match-card glass-card" data-match="${slotData.matchId}">
+      ${badgeHtml}
+      <div class="bracket-match-header">Partido ${slotData.matchId}</div>
+      <div class="bracket-team-row">
+        ${homeTeamNode}
       </div>
-      <div class="bracket-slot-vs">vs</div>
-      <div class="bracket-slot-team">
-        <span class="bracket-team-label">${awayLabel}</span>
-      </div>
-      <div class="bracket-tooltip">
-        <div class="bracket-tooltip-content">
-          <strong>🏟️ Partido ${slot.matchId}</strong>
-          <p>${tooltipHome}</p>
-          <span class="bracket-tooltip-vs">vs</span>
-          <p>${tooltipAway}</p>
-        </div>
+      <div class="bracket-match-vs">vs</div>
+      <div class="bracket-team-row">
+        ${awayTeamNode}
       </div>
     </div>
   `;
 }
 
 function expandLabel(label) {
+  if (!label) return '';
   return label
     .replace(/^1° Grupo (\w)$/, 'El primero del Grupo $1')
     .replace(/^2° Grupo (\w)$/, 'El segundo del Grupo $1')
-    .replace(/^3° Grupo ([A-Z\\/]+)$/, 'El mejor tercero de los Grupos $1')
-    .replace(/^G\\. M(\\d+)$/, 'Ganador del Partido $1')
-    .replace(/^P\\. SF(\\d)$/, 'Perdedor de Semifinal $1')
-    .replace(/^G\\. SF(\\d)$/, 'Ganador de Semifinal $1');
+    .replace(/^3° Grupo ([A-Z\\/]+)$/, 'Mejor tercero $1')
+    .replace(/^G\\. M(\\d+)$/, 'Ganador M$1')
+    .replace(/^P\\. SF(\\d)$/, 'Perdedor SF$1')
+    .replace(/^G\\. SF(\\d)$/, 'Ganador SF$1');
 }
 
 export function attachLlavesEvents() {
@@ -127,13 +154,15 @@ export function attachLlavesEvents() {
 export function Llaves() {
   const standings = calculateGroupStandings();
   const groups = groupsList.map(g => renderGroupMini(g, standings)).join('');
+  
+  const provisionalRoundOf32 = getProvisionalBracket(standings, bracketData);
 
   const renderRound = (matches, title, round) => {
-    const slots = matches.map(s => renderBracketSlot(s, round)).join('');
+    const slots = matches.map(s => renderProvisionalSlot(s, round)).join('');
     return `
-      <div class="bracket-round">
-        <h3 class="bracket-round-label">${title}</h3>
-        <div class="bracket-round-matches">
+      <div class="bracket-round-col">
+        <h3 class="bracket-round-title">${title}</h3>
+        <div class="bracket-round-slots">
           ${slots}
         </div>
       </div>
@@ -173,7 +202,7 @@ export function Llaves() {
       <header class="dashboard-header animate-fade-in">
         <h1 class="page-title">Seguí el Mundial</h1>
         <div class="page-subtitle" style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; text-align: center;">
-          Tablas, llaves y estadísticas en un solo lugar.
+          Tablas, llaves provisionales y estadísticas.
         </div>
         
         <div class="glass-tabs-container">
@@ -192,35 +221,32 @@ export function Llaves() {
       <div class="tab-content-area">
         <!-- TAB 1: GRUPOS Y LLAVES -->
         <div role="tabpanel" id="panel-grupos" class="tab-panel active" aria-labelledby="tab-grupos">
-          <h2 class="section-title animate-fade-in">📋 Fase de Grupos</h2>
-          <p class="section-desc animate-fade-in">Los 2 primeros de cada grupo clasifican directo. Los 8 mejores terceros también avanzan.</p>
+          
+          <h2 class="section-title animate-fade-in">🏆 Cuadro Eliminatorio (En Vivo)</h2>
+          <p class="section-desc animate-fade-in">Así estarían los cruces si la fase de grupos terminara hoy.</p>
+          
+          <div class="bracket-tree-wrapper animate-fade-in">
+            <div class="bracket-tree-container">
+              ${renderRound(provisionalRoundOf32, '32avos de Final', 'roundOf32')}
+              ${renderRound(bracketData.roundOf16, 'Octavos de Final', 'roundOf16')}
+              ${renderRound(bracketData.quarterFinals, 'Cuartos de Final', 'quarterFinals')}
+              ${renderRound(bracketData.semiFinals, 'Semifinales', 'semiFinals')}
+              <div class="bracket-round-col">
+                <h3 class="bracket-round-title">Finales</h3>
+                <div class="bracket-round-slots finals-slots">
+                  ${renderProvisionalSlot(bracketData.thirdPlace, 'thirdPlace')}
+                  ${renderProvisionalSlot(bracketData.final, 'final')}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="section-title animate-fade-in" style="margin-top: 4rem;">📋 Fase de Grupos</h2>
+          <p class="section-desc animate-fade-in">Posiciones actualizadas al instante.</p>
           <div class="groups-grid animate-fade-in">
             ${groups}
           </div>
 
-          <h2 class="section-title animate-fade-in" style="margin-top: 3rem;">🏆 Cuadro Eliminatorio</h2>
-          <p class="section-desc animate-fade-in">Hacé hover en cada partido para ver cómo se arman las llaves.</p>
-          
-          <div class="bracket-container animate-fade-in">
-            ${renderRound(bracketData.roundOf32, '32avos de Final', 'roundOf32')}
-            ${renderRound(bracketData.roundOf16, 'Octavos de Final', 'roundOf16')}
-            ${renderRound(bracketData.quarterFinals, 'Cuartos de Final', 'quarterFinals')}
-            ${renderRound(bracketData.semiFinals, 'Semifinales', 'semiFinals')}
-            
-            <div class="bracket-round bracket-finals">
-              <h3 class="bracket-round-label">Tercer Puesto</h3>
-              <div class="bracket-round-matches">
-                ${renderBracketSlot(bracketData.thirdPlace, 'final')}
-              </div>
-            </div>
-
-            <div class="bracket-round bracket-finals">
-              <h3 class="bracket-round-label">Final</h3>
-              <div class="bracket-round-matches">
-                ${renderBracketSlot(bracketData.final, 'final')}
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- TAB 2: ESTADÍSTICAS -->

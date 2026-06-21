@@ -19,14 +19,16 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
   if (resultOverride?.live || match.status === 'live') {
     badgeClass = 'badge-live';
     let minText = '';
-    if (resultOverride?.minute) {
-      if (resultOverride.minute === 'HT' || String(resultOverride.minute).toLowerCase() === 'entretiempo') {
-        minText = ' - Entretiempo';
-      } else {
-        minText = ` - ${resultOverride.minute}'`;
+    let isHalftime = resultOverride?.status === 'PAUSED' || resultOverride?.minute === 'HT' || String(resultOverride?.minute).toLowerCase() === 'entretiempo';
+    
+    if (isHalftime) {
+      statusText = `🔴 ENTRETIEMPO`;
+    } else {
+      if (resultOverride?.minute) {
+        minText = ` ${resultOverride.minute}'`;
       }
+      statusText = `🔴 EN VIVO${minText}`;
     }
-    statusText = `🔴 EN VIVO${minText}`;
   } else if (match.status === 'finished' || (isPast && !resultOverride?.live && (resultOverride?.home !== undefined || match.homeScore !== null))) {
     badgeClass = 'badge-finished';
     statusText = 'Finalizado';

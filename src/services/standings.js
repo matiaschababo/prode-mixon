@@ -92,3 +92,101 @@ export function calculateGroupStandings() {
 
   return groups;
 }
+
+export function getProvisionalBracket(groups, bracketData) {
+  const isGroupFinished = (g) => groups[g] && groups[g].length > 0 && groups[g].every(t => t.played === 3);
+
+  // Extract all 3rd placed teams
+  const thirds = [];
+  Object.keys(groups).forEach(g => {
+    if (groups[g].length >= 3) {
+      thirds.push(groups[g][2]);
+    }
+  });
+
+  // Sort to find the 8 best 3rd placed teams
+  thirds.sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
+    if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+    return a.name.localeCompare(b.name);
+  });
+
+  const bestThirds = thirds.slice(0, 8);
+
+  const resolveTeam = (label) => {
+    let team = null;
+    let isProvisional = true;
+
+    // Match "1° Grupo X"
+    let m1 = label.match(/^1° Grupo ([A-L])$/);
+    if (m1) {
+      const g = m1[1];
+      if (groups[g] && groups[g][0] && groups[g][0].played > 0) {
+        team = groups[g][0];
+        isProvisional = !isGroupFinished(g);
+      }
+      return { team, isProvisional, originalLabel: label };
+    }
+
+    // Match "2° Grupo X"
+    let m2 = label.match(/^2° Grupo ([A-L])$/);
+    if (m2) {
+      const g = m2[1];
+      if (groups[g] && groups[g][1] && groups[g][1].played > 0) {
+        team = groups[g][1];
+        isProvisional = !isGroupFinished(g);
+      }
+      return { team, isProvisional, originalLabel: label };
+    }
+
+    // Match "3° Grupo X/Y/Z"
+    let m3 = label.match(/^3° Grupo ([A-L\\/]+)$/);
+    if (m3) {
+      const allowedGroups = m3[1].split('/');
+      return { team: null, allowedGroups, isProvisional: true, originalLabel: label, isThirdPlaceSlot: true };
+    }
+
+    return { team: null, isProvisional: true, originalLabel: label };
+  };
+
+  const parsedRoundOf32 = bracketData.roundOf32.map(slot => ({
+    ...slot,
+    homeResolved: resolveTeam(slot.home),
+    awayResolved: resolveTeam(slot.away)
+  }));
+
+  // Assign best 3rd placed teams
+  const availableThirds = [...bestThirds];
+  const thirdPlaceSlots = [];
+  
+  parsedRoundOf32.forEach(slot => {
+    if (slot.homeResolved.isThirdPlaceSlot) thirdPlaceSlots.push(slot.homeResolved);
+    if (slot.awayResolved.isThirdPlaceSlot) thirdPlaceSlots.push(slot.awayResolved);
+  });
+
+  // Very simple greedy assignment with backtracking
+  const assignThirds = (slotIndex, currentAvailable) => {
+    if (slotIndex >= thirdPlaceSlots.length) return true; // All assigned
+
+    const slot = thirdPlaceSlots[slotIndex];
+    for (let i = 0; i < currentAvailable.length; i++) {
+      const candidate = currentAvailable[i];
+      if (slot.allowedGroups.includes(candidate.group)) {
+        slot.team = candidate;
+        slot.isProvisional = !isGroupFinished(candidate.group);
+        const nextAvailable = [...currentAvailable];
+        nextAvailable.splice(i, 1);
+        if (assignThirds(slotIndex + 1, nextAvailable)) {
+          return true;
+        }
+        slot.team = null; // backtrack
+      }
+    }
+    return false; // If we couldn't assign, the slot.team remains null
+  };
+
+  assignThirds(0, availableThirds);
+
+  return parsedRoundOf32;
+}
