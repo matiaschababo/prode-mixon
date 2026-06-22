@@ -4,6 +4,7 @@ import './styles/components.css';
 import './styles/layout.css';
 import './styles/animations.css';
 import './styles/llaves.css';
+import './styles/premium-ux.css';
 import { ChatWidget } from './components/ChatWidget.js';
 import { Navbar } from './components/Navbar.js';
 import { Ticker } from './components/Ticker.js';
@@ -190,20 +191,24 @@ window.toggleLikeOnPrediction = async (matchId, targetUserId) => {
 
 function LoadingScreen() {
   return `
-    <div class="loading-screen">
-      <div class="loading-content">
-        <div class="loading-logos">
-          <img src="/assets/logo-mixon.png" alt="Mix On" class="loading-logo">
-          <span class="loading-x">✕</span>
-          <img src="/assets/logo-mundial.webp" alt="Mundial 2026" class="loading-logo">
-        </div>
-        <div class="loading-spinner"></div>
-        <p class="loading-text">Cargando datos del prode...</p>
-        <div class="loading-skeletons">
-          <div class="skeleton-row"></div>
-          <div class="skeleton-row short"></div>
-          <div class="skeleton-row"></div>
-        </div>
+    <div class="loading-screen" style="flex-direction: column; width: 100%; max-width: 800px; margin: 0 auto; padding: 2rem 0;">
+      <div class="loading-logos" style="margin-bottom: 2rem;">
+        <img src="/assets/logo-mixon.png" alt="Mix On" class="loading-logo" onerror="this.style.display='none'">
+        <span class="loading-x">✕</span>
+        <img src="/assets/logo-mundial.webp" alt="Mundial 2026" class="loading-logo" onerror="this.style.display='none'">
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; width: 100%;">
+        ${Array(4).fill().map(() => `
+          <div class="skeleton-card">
+            <div class="skeleton-pulse" style="height: 24px; width: 60%; margin-bottom: 1rem;"></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+               <div class="skeleton-pulse" style="height: 30px; width: 40px; border-radius: 50%;"></div>
+               <div class="skeleton-pulse" style="height: 30px; width: 40px; border-radius: 50%;"></div>
+            </div>
+            <div class="skeleton-pulse" style="height: 40px; width: 100%;"></div>
+            <div class="skeleton-pulse" style="height: 16px; width: 80%; margin-top: auto;"></div>
+          </div>
+        `).join('')}
       </div>
     </div>
   `;
@@ -1146,15 +1151,29 @@ document.body.addEventListener('click', e => {
   if (e.target.matches('[data-link]') || e.target.closest('[data-link]')) {
     e.preventDefault();
     const link = e.target.matches('[data-link]') ? e.target : e.target.closest('[data-link]');
-    history.pushState(null, null, link.href);
-    router();
+    
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        history.pushState(null, null, link.href);
+        router();
+      });
+    } else {
+      history.pushState(null, null, link.href);
+      router();
+    }
   }
 });
 
 window.userNotifications = [];
 let notifUnsubscribe = null;
 
-window.addEventListener('popstate', router);
+window.addEventListener('popstate', (e) => {
+  if (document.startViewTransition) {
+    document.startViewTransition(() => router());
+  } else {
+    router();
+  }
+});
 
 onAuthStateChanged(auth, (user) => {
   if (user) {

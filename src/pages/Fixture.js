@@ -77,7 +77,11 @@ export function Fixture() {
       <div id="fixture-list">
         ${matchCards}
       </div>
-      <p id="fixture-empty" class="empty-state" style="display:none;">No se encontraron partidos para este filtro.</p>
+      <div id="fixture-empty" class="empty-state" style="display:none;">
+        <div class="empty-state-icon">🏟️</div>
+        <div class="empty-state-title">No hay partidos</div>
+        <p>No se encontraron partidos para este filtro.</p>
+      </div>
       
       <!-- FAB Ir a Hoy -->
       <button id="fab-hoy" class="btn btn-primary" style="
