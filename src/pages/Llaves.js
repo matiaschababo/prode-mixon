@@ -196,6 +196,7 @@ function renderBracketSlot(matchId, resolvedMap, results) {
   let badgeHtml = '';
   let cardClass = '';
   const isMatchProvisional = slot.homeProvisional || slot.awayProvisional;
+  const hasAnyTeam = slot.home !== null || slot.away !== null;
 
   if (hasResult) {
     const isResultProvisional = isMatchProvisional || (parseInt(res.home) === parseInt(res.away) && !res.winner);
@@ -206,10 +207,15 @@ function renderBracketSlot(matchId, resolvedMap, results) {
       badgeHtml = '<span class="bracket-match-status definitivo" title="Partido concluido y confirmado">Definitivo</span>';
     }
   } else {
-    if (isMatchProvisional) {
-      badgeHtml = '<span class="bracket-match-status parcial" title="Cruce sujeto a cambios (posiciones del grupo provisorias)">Parcial</span>';
+    if (hasAnyTeam) {
+      if (isMatchProvisional) {
+        badgeHtml = '<span class="bracket-match-status parcial" title="Cruce sujeto a cambios (posiciones provisorias)">Parcial</span>';
+      } else {
+        badgeHtml = '<span class="bracket-match-status definitivo" title="Cruce confirmado">Confirmado</span>';
+      }
     } else {
-      badgeHtml = '<span class="bracket-match-status definitivo" title="Cruce confirmado">Confirmado</span>';
+      // Empty future matches where both teams are placeholders don't show any badge
+      badgeHtml = '';
     }
   }
 

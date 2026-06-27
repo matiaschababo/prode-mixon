@@ -126,7 +126,8 @@ export function getProvisionalBracket(groups, bracketData) {
     let m1 = label.match(/^1° Grupo ([A-L])$/);
     if (m1) {
       const g = m1[1];
-      if (groups[g] && groups[g][0]) {
+      const hasStarted = groups[g] && groups[g].some(t => t.played > 0);
+      if (hasStarted && groups[g][0]) {
         team = groups[g][0];
         isProvisional = !isGroupFinished(g);
       }
@@ -137,7 +138,8 @@ export function getProvisionalBracket(groups, bracketData) {
     let m2 = label.match(/^2° Grupo ([A-L])$/);
     if (m2) {
       const g = m2[1];
-      if (groups[g] && groups[g][1]) {
+      const hasStarted = groups[g] && groups[g].some(t => t.played > 0);
+      if (hasStarted && groups[g][1]) {
         team = groups[g][1];
         isProvisional = !isGroupFinished(g);
       }
@@ -148,7 +150,8 @@ export function getProvisionalBracket(groups, bracketData) {
     let m3 = label.match(/^3° Grupo ([A-L\\/]+)$/);
     if (m3) {
       const allowedGroups = m3[1].split('/');
-      return { team: null, allowedGroups, isProvisional: true, originalLabel: label, isThirdPlaceSlot: true };
+      const totalPlayed = Object.values(groups).flat().reduce((sum, t) => sum + t.played, 0);
+      return { team: null, allowedGroups, isProvisional: true, originalLabel: label, isThirdPlaceSlot: totalPlayed > 0 };
     }
 
     return { team: null, isProvisional: true, originalLabel: label };
