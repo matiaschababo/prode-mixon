@@ -304,7 +304,7 @@
   flex-direction: column;
   justify-content: space-around;
   flex: 1;
-  height: 520px; /* Fixed height distributes matches mathematically */
+  height: 540px; /* Increased height gives 16avos cards more breathing room */
 }
 
 /* Base match card styling */
@@ -468,9 +468,9 @@
 
 /* --- ACTIVE PHASE VS INACTIVE PHASE LAYOUT SYSTEM --- */
 
-/* 1. Columns in the Active Phase: Larger, readable, highlighted */
+/* 1. Columns in the Active Phase: Extremely wide, highly readable, highlighted */
 .bracket-column.active-phase {
-  width: 142px !important;
+  width: 170px !important; /* Heavily expanded inward! */
 }
 
 .bracket-column.active-phase .bracket-match-card {
@@ -503,61 +503,62 @@
 }
 
 .bracket-column.active-phase .bracket-team-name {
-  font-size: 0.8rem;
+  font-size: 0.88rem; /* enlarged team name */
   font-weight: 600;
 }
 
 .bracket-column.active-phase .bracket-team-score {
-  font-size: 0.85rem;
+  font-size: 0.95rem; /* enlarged scores */
 }
 
 .bracket-column.active-phase .bracket-team-label {
-  font-size: 0.74rem;
+  font-size: 0.78rem;
 }
 
-/* 2. Columns in the Inactive Phase: Super compact, space-saving placeholders */
+/* 2. Columns in the Inactive Phase: Super compressed space-savers */
 .bracket-column.inactive-phase {
-  width: 95px !important;
+  width: 85px !important; /* Heavily shrunk to free up space! */
 }
 
 .bracket-column.inactive-phase .bracket-match-card {
-  padding: 3px 5px;
+  padding: 2px 4px; /* minimal padding */
   border-radius: 6px;
-  gap: 1px;
-  opacity: 0.8; /* slightly dimmed to prioritize active phase */
+  gap: 0px;
+  opacity: 0.75; /* slightly dimmed to prioritize active phase */
 }
 
 .bracket-column.inactive-phase .bracket-match-header {
-  font-size: 0.55rem;
-  margin-bottom: 1px;
-  padding-bottom: 1px;
+  font-size: 0.52rem;
+  margin-bottom: 0px;
+  padding-bottom: 0px;
+  border-bottom: none; /* hide border to save vertical space */
 }
 
 .bracket-column.inactive-phase .status-dot {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 
 .bracket-column.inactive-phase .bracket-team-row {
-  height: 16px;
-  gap: 3px;
+  height: 15px; /* compact row */
+  gap: 2px;
 }
 
 .bracket-column.inactive-phase .bracket-flag {
-  width: 12px;
-  height: 12px;
+  width: 10px; /* tiny flags */
+  height: 10px;
 }
 
 .bracket-column.inactive-phase .bracket-team-name {
-  font-size: 0.68rem;
+  font-size: 0.65rem; /* tiny text */
 }
 
 .bracket-column.inactive-phase .bracket-team-score {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
 }
 
 .bracket-column.inactive-phase .bracket-team-label {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
 }
 
 
@@ -569,7 +570,7 @@
   justify-content: center; /* Center Final and Third Place vertically */
   align-items: center;
   flex-shrink: 0;
-  height: 520px;
+  height: 540px; /* Matches bracket-round-slots height */
   gap: 3.5rem; /* Spacious gap between Final and Third Place */
   box-sizing: border-box;
   z-index: 2;
@@ -664,14 +665,14 @@
 
 /* Center Column Inactive - Compact */
 .bracket-center.inactive-phase {
-  width: 110px !important;
+  width: 105px !important; /* Shrunk when not in play */
 }
 
 .bracket-center.inactive-phase .bracket-match-card {
   padding: 4px 6px;
   border-radius: 8px;
   gap: 2px;
-  opacity: 0.8;
+  opacity: 0.75;
 }
 
 .bracket-center.inactive-phase .bracket-match-header {
