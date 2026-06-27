@@ -93,18 +93,15 @@ export function calculateGroupStandings() {
   return groups;
 }
 
-export function getProvisionalBracket(groups, bracketData) {
-  const isGroupFinished = (g) => groups[g] && groups[g].length > 0 && groups[g].every(t => t.played === 3);
-
-  // Extract all 3rd placed teams
+export function getThirdPlacedStandings(groups) {
   const thirds = [];
   Object.keys(groups).forEach(g => {
-    if (groups[g].length >= 3) {
+    if (groups[g] && groups[g].length >= 3) {
       thirds.push(groups[g][2]);
     }
   });
 
-  // Sort to find the 8 best 3rd placed teams
+  // Sort to find the best 3rd placed teams
   thirds.sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
@@ -112,6 +109,13 @@ export function getProvisionalBracket(groups, bracketData) {
     return a.name.localeCompare(b.name);
   });
 
+  return thirds;
+}
+
+export function getProvisionalBracket(groups, bracketData) {
+  const isGroupFinished = (g) => groups[g] && groups[g].length > 0 && groups[g].every(t => t.played === 3);
+
+  const thirds = getThirdPlacedStandings(groups);
   const bestThirds = thirds.slice(0, 8);
 
   const resolveTeam = (label) => {
@@ -122,7 +126,7 @@ export function getProvisionalBracket(groups, bracketData) {
     let m1 = label.match(/^1° Grupo ([A-L])$/);
     if (m1) {
       const g = m1[1];
-      if (groups[g] && groups[g][0] && groups[g][0].played > 0) {
+      if (groups[g] && groups[g][0]) {
         team = groups[g][0];
         isProvisional = !isGroupFinished(g);
       }
@@ -133,7 +137,7 @@ export function getProvisionalBracket(groups, bracketData) {
     let m2 = label.match(/^2° Grupo ([A-L])$/);
     if (m2) {
       const g = m2[1];
-      if (groups[g] && groups[g][1] && groups[g][1].played > 0) {
+      if (groups[g] && groups[g][1]) {
         team = groups[g][1];
         isProvisional = !isGroupFinished(g);
       }

@@ -97,6 +97,7 @@ export function Admin() {
               <span>-</span>
               <input type="number" min="0" id="result-away" value="${firstResult.away ?? '0'}" aria-label="Resultado visitante">
             </div>
+            <div id="admin-knockout-winner-container" style="margin-top: 1rem; display: none;"></div>
             <button class="btn btn-primary" id="save-result" style="width: 100%; margin-top: 1rem;">Guardar resultado</button>
           </div>
         </div>
@@ -127,8 +128,12 @@ export function attachAdminEvents() {
     saveResultBtn.addEventListener('click', async () => {
       const matchId = document.getElementById('admin-match-select').value;
       const { saveResult } = await import('../services/prodeStore.js');
+      const homeScore = document.getElementById('result-home').value;
+      const awayScore = document.getElementById('result-away').value;
+      const winnerSelect = document.getElementById('result-winner');
+      const winner = winnerSelect ? winnerSelect.value : null;
       try {
-        await saveResult(matchId, document.getElementById('result-home').value, document.getElementById('result-away').value);
+        await saveResult(matchId, homeScore, awayScore, winner);
         alert('Resultado oficial guardado en Firebase');
       } catch (e) {
         alert('Error guardando resultado: ' + e.message);
@@ -167,4 +172,23 @@ function renderAdminMatchForm() {
   const resultAway = document.getElementById('result-away');
   if (resultHome) resultHome.value = result.home ?? '';
   if (resultAway) resultAway.value = result.away ?? '';
+
+  const match = matches.find(m => String(m.id) === String(matchId));
+  const winnerContainer = document.getElementById('admin-knockout-winner-container');
+  if (match && match.stage !== 'Group Stage' && winnerContainer) {
+    winnerContainer.style.display = 'block';
+    const homeName = teams[match.homeTeam]?.name || match.homeTeam;
+    const awayName = teams[match.awayTeam]?.name || match.awayTeam;
+    winnerContainer.innerHTML = `
+      <label class="admin-label" for="result-winner" style="margin-top: 0.5rem; display: block; font-weight: 600;">Ganador del cruce (por penales/alargue si hay empate)</label>
+      <select id="result-winner" class="admin-select" style="margin-top: 0.25rem; width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+        <option value="" ${!result.winner ? 'selected' : ''}>— Elegir ganador —</option>
+        <option value="${match.homeTeam}" ${result.winner === match.homeTeam ? 'selected' : ''}>Gana ${homeName}</option>
+        <option value="${match.awayTeam}" ${result.winner === match.awayTeam ? 'selected' : ''}>Gana ${awayName}</option>
+      </select>
+    `;
+  } else if (winnerContainer) {
+    winnerContainer.style.display = 'none';
+    winnerContainer.innerHTML = '';
+  }
 }

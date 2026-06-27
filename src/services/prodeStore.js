@@ -262,18 +262,23 @@ export async function adminSavePrediction(userId, matchId, home, away) {
 }
 
 // Admin save result function
-export async function adminSaveResult(matchId, home, away) {
+export async function adminSaveResult(matchId, home, away, winner = null) {
   const resultsRef = doc(db, "global", "results");
   if (home === '' || away === '') {
     await updateDoc(resultsRef, {
       [matchId]: deleteField()
     }).catch(() => {});
   } else {
+    const data = { home: Number(home), away: Number(away), timestamp: serverTimestamp() };
+    if (winner) {
+      data.winner = winner;
+    }
     await setDoc(resultsRef, {
-      [matchId]: { home: Number(home), away: Number(away), timestamp: serverTimestamp() }
+      [matchId]: data
     }, { merge: true });
   }
 }
+export { adminSaveResult as saveResult };
 
 export function getMatchResult(match) {
   const saved = getResults()[String(match.id)];
