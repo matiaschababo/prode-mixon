@@ -194,12 +194,14 @@ function renderBracketSlot(matchId, resolvedMap, results) {
   }
 
   let badgeHtml = '';
+  let cardClass = '';
   const isMatchProvisional = slot.homeProvisional || slot.awayProvisional;
 
   if (hasResult) {
     const isResultProvisional = isMatchProvisional || (parseInt(res.home) === parseInt(res.away) && !res.winner);
     if (isResultProvisional) {
       badgeHtml = '<span class="bracket-match-status parcial" title="Resultado parcial o en juego">Parcial</span>';
+      cardClass = 'live-match';
     } else {
       badgeHtml = '<span class="bracket-match-status definitivo" title="Partido concluido y confirmado">Definitivo</span>';
     }
@@ -212,7 +214,7 @@ function renderBracketSlot(matchId, resolvedMap, results) {
   }
 
   return `
-    <div class="bracket-match-card glass-card" data-match="${matchId}">
+    <div class="bracket-match-card glass-card ${cardClass}" data-match="${matchId}">
       <div class="bracket-match-header">
         <span>Partido ${matchId}</span>
         ${badgeHtml}
@@ -486,7 +488,7 @@ export function Llaves() {
               
               <!-- COPA DEL MUNDO ENORME DETRÁS DEL CENTRO -->
               <div class="trophy-bg-holder">
-                <img src="/assets/world-cup-trophy.png" class="trophy-bg-img animate-float" alt="Copa del Mundo">
+                <img src="/assets/world-cup-trophy.webp" class="trophy-bg-img animate-float" alt="Copa del Mundo">
               </div>
 
               <!-- LADO IZQUIERDO (SIDE A) -->

@@ -231,11 +231,11 @@
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
-  gap: 0.4rem;
+  gap: 0.3rem; /* Tighter layout to fit everything */
   box-sizing: border-box;
 }
 
-/* Background transparent World Cup Trophy */
+/* Background transparent World Cup Trophy - boosted shine */
 .trophy-bg-holder {
   position: absolute;
   left: 50%;
@@ -243,7 +243,7 @@
   transform: translate(-50%, -50%);
   z-index: 1;
   pointer-events: none;
-  opacity: 0.35;
+  opacity: 0.85; /* Highly visible gold trophy */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -253,7 +253,8 @@
   height: 520px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 0 35px rgba(255, 215, 0, 0.25));
+  /* Ultimate gold shine: drop-shadow gold aura + brightness boost + contrast boost */
+  filter: drop-shadow(0 0 45px rgba(255, 215, 0, 0.65)) brightness(1.25) contrast(1.15);
 }
 
 .animate-float {
@@ -271,7 +272,7 @@
   justify-content: space-between;
   align-items: stretch;
   flex: 1;
-  gap: 0.4rem;
+  gap: 0.3rem;
   z-index: 2;
   position: relative;
 }
@@ -279,21 +280,20 @@
 .bracket-column {
   display: flex;
   flex-direction: column;
-  width: 110px; /* Fluid compact width to fit screen completely */
   flex-shrink: 0;
   box-sizing: border-box;
 }
 
 .bracket-column .bracket-round-title {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
   text-align: center;
   font-family: var(--font-display);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 0.4rem;
-  margin-bottom: 1rem;
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.8rem;
   font-weight: bold;
 }
 
@@ -305,18 +305,16 @@
   height: 520px; /* Fixed height distributes matches mathematically */
 }
 
-/* Match Card Glassmorphism - solid enough to mask background */
+/* Base match card styling */
 .bracket-match-card {
   position: relative;
-  background: rgba(18, 18, 23, 0.88); /* high opacity glass so text stands out */
+  background: rgba(18, 18, 23, 0.9); /* Solid glass background blocks backdrop image */
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  padding: 6px 8px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
   transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
   box-sizing: border-box;
@@ -325,19 +323,16 @@
 }
 
 .bracket-match-card:hover {
-  transform: scale(1.05);
-  border-color: rgba(255, 215, 0, 0.4);
-  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.15);
+  transform: scale(1.05) !important;
+  border-color: rgba(255, 215, 0, 0.65) !important;
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.2) !important;
   z-index: 10;
 }
 
 .bracket-match-header {
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.35);
   text-transform: uppercase;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding-bottom: 2px;
-  margin-bottom: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -345,7 +340,6 @@
 }
 
 .bracket-match-status {
-  font-size: 0.55rem;
   padding: 0px 3px;
   border-radius: 3px;
   font-weight: bold;
@@ -353,47 +347,42 @@
 }
 
 .bracket-match-status.parcial {
-  background: rgba(243, 156, 18, 0.2);
-  border: 1px solid rgba(243, 156, 18, 0.4);
+  background: rgba(243, 156, 18, 0.15);
+  border: 1px solid rgba(243, 156, 18, 0.3);
   color: #f39c12;
 }
 
 .bracket-match-status.definitivo {
-  background: rgba(39, 174, 96, 0.2);
-  border: 1px solid rgba(39, 174, 96, 0.4);
+  background: rgba(39, 174, 96, 0.15);
+  border: 1px solid rgba(39, 174, 96, 0.3);
   color: #2ecc71;
 }
 
 .bracket-team-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  height: 22px;
   box-sizing: border-box;
   justify-content: space-between;
 }
 
 .bracket-flag {
-  width: 16px;
-  height: 16px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.05);
   flex-shrink: 0;
 }
 
 /* Subtle provisional flag style */
 .provisional-flag {
-  opacity: 0.65;
-  filter: grayscale(25%);
-  border: 1px dashed rgba(255, 255, 255, 0.35) !important;
+  opacity: 0.6;
+  filter: grayscale(30%);
+  border: 1px dashed rgba(255, 255, 255, 0.3) !important;
 }
 
 .bracket-team-name {
   font-weight: 500;
-  font-size: 0.78rem;
-  color: #e5e5e5;
+  color: #e2e2e5;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -403,17 +392,14 @@
 
 .bracket-team-score {
   font-weight: bold;
-  font-size: 0.85rem;
   color: #ffd700;
-  min-width: 12px;
   text-align: right;
   flex-shrink: 0;
 }
 
 .bracket-team-label {
   font-weight: 400;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.3);
   font-style: italic;
   white-space: nowrap;
   overflow: hidden;
@@ -448,8 +434,8 @@
 }
 
 .mini-flag {
-  width: 11px;
-  height: 11px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   border: 1px solid rgba(255,255,255,0.1);
   object-fit: cover;
@@ -462,25 +448,160 @@
 }
 
 .candidate-label {
-  font-size: 0.7rem !important;
-  color: rgba(255, 255, 255, 0.45) !important;
   font-style: italic;
 }
 
 .empty-score {
   color: rgba(255, 255, 255, 0.2);
-  font-size: 0.8rem;
 }
 
 
-/* --- CENTER BRACKET COLUMN --- */
+/* --- PROGRESSIVE COLUMN AND CARD SIZES (PREMIUM DESIGN) --- */
 
+/* 1. 16avos - Tiny & Ultra Compact */
+.r32-column {
+  width: 102px;
+}
+.r32-column .bracket-match-card {
+  padding: 4px 6px;
+  border-radius: 6px;
+  gap: 2px;
+}
+.r32-column .bracket-match-header {
+  font-size: 0.58rem;
+  margin-bottom: 1px;
+}
+.r32-column .bracket-team-row {
+  height: 18px;
+  gap: 4px;
+}
+.r32-column .bracket-flag {
+  width: 13px;
+  height: 13px;
+}
+.r32-column .bracket-team-name {
+  font-size: 0.72rem;
+}
+.r32-column .bracket-team-score {
+  font-size: 0.75rem;
+}
+.r32-column .bracket-team-label {
+  font-size: 0.65rem;
+}
+.r32-column .bracket-match-status {
+  font-size: 0.5rem;
+}
+
+/* 2. Octavos - Compact */
+.r16-column {
+  width: 112px;
+}
+.r16-column .bracket-match-card {
+  padding: 6px 8px;
+  border-radius: 8px;
+  gap: 3px;
+}
+.r16-column .bracket-match-header {
+  font-size: 0.64rem;
+  margin-bottom: 2px;
+}
+.r16-column .bracket-team-row {
+  height: 22px;
+  gap: 5px;
+}
+.r16-column .bracket-flag {
+  width: 15px;
+  height: 15px;
+}
+.r16-column .bracket-team-name {
+  font-size: 0.76rem;
+}
+.r16-column .bracket-team-score {
+  font-size: 0.8rem;
+}
+.r16-column .bracket-team-label {
+  font-size: 0.7rem;
+}
+.r16-column .bracket-match-status {
+  font-size: 0.54rem;
+}
+
+/* 3. Cuartos - Standard Large */
+.qf-column {
+  width: 125px;
+}
+.qf-column .bracket-match-card {
+  padding: 8px 10px;
+  border-radius: 9px;
+  gap: 4px;
+}
+.qf-column .bracket-match-header {
+  font-size: 0.7rem;
+  margin-bottom: 3px;
+}
+.qf-column .bracket-team-row {
+  height: 24px;
+  gap: 6px;
+}
+.qf-column .bracket-flag {
+  width: 17px;
+  height: 17px;
+}
+.qf-column .bracket-team-name {
+  font-size: 0.82rem;
+}
+.qf-column .bracket-team-score {
+  font-size: 0.88rem;
+}
+.qf-column .bracket-team-label {
+  font-size: 0.74rem;
+}
+.qf-column .bracket-match-status {
+  font-size: 0.58rem;
+}
+
+/* 4. Semis - Extra Large */
+.sf-column {
+  width: 140px;
+}
+.sf-column .bracket-match-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  gap: 5px;
+}
+.sf-column .bracket-match-header {
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+}
+.sf-column .bracket-team-row {
+  height: 26px;
+  gap: 7px;
+}
+.sf-column .bracket-flag {
+  width: 19px;
+  height: 19px;
+}
+.sf-column .bracket-team-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.sf-column .bracket-team-score {
+  font-size: 0.95rem;
+}
+.sf-column .bracket-team-label {
+  font-size: 0.8rem;
+}
+.sf-column .bracket-match-status {
+  font-size: 0.6rem;
+}
+
+/* 5. Center (Finals) - Colossal Golden Highlights */
 .bracket-center {
   display: flex;
   flex-direction: column;
   justify-content: center; /* Center Final and Third Place vertically */
   align-items: center;
-  width: 150px; /* Slimmer central column */
+  width: 165px; /* Standout central column */
   flex-shrink: 0;
   height: 520px;
   gap: 3.5rem; /* Spacious gap between Final and Third Place */
@@ -491,7 +612,7 @@
 
 .final-slot {
   width: 100%;
-  max-width: 145px;
+  max-width: 155px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -500,17 +621,17 @@
 .final-main-title {
   font-family: var(--font-display);
   text-transform: uppercase;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: bold;
   color: #ffd700;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
-  margin: 0 0 5px 0;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.45);
+  margin: 0 0 6px 0;
   text-align: center;
 }
 
 .third-place-slot {
   width: 100%;
-  max-width: 135px;
+  max-width: 145px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -519,12 +640,78 @@
 .third-place-main-title {
   font-family: var(--font-display);
   text-transform: uppercase;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: bold;
   color: #5cb8e4;
   text-shadow: 0 0 8px rgba(92, 184, 228, 0.35);
-  margin: 0 0 5px 0;
+  margin: 0 0 6px 0;
   text-align: center;
+}
+
+.bracket-center .bracket-match-card {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 215, 0, 0.2);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.1);
+  gap: 6px;
+}
+
+.bracket-center .bracket-match-header {
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.15);
+}
+
+.bracket-center .bracket-team-row {
+  height: 28px;
+  gap: 8px;
+}
+
+.bracket-center .bracket-flag {
+  width: 21px;
+  height: 21px;
+}
+
+.bracket-center .bracket-team-name {
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+.bracket-center .bracket-team-score {
+  font-size: 1.05rem;
+}
+
+.bracket-center .bracket-team-label {
+  font-size: 0.82rem;
+}
+
+.bracket-center .bracket-match-status {
+  font-size: 0.65rem;
+}
+
+
+/* --- LIVE / IN-PROGRESS MATCH GLOW ANIMATION --- */
+
+.live-match {
+  border: 1.5px solid #f39c12 !important;
+  box-shadow: 0 0 15px rgba(243, 156, 18, 0.35) !important;
+  animation: live-match-glow 2s ease-in-out infinite;
+}
+
+@keyframes live-match-glow {
+  0% {
+    border-color: rgba(243, 156, 18, 0.45);
+    box-shadow: 0 0 8px rgba(243, 156, 18, 0.2);
+  }
+  50% {
+    border-color: rgba(243, 156, 18, 1);
+    box-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
+    transform: scale(1.02);
+  }
+  100% {
+    border-color: rgba(243, 156, 18, 0.45);
+    box-shadow: 0 0 8px rgba(243, 156, 18, 0.2);
+  }
 }
 
 
