@@ -148,12 +148,15 @@ function renderBracketSlot(matchId, resolvedMap, results) {
   const renderTeamRow = (team, label, isProvisional, candidates, score, isWinnerTeam) => {
     let content = '';
     let rowClass = 'bracket-team-row';
-    if (isProvisional) rowClass += ' provisional';
+    const isRowProvisional = !team; 
+    
+    if (isRowProvisional) rowClass += ' provisional';
     if (isWinnerTeam) rowClass += ' winner-highlight';
 
     if (team) {
+      const flagClass = isProvisional ? 'bracket-flag provisional-flag' : 'bracket-flag';
       content = `
-        <img src="${team.flagUrl}" class="bracket-flag" onerror="this.style.display='none'">
+        <img src="${team.flagUrl}" class="${flagClass}" onerror="this.style.display='none'">
         <span class="bracket-team-name">${team.name}</span>
         ${score !== undefined && score !== null ? `<span class="bracket-team-score">${score}</span>` : ''}
       `;
@@ -191,12 +194,20 @@ function renderBracketSlot(matchId, resolvedMap, results) {
   }
 
   let badgeHtml = '';
+  const isMatchProvisional = slot.homeProvisional || slot.awayProvisional;
+
   if (hasResult) {
-    const isProvisional = slot.homeProvisional || slot.awayProvisional || (parseInt(res.home) === parseInt(res.away) && !res.winner);
-    if (isProvisional) {
-      badgeHtml = '<span class="bracket-match-status parcial" title="Resultado parcial">Parcial</span>';
+    const isResultProvisional = isMatchProvisional || (parseInt(res.home) === parseInt(res.away) && !res.winner);
+    if (isResultProvisional) {
+      badgeHtml = '<span class="bracket-match-status parcial" title="Resultado parcial o en juego">Parcial</span>';
     } else {
-      badgeHtml = '<span class="bracket-match-status definitivo" title="Partido concluido">Definitivo</span>';
+      badgeHtml = '<span class="bracket-match-status definitivo" title="Partido concluido y confirmado">Definitivo</span>';
+    }
+  } else {
+    if (isMatchProvisional) {
+      badgeHtml = '<span class="bracket-match-status parcial" title="Cruce sujeto a cambios (posiciones del grupo provisorias)">Parcial</span>';
+    } else {
+      badgeHtml = '<span class="bracket-match-status definitivo" title="Cruce confirmado">Confirmado</span>';
     }
   }
 
@@ -473,6 +484,11 @@ export function Llaves() {
           <div class="bracket-scroll-container animate-fade-in">
             <div class="symmetrical-bracket">
               
+              <!-- COPA DEL MUNDO ENORME DETRÁS DEL CENTRO -->
+              <div class="trophy-bg-holder">
+                <img src="/assets/world-cup-trophy.png" class="trophy-bg-img animate-float" alt="Copa del Mundo">
+              </div>
+
               <!-- LADO IZQUIERDO (SIDE A) -->
               <div class="bracket-side bracket-left">
                 <div class="bracket-column r32-column">
@@ -493,34 +509,21 @@ export function Llaves() {
                     ${[97, 98].map(id => renderBracketSlot(id, resolved, results)).join('')}
                   </div>
                 </div>
-              </div>
-
-              <!-- COLUMNA CENTRAL: SEMIFINALES, COPA Y FINAL -->
-              <div class="bracket-center">
-                <!-- Semifinales -->
-                <div class="bracket-center-semis">
-                  <div class="semi-slot sf-left">
-                    <h5 class="center-sub-title">Semifinal A</h5>
+                <div class="bracket-column sf-column">
+                  <h4 class="bracket-round-title">Semis</h4>
+                  <div class="bracket-round-slots">
                     ${renderBracketSlot(101, resolved, results)}
                   </div>
-                  <div class="semi-slot sf-right">
-                    <h5 class="center-sub-title">Semifinal B</h5>
-                    ${renderBracketSlot(102, resolved, results)}
-                  </div>
+                </div>
+              </div>
+
+              <!-- COLUMNA CENTRAL: FINAL Y TERCER PUESTO (SOBRE LA COPA) -->
+              <div class="bracket-center">
+                <div class="final-slot">
+                  <h3 class="final-main-title">Gran Final</h3>
+                  ${renderBracketSlot(104, resolved, results)}
                 </div>
 
-                <!-- Centro: Trofeo y Gran Final -->
-                <div class="bracket-center-core">
-                  <div class="trophy-holder">
-                    <img src="/assets/world-cup-trophy.jpg" class="trophy-img animate-float" alt="Trofeo Mundial">
-                  </div>
-                  <div class="final-slot">
-                    <h3 class="final-main-title">Gran Final</h3>
-                    ${renderBracketSlot(104, resolved, results)}
-                  </div>
-                </div>
-
-                <!-- Tercer Puesto -->
                 <div class="third-place-slot">
                   <h4 class="third-place-main-title">Tercer Puesto</h4>
                   ${renderBracketSlot(103, resolved, results)}
@@ -529,6 +532,12 @@ export function Llaves() {
 
               <!-- LADO DERECHO (SIDE B) -->
               <div class="bracket-side bracket-right">
+                <div class="bracket-column sf-column">
+                  <h4 class="bracket-round-title">Semis</h4>
+                  <div class="bracket-round-slots">
+                    ${renderBracketSlot(102, resolved, results)}
+                  </div>
+                </div>
                 <div class="bracket-column qf-column">
                   <h4 class="bracket-round-title">Cuartos</h4>
                   <div class="bracket-round-slots">
