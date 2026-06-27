@@ -890,6 +890,7 @@ function setupChat() {
 const globalRouter = () => router();
 globalRouter.navigate = (url) => {
   window.history.pushState(null, null, url);
+  window.scrollTo(0, 0);
   router();
 };
 window.router = globalRouter;
@@ -1151,6 +1152,8 @@ document.body.addEventListener('click', e => {
   if (e.target.matches('[data-link]') || e.target.closest('[data-link]')) {
     e.preventDefault();
     const link = e.target.matches('[data-link]') ? e.target : e.target.closest('[data-link]');
+    
+    window.scrollTo(0, 0);
     
     if (document.startViewTransition) {
       document.startViewTransition(() => {

@@ -287,6 +287,8 @@ function renderThirdsTable(thirds) {
   `;
 }
 
+let currentLlavesTab = 'grupos'; // 'grupos' or 'stats'
+
 export function attachLlavesEvents() {
   const tabGrupos = document.getElementById('tab-grupos');
   const tabStats = document.getElementById('tab-stats');
@@ -298,6 +300,7 @@ export function attachLlavesEvents() {
     tabGrupos.dataset.eventsAttached = 'true';
 
     tabGrupos.addEventListener('click', () => {
+      currentLlavesTab = 'grupos';
       tabGrupos.classList.add('active');
       tabStats.classList.remove('active');
       panelGrupos.classList.add('active');
@@ -305,6 +308,7 @@ export function attachLlavesEvents() {
     });
 
     tabStats.addEventListener('click', () => {
+      currentLlavesTab = 'stats';
       tabStats.classList.add('active');
       tabGrupos.classList.remove('active');
       panelStats.classList.add('active');
@@ -478,10 +482,10 @@ export function Llaves() {
         <div class="glass-tabs-container">
           <div class="glass-tabs" role="tablist">
             <div class="tab-indicator"></div>
-            <button role="tab" aria-selected="true" class="tab-btn active" id="tab-grupos" aria-controls="panel-grupos">
+            <button role="tab" aria-selected="${currentLlavesTab === 'grupos'}" class="tab-btn ${currentLlavesTab === 'grupos' ? 'active' : ''}" id="tab-grupos" aria-controls="panel-grupos">
               Llaves y Grupos
             </button>
-            <button role="tab" aria-selected="false" class="tab-btn" id="tab-stats" aria-controls="panel-stats">
+            <button role="tab" aria-selected="${currentLlavesTab === 'stats'}" class="tab-btn ${currentLlavesTab === 'stats' ? 'active' : ''}" id="tab-stats" aria-controls="panel-stats">
               Estadísticas
             </button>
           </div>
@@ -490,7 +494,7 @@ export function Llaves() {
 
       <div class="tab-content-area">
         <!-- TAB 1: LLAVES, TERCEROS Y GRUPOS -->
-        <div role="tabpanel" id="panel-grupos" class="tab-panel active" aria-labelledby="tab-grupos">
+        <div role="tabpanel" id="panel-grupos" class="tab-panel ${currentLlavesTab === 'grupos' ? 'active' : ''}" aria-labelledby="tab-grupos">
           
           <!-- LLAVES SIMÉTRICAS ARRIBA DE TODO -->
           <h2 class="section-title animate-fade-in">🏆 Cuadro Eliminatorio (En Vivo)</h2>
@@ -589,7 +593,7 @@ export function Llaves() {
         </div>
 
         <!-- TAB 2: ESTADÍSTICAS -->
-        <div role="tabpanel" id="panel-stats" class="tab-panel" aria-labelledby="tab-stats">
+        <div role="tabpanel" id="panel-stats" class="tab-panel ${currentLlavesTab === 'stats' ? 'active' : ''}" aria-labelledby="tab-stats">
           <div class="stats-grid animate-fade-in">
             <div class="glass-card" style="padding: 1.5rem;">
               <h3 style="color: #fff; text-align: center; margin-bottom: 1rem; font-family: var(--font-display);">Goleadores</h3>
