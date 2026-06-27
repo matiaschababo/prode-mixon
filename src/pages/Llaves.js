@@ -122,18 +122,14 @@ const resolveSource = (sourceLabel, resolvedMap, results) => {
     }
 
     const team = isWinner ? winner : loser;
-    const isProvisional = prevMatch.homeProvisional || prevMatch.awayProvisional || (hG === aG && !res.winner);
-    return { team, label: team ? team.name : sourceLabel, isProvisional };
+    const isTeamProvisional = (isWinner ? prevMatch.homeProvisional : prevMatch.awayProvisional) || (hG === aG && !res.winner);
+    return { team, label: team ? team.name : sourceLabel, isProvisional: isTeamProvisional };
   } else {
-    const candidates = [];
-    if (prevMatch.home) candidates.push(prevMatch.home);
-    if (prevMatch.away) candidates.push(prevMatch.away);
-
     return { 
       team: null, 
       label: sourceLabel, 
       isProvisional: true, 
-      candidates: candidates.length === 2 ? candidates : null 
+      candidates: null 
     };
   }
 };
@@ -201,20 +197,19 @@ function renderBracketSlot(matchId, resolvedMap, results) {
   if (hasResult) {
     const isResultProvisional = isMatchProvisional || (parseInt(res.home) === parseInt(res.away) && !res.winner);
     if (isResultProvisional) {
-      badgeHtml = '<span class="bracket-match-status parcial" title="Resultado parcial o en juego">Parcial</span>';
+      badgeHtml = '<span class="status-dot parcial" title="Resultado parcial o en juego"></span>';
       cardClass = 'live-match';
     } else {
-      badgeHtml = '<span class="bracket-match-status definitivo" title="Partido concluido y confirmado">Definitivo</span>';
+      badgeHtml = '<span class="status-dot confirmado" title="Partido concluido y confirmado"></span>';
     }
   } else {
     if (hasAnyTeam) {
       if (isMatchProvisional) {
-        badgeHtml = '<span class="bracket-match-status parcial" title="Cruce sujeto a cambios (posiciones provisorias)">Parcial</span>';
+        badgeHtml = '<span class="status-dot parcial" title="Cruce sujeto a cambios (posiciones provisorias)"></span>';
       } else {
-        badgeHtml = '<span class="bracket-match-status definitivo" title="Cruce confirmado">Confirmado</span>';
+        badgeHtml = '<span class="status-dot confirmado" title="Cruce confirmado"></span>';
       }
     } else {
-      // Empty future matches where both teams are placeholders don't show any badge
       badgeHtml = '';
     }
   }
@@ -432,6 +427,18 @@ export function Llaves() {
     awayCandidates: fAwayRes.candidates
   };
 
+  // Calculate active phase based on results
+  let activePhase = '16avos';
+  if (results['104'] && results['104'].home !== null) {
+    activePhase = 'final';
+  } else if (results['101']?.home !== null || results['102']?.home !== null) {
+    activePhase = 'semis';
+  } else if (['97', '98', '99', '100'].some(id => results[id] && results[id].home !== null)) {
+    activePhase = 'cuartos';
+  } else if (['89', '90', '91', '92', '93', '94', '95', '96'].some(id => results[id] && results[id].home !== null)) {
+    activePhase = 'octavos';
+  }
+
   const { topScorers, topAssists } = getTopScorersAndAssists();
 
   const renderStatsList = (players, statName) => {
@@ -499,25 +506,25 @@ export function Llaves() {
 
               <!-- LADO IZQUIERDO (SIDE A) -->
               <div class="bracket-side bracket-left">
-                <div class="bracket-column r32-column">
+                <div class="bracket-column r32-column ${activePhase === '16avos' ? 'active-phase' : 'inactive-phase'}">
                   <h4 class="bracket-round-title">16avos</h4>
                   <div class="bracket-round-slots">
                     ${[74, 77, 73, 75, 83, 84, 81, 82].map(id => renderBracketSlot(id, resolved, results)).join('')}
                   </div>
                 </div>
-                <div class="bracket-column r16-column">
+                <div class="bracket-column r16-column ${activePhase === 'octavos' ? 'active-phase' : 'inactive-phase'}">
                   <h4 class="bracket-round-title">Octavos</h4>
                   <div class="bracket-round-slots">
                     ${[89, 90, 93, 94].map(id => renderBracketSlot(id, resolved, results)).join('')}
                   </div>
                 </div>
-                <div class="bracket-column qf-column">
+                <div class="bracket-column qf-column ${activePhase === 'cuartos' ? 'active-phase' : 'inactive-phase'}">
                   <h4 class="bracket-round-title">Cuartos</h4>
                   <div class="bracket-round-slots">
                     ${[97, 98].map(id => renderBracketSlot(id, resolved, results)).join('')}
                   </div>
                 </div>
-                <div class="bracket-column sf-column">
+                <div class="bracket-column sf-column ${activePhase === 'semis' ? 'active-phase' : 'inactive-phase'}">
                   <h4 class="bracket-round-title">Semis</h4>
                   <div class="bracket-round-slots">
                     ${renderBracketSlot(101, resolved, results)}
@@ -526,7 +533,7 @@ export function Llaves() {
               </div>
 
               <!-- COLUMNA CENTRAL: FINAL Y TERCER PUESTO (SOBRE LA COPA) -->
-              <div class="bracket-center">
+              <div class="bracket-center ${activePhase === 'final' ? 'active-phase' : 'inactive-phase'}">
                 <div class="final-slot">
                   <h3 class="final-main-title">Gran Final</h3>
                   ${renderBracketSlot(104, resolved, results)}
@@ -540,25 +547,25 @@ export function Llaves() {
 
               <!-- LADO DERECHO (SIDE B) -->
               <div class="bracket-side bracket-right">
-                <div class="bracket-column sf-column">
+                <div class="bracket-column sf-column ${activePhase === 'semis' ? 'active-phase' : 'inactive-phase'}">
                   <h4 class="bracket-round-title">Semis</h4>
                   <div class="bracket-round-slots">
                     ${renderBracketSlot(102, resolved, results)}
                   </div>
                 </div>
-                <div class="bracket-column qf-column">
+                <div class="bracket-column qf-column ${activePhase === 'cuartos' ? 'active-phase' : 'inactive-phase'}">
                   <h4 class="bracket-round-title">Cuartos</h4>
                   <div class="bracket-round-slots">
                     ${[99, 100].map(id => renderBracketSlot(id, resolved, results)).join('')}
                   </div>
                 </div>
-                <div class="bracket-column r16-column">
+                <div class="bracket-column r16-column ${activePhase === 'octavos' ? 'active-phase' : 'inactive-phase'}">
                   <h4 class="bracket-round-title">Octavos</h4>
                   <div class="bracket-round-slots">
                     ${[91, 92, 95, 96].map(id => renderBracketSlot(id, resolved, results)).join('')}
                   </div>
                 </div>
-                <div class="bracket-column r32-column">
+                <div class="bracket-column r32-column ${activePhase === '16avos' ? 'active-phase' : 'inactive-phase'}">
                   <h4 class="bracket-round-title">16avos</h4>
                   <div class="bracket-round-slots">
                     ${[76, 78, 79, 80, 86, 88, 85, 87].map(id => renderBracketSlot(id, resolved, results)).join('')}

@@ -213,7 +213,7 @@
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
-  padding: 1.5rem 0;
+  padding: 2.5rem 0; /* extra padding for overflowing cup */
   margin-bottom: 3.5rem;
 }
 
@@ -235,7 +235,7 @@
   box-sizing: border-box;
 }
 
-/* Background transparent World Cup Trophy - boosted shine */
+/* Background transparent World Cup Trophy - massive and bright */
 .trophy-bg-holder {
   position: absolute;
   left: 50%;
@@ -243,18 +243,18 @@
   transform: translate(-50%, -50%);
   z-index: 1;
   pointer-events: none;
-  opacity: 0.85; /* Highly visible gold trophy */
+  opacity: 0.95; /* extremely bright and glowing */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .trophy-bg-img {
-  height: 520px;
+  height: 640px; /* towers above the center cards */
   width: auto;
   object-fit: contain;
   /* Ultimate gold shine: drop-shadow gold aura + brightness boost + contrast boost */
-  filter: drop-shadow(0 0 45px rgba(255, 215, 0, 0.65)) brightness(1.25) contrast(1.15);
+  filter: drop-shadow(0 0 50px rgba(255, 215, 0, 0.75)) brightness(1.32) contrast(1.2);
 }
 
 .animate-float {
@@ -282,6 +282,8 @@
   flex-direction: column;
   flex-shrink: 0;
   box-sizing: border-box;
+  transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  scroll-snap-align: center; /* Snap alignment for smooth swiping on mobile */
 }
 
 .bracket-column .bracket-round-title {
@@ -315,7 +317,7 @@
   border-radius: 8px;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
   box-sizing: border-box;
   width: 100%;
@@ -330,7 +332,7 @@
 }
 
 .bracket-match-header {
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.3);
   text-transform: uppercase;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   display: flex;
@@ -339,23 +341,31 @@
   letter-spacing: 0.5px;
 }
 
-.bracket-match-status {
-  padding: 0px 3px;
-  border-radius: 3px;
-  font-weight: bold;
-  text-transform: uppercase;
+/* STATUS LED DOTS */
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
-.bracket-match-status.parcial {
-  background: rgba(243, 156, 18, 0.15);
-  border: 1px solid rgba(243, 156, 18, 0.3);
-  color: #f39c12;
+.status-dot.confirmado {
+  background-color: #00E676;
+  box-shadow: 0 0 6px #00E676;
 }
 
-.bracket-match-status.definitivo {
-  background: rgba(39, 174, 96, 0.15);
-  border: 1px solid rgba(39, 174, 96, 0.3);
-  color: #2ecc71;
+.status-dot.parcial {
+  background-color: #ff9100;
+  box-shadow: 0 0 6px #ff9100;
+  animation: pulse-orange-dot 1.5s infinite;
+}
+
+@keyframes pulse-orange-dot {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
 }
 
 .bracket-team-row {
@@ -456,163 +466,127 @@
 }
 
 
-/* --- PROGRESSIVE COLUMN AND CARD SIZES (PREMIUM DESIGN) --- */
+/* --- ACTIVE PHASE VS INACTIVE PHASE LAYOUT SYSTEM --- */
 
-/* 1. 16avos - Tiny & Ultra Compact */
-.r32-column {
-  width: 102px;
-}
-.r32-column .bracket-match-card {
-  padding: 4px 6px;
-  border-radius: 6px;
-  gap: 2px;
-}
-.r32-column .bracket-match-header {
-  font-size: 0.58rem;
-  margin-bottom: 1px;
-}
-.r32-column .bracket-team-row {
-  height: 18px;
-  gap: 4px;
-}
-.r32-column .bracket-flag {
-  width: 13px;
-  height: 13px;
-}
-.r32-column .bracket-team-name {
-  font-size: 0.72rem;
-}
-.r32-column .bracket-team-score {
-  font-size: 0.75rem;
-}
-.r32-column .bracket-team-label {
-  font-size: 0.65rem;
-}
-.r32-column .bracket-match-status {
-  font-size: 0.5rem;
+/* 1. Columns in the Active Phase: Larger, readable, highlighted */
+.bracket-column.active-phase {
+  width: 142px !important;
 }
 
-/* 2. Octavos - Compact */
-.r16-column {
-  width: 112px;
-}
-.r16-column .bracket-match-card {
-  padding: 6px 8px;
-  border-radius: 8px;
-  gap: 3px;
-}
-.r16-column .bracket-match-header {
-  font-size: 0.64rem;
-  margin-bottom: 2px;
-}
-.r16-column .bracket-team-row {
-  height: 22px;
-  gap: 5px;
-}
-.r16-column .bracket-flag {
-  width: 15px;
-  height: 15px;
-}
-.r16-column .bracket-team-name {
-  font-size: 0.76rem;
-}
-.r16-column .bracket-team-score {
-  font-size: 0.8rem;
-}
-.r16-column .bracket-team-label {
-  font-size: 0.7rem;
-}
-.r16-column .bracket-match-status {
-  font-size: 0.54rem;
-}
-
-/* 3. Cuartos - Standard Large */
-.qf-column {
-  width: 125px;
-}
-.qf-column .bracket-match-card {
+.bracket-column.active-phase .bracket-match-card {
   padding: 8px 10px;
-  border-radius: 9px;
+  border-radius: 10px;
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
   gap: 4px;
 }
-.qf-column .bracket-match-header {
-  font-size: 0.7rem;
+
+.bracket-column.active-phase .bracket-match-header {
+  font-size: 0.72rem;
   margin-bottom: 3px;
+  padding-bottom: 3px;
 }
-.qf-column .bracket-team-row {
+
+.bracket-column.active-phase .status-dot {
+  width: 7px;
+  height: 7px;
+}
+
+.bracket-column.active-phase .bracket-team-row {
   height: 24px;
   gap: 6px;
 }
-.qf-column .bracket-flag {
+
+.bracket-column.active-phase .bracket-flag {
   width: 17px;
   height: 17px;
 }
-.qf-column .bracket-team-name {
-  font-size: 0.82rem;
-}
-.qf-column .bracket-team-score {
-  font-size: 0.88rem;
-}
-.qf-column .bracket-team-label {
-  font-size: 0.74rem;
-}
-.qf-column .bracket-match-status {
-  font-size: 0.58rem;
-}
 
-/* 4. Semis - Extra Large */
-.sf-column {
-  width: 140px;
-}
-.sf-column .bracket-match-card {
-  padding: 10px 12px;
-  border-radius: 10px;
-  gap: 5px;
-}
-.sf-column .bracket-match-header {
-  font-size: 0.75rem;
-  margin-bottom: 4px;
-}
-.sf-column .bracket-team-row {
-  height: 26px;
-  gap: 7px;
-}
-.sf-column .bracket-flag {
-  width: 19px;
-  height: 19px;
-}
-.sf-column .bracket-team-name {
-  font-size: 0.88rem;
+.bracket-column.active-phase .bracket-team-name {
+  font-size: 0.8rem;
   font-weight: 600;
 }
-.sf-column .bracket-team-score {
-  font-size: 0.95rem;
+
+.bracket-column.active-phase .bracket-team-score {
+  font-size: 0.85rem;
 }
-.sf-column .bracket-team-label {
-  font-size: 0.8rem;
+
+.bracket-column.active-phase .bracket-team-label {
+  font-size: 0.74rem;
 }
-.sf-column .bracket-match-status {
+
+/* 2. Columns in the Inactive Phase: Super compact, space-saving placeholders */
+.bracket-column.inactive-phase {
+  width: 95px !important;
+}
+
+.bracket-column.inactive-phase .bracket-match-card {
+  padding: 3px 5px;
+  border-radius: 6px;
+  gap: 1px;
+  opacity: 0.8; /* slightly dimmed to prioritize active phase */
+}
+
+.bracket-column.inactive-phase .bracket-match-header {
+  font-size: 0.55rem;
+  margin-bottom: 1px;
+  padding-bottom: 1px;
+}
+
+.bracket-column.inactive-phase .status-dot {
+  width: 5px;
+  height: 5px;
+}
+
+.bracket-column.inactive-phase .bracket-team-row {
+  height: 16px;
+  gap: 3px;
+}
+
+.bracket-column.inactive-phase .bracket-flag {
+  width: 12px;
+  height: 12px;
+}
+
+.bracket-column.inactive-phase .bracket-team-name {
+  font-size: 0.68rem;
+}
+
+.bracket-column.inactive-phase .bracket-team-score {
+  font-size: 0.7rem;
+}
+
+.bracket-column.inactive-phase .bracket-team-label {
   font-size: 0.6rem;
 }
 
-/* 5. Center (Finals) - Colossal Golden Highlights */
+
+/* --- CENTER COLUMN SPECIAL ADJUSTMENTS --- */
+
 .bracket-center {
   display: flex;
   flex-direction: column;
   justify-content: center; /* Center Final and Third Place vertically */
   align-items: center;
-  width: 165px; /* Standout central column */
   flex-shrink: 0;
   height: 520px;
   gap: 3.5rem; /* Spacious gap between Final and Third Place */
   box-sizing: border-box;
   z-index: 2;
   position: relative;
+  transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  scroll-snap-align: center;
 }
 
 .final-slot {
   width: 100%;
-  max-width: 155px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.third-place-slot {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -621,26 +595,16 @@
 .final-main-title {
   font-family: var(--font-display);
   text-transform: uppercase;
-  font-size: 0.85rem;
   font-weight: bold;
   color: #ffd700;
-  text-shadow: 0 0 12px rgba(255, 215, 0, 0.45);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.45);
   margin: 0 0 6px 0;
   text-align: center;
-}
-
-.third-place-slot {
-  width: 100%;
-  max-width: 145px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .third-place-main-title {
   font-family: var(--font-display);
   text-transform: uppercase;
-  font-size: 0.78rem;
   font-weight: bold;
   color: #5cb8e4;
   text-shadow: 0 0 8px rgba(92, 184, 228, 0.35);
@@ -648,45 +612,102 @@
   text-align: center;
 }
 
-.bracket-center .bracket-match-card {
+/* Center Column Active - Colossal Golden Highlights */
+.bracket-center.active-phase {
+  width: 165px !important;
+}
+
+.bracket-center.active-phase .bracket-match-card {
   padding: 12px 14px;
   border-radius: 12px;
-  border: 1.5px solid rgba(255, 215, 0, 0.2);
-  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.1);
+  border: 1.5px solid rgba(255, 215, 0, 0.3);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
   gap: 6px;
 }
 
-.bracket-center .bracket-match-header {
+.bracket-center.active-phase .bracket-match-header {
   font-size: 0.8rem;
   margin-bottom: 4px;
   border-bottom: 1px solid rgba(255, 215, 0, 0.15);
 }
 
-.bracket-center .bracket-team-row {
+.bracket-center.active-phase .bracket-team-row {
   height: 28px;
   gap: 8px;
 }
 
-.bracket-center .bracket-flag {
+.bracket-center.active-phase .bracket-flag {
   width: 21px;
   height: 21px;
 }
 
-.bracket-center .bracket-team-name {
+.bracket-center.active-phase .bracket-team-name {
   font-size: 0.94rem;
   font-weight: 700;
 }
 
-.bracket-center .bracket-team-score {
+.bracket-center.active-phase .bracket-team-score {
   font-size: 1.05rem;
 }
 
-.bracket-center .bracket-team-label {
+.bracket-center.active-phase .bracket-team-label {
   font-size: 0.82rem;
 }
 
-.bracket-center .bracket-match-status {
+.bracket-center.active-phase .final-main-title {
+  font-size: 0.85rem;
+}
+
+.bracket-center.active-phase .third-place-main-title {
+  font-size: 0.78rem;
+}
+
+/* Center Column Inactive - Compact */
+.bracket-center.inactive-phase {
+  width: 110px !important;
+}
+
+.bracket-center.inactive-phase .bracket-match-card {
+  padding: 4px 6px;
+  border-radius: 8px;
+  gap: 2px;
+  opacity: 0.8;
+}
+
+.bracket-center.inactive-phase .bracket-match-header {
+  font-size: 0.62rem;
+  margin-bottom: 2px;
+  padding-bottom: 2px;
+}
+
+.bracket-center.inactive-phase .bracket-team-row {
+  height: 18px;
+  gap: 4px;
+}
+
+.bracket-center.inactive-phase .bracket-flag {
+  width: 13px;
+  height: 13px;
+}
+
+.bracket-center.inactive-phase .bracket-team-name {
+  font-size: 0.72rem;
+}
+
+.bracket-center.inactive-phase .bracket-team-score {
+  font-size: 0.75rem;
+}
+
+.bracket-center.inactive-phase .bracket-team-label {
   font-size: 0.65rem;
+}
+
+.bracket-center.inactive-phase .final-main-title {
+  font-size: 0.75rem;
+}
+
+.bracket-center.inactive-phase .third-place-main-title {
+  font-size: 0.7rem;
 }
 
 
@@ -711,6 +732,122 @@
   100% {
     border-color: rgba(243, 156, 18, 0.45);
     box-shadow: 0 0 8px rgba(243, 156, 18, 0.2);
+  }
+}
+
+
+/* --- MOBILE RESPONSIVENESS OVERRIDES (EXCELENTE EN MOBILE) --- */
+
+@media (max-width: 991px) {
+  .bracket-scroll-container {
+    overflow-x: auto !important; /* Enable swipeable scroll on touch screens */
+    scroll-snap-type: x mandatory !important;
+    padding: 1.5rem 0;
+  }
+  
+  .symmetrical-bracket {
+    min-width: 1250px !important; /* Force wide horizontal scrolling canvas */
+    gap: 0.5rem !important;
+  }
+  
+  /* Reset dynamic size scaling on mobile to a unified, readable scale */
+  .bracket-column.active-phase, 
+  .bracket-column.inactive-phase {
+    width: 120px !important;
+  }
+  
+  .bracket-column.active-phase .bracket-match-card,
+  .bracket-column.inactive-phase .bracket-match-card {
+    padding: 6px 8px !important;
+    border-radius: 8px !important;
+    opacity: 1 !important; /* full opacity on mobile for readibility */
+    gap: 3px !important;
+  }
+  
+  .bracket-column.active-phase .bracket-match-header,
+  .bracket-column.inactive-phase .bracket-match-header {
+    font-size: 0.65rem !important;
+    margin-bottom: 2px !important;
+    padding-bottom: 2px !important;
+  }
+  
+  .bracket-column.active-phase .status-dot,
+  .bracket-column.inactive-phase .status-dot {
+    width: 6px !important;
+    height: 6px !important;
+  }
+  
+  .bracket-column.active-phase .bracket-team-row,
+  .bracket-column.inactive-phase .bracket-team-row {
+    height: 22px !important;
+    gap: 5px !important;
+  }
+  
+  .bracket-column.active-phase .bracket-flag,
+  .bracket-column.inactive-phase .bracket-flag {
+    width: 15px !important;
+    height: 15px !important;
+  }
+  
+  .bracket-column.active-phase .bracket-team-name,
+  .bracket-column.inactive-phase .bracket-team-name {
+    font-size: 0.76rem !important;
+  }
+  
+  .bracket-column.active-phase .bracket-team-score,
+  .bracket-column.inactive-phase .bracket-team-score {
+    font-size: 0.8rem !important;
+  }
+  
+  .bracket-column.active-phase .bracket-team-label,
+  .bracket-column.inactive-phase .bracket-team-label {
+    font-size: 0.68rem !important;
+  }
+
+  /* Center Column overrides on mobile */
+  .bracket-center.active-phase,
+  .bracket-center.inactive-phase {
+    width: 135px !important;
+    gap: 2.5rem !important;
+  }
+  
+  .bracket-center.active-phase .bracket-match-card,
+  .bracket-center.inactive-phase .bracket-match-card {
+    padding: 8px 10px !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    opacity: 1 !important;
+  }
+  
+  .bracket-center.active-phase .bracket-team-row,
+  .bracket-center.inactive-phase .bracket-team-row {
+    height: 24px !important;
+  }
+  
+  .bracket-center.active-phase .bracket-flag,
+  .bracket-center.inactive-phase .bracket-flag {
+    width: 17px !important;
+    height: 17px !important;
+  }
+  
+  .bracket-center.active-phase .bracket-team-name,
+  .bracket-center.inactive-phase .bracket-team-name {
+    font-size: 0.82rem !important;
+  }
+
+  .bracket-center.active-phase .final-main-title,
+  .bracket-center.inactive-phase .final-main-title {
+    font-size: 0.76rem !important;
+  }
+  
+  .bracket-center.active-phase .third-place-main-title,
+  .bracket-center.inactive-phase .third-place-main-title {
+    font-size: 0.72rem !important;
+  }
+
+  /* Scale down trophy slightly on mobile to keep page proportioned */
+  .trophy-bg-img {
+    height: 480px !important;
   }
 }
 
