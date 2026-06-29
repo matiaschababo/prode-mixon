@@ -199,6 +199,12 @@ export default async function handler(request, response) {
               currentResults[localMatch.id] = newPayloadDone;
               changed = true;
             }
+          } else if (state === 'pre') {
+            const newPayloadPre = { ...(saved || {}), home: null, away: null, live: false, status: 'SCHEDULED', actualDate: apiMatch.date, espnHome: actualHomeTeam.toUpperCase(), espnAway: actualAwayTeam.toUpperCase(), updatedAt: new Date().toISOString() };
+            if (!saved || saved.espnHome !== actualHomeTeam.toUpperCase() || saved.actualDate !== apiMatch.date) {
+               currentResults[localMatch.id] = newPayloadPre;
+               changed = true;
+            }
           }
         }
       }

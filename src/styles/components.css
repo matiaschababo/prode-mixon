@@ -1615,6 +1615,7 @@ a.ranking-name:hover { color: var(--color-mixon-light); }
 }
 .fixture-day {
   margin-bottom: 2rem;
+  scroll-margin-top: 80px;
 }
 .fixture-day-header {
   display: flex;
