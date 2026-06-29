@@ -32,7 +32,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
       }
       statusText = `🔴 EN VIVO${minText}`;
     }
-  } else if (isMatchFinished || (isPast && !isMatchLive && (resultOverride?.home !== undefined || match.homeScore !== null))) {
+  } else if (isMatchFinished || (isPast && !isMatchLive && ((resultOverride?.home !== undefined && resultOverride?.home !== null) || match.homeScore !== null))) {
     badgeClass = 'badge-finished';
     statusText = 'Finalizado';
   }

@@ -37,6 +37,7 @@ export function initializeFirebaseSync(onUpdateCallback) {
       
       // HARDCODE RESULTADOS DE EMERGENCIA (QUOTA EXCEEDED)
       res[73] = { home: 1, away: 0, status: 'FINISHED', espnHome: 'CAN', espnAway: 'RSA' }; // Canadá (1) vs Sudáfrica (0) [ESPN: RSA 0 - CAN 1]
+      res[74] = { home: 0, away: 1, live: true, status: 'PAUSED', minute: 'HT', espnHome: 'GER', espnAway: 'PAR' }; // Alemania (0) vs Paraguay (1) [EN VIVO / ENTRETIEMPO]
       res[76] = { home: 2, away: 1, status: 'FINISHED', espnHome: 'BRA', espnAway: 'JPN' }; // Brasil (2) vs Japón (1) [ESPN: BRA 2 - JPN 1]
       
       prodeState.results = res;
