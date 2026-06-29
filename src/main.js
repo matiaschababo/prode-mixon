@@ -19,7 +19,7 @@ import { Llaves, attachLlavesEvents } from './pages/Llaves.js';
 import { TeamProfile } from './pages/TeamProfile.js';
 import { matches } from './data/matches.js';
 import { getParticipantProgramLabel, participants } from './data/participants.js';
-import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady, getChatMessages, sendChatMessage, deleteChatMessage, banUser, toggleLikeChatMessage, listenToNotifications, markNotificationsAsRead, togglePredictionLike, incrementPredictionShares, resolveUid } from './services/prodeStore.js';
+import { getPredictions, getResults, getRankedParticipants, initializeFirebaseSync, ensureUserExists, MASTER_ADMINS, getDynamicUsers, updateUserDisplayName, startLiveMatchEngine, isDataReady, getChatMessages, sendChatMessage, deleteChatMessage, banUser, toggleLikeChatMessage, listenToNotifications, markNotificationsAsRead, togglePredictionLike, incrementPredictionShares, resolveUid, syncLocalPredictions } from './services/prodeStore.js';
 import { auth, googleProvider, analytics, logEvent, setUserId, setUserProperties, signInWithPopup, signOut, onAuthStateChanged } from './services/firebase.js';
 
 if (analytics) {
@@ -1165,6 +1165,7 @@ window.addEventListener('popstate', (e) => {
 onAuthStateChanged(auth, (user) => {
   if (user) {
     startLiveMatchEngine();
+    syncLocalPredictions();
     
     if (notifUnsubscribe) notifUnsubscribe();
     notifUnsubscribe = listenToNotifications(resolveUid(user.uid), (notifs) => {

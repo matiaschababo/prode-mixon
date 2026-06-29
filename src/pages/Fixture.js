@@ -280,7 +280,44 @@ export function attachFixtureEvents() {
         val.style.color = '#2ed573';
         setTimeout(() => val.style.color = '', 1500);
       } catch (err) {
-        alert("Error al guardar: " + err.message);
+        if (err.message === "MANTENIMIENTO_LOCAL") {
+          // It was saved locally. We need to update UI to show it's saved.
+          const form = area.querySelector('.pred-edit-form');
+          let saved = area.querySelector('.pred-saved');
+          let changeBtn = area.querySelector('.pred-change-btn');
+          const cta = area.querySelector('.pred-cta');
+          if (cta) cta.remove();
+          
+          if (!saved) {
+            saved = document.createElement('div');
+            saved.className = 'pred-saved';
+            saved.innerHTML = `<span class="pred-label" style="color:#f39c12">Respaldo Local</span><span class="pred-value">${home} - ${away}</span>`;
+            area.insertBefore(saved, form);
+            
+            changeBtn = document.createElement('button');
+            changeBtn.className = 'btn btn-secondary btn-sm pred-change-btn';
+            changeBtn.dataset.match = matchId;
+            changeBtn.textContent = '✏️ Cambiar';
+            area.insertBefore(changeBtn, form);
+            
+            changeBtn.addEventListener('click', () => {
+              saved.style.display = 'none';
+              changeBtn.style.display = 'none';
+              form.style.display = 'flex';
+            });
+          } else {
+            saved.innerHTML = `<span class="pred-label" style="color:#f39c12">Respaldo Local</span><span class="pred-value">${home} - ${away}</span>`;
+            saved.style.display = '';
+            if (changeBtn) changeBtn.style.display = '';
+          }
+          form.style.display = 'none';
+          area.classList.remove('pred-area-open');
+          
+          // Toast or simple alert
+          alert("¡Pronóstico guardado de emergencia en tu dispositivo! Por un colapso en el servidor, tu pronóstico se subirá automáticamente mañana.");
+        } else {
+          alert("Error al guardar: " + err.message);
+        }
       }
     });
   });

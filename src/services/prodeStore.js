@@ -53,6 +53,27 @@ export function initializeFirebaseSync(onUpdateCallback) {
         newPredictions[matchId][userId] = pred;
       });
     });
+
+    // OVERRIDE WITH LOCAL BACKUPS FOR CURRENT USER
+    const auth = getAuth();
+    if (auth.currentUser) {
+      const currentUid = resolveUid(auth.currentUser.uid);
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('backup_pred_')) {
+          const matchId = key.replace('backup_pred_', '');
+          const localPred = JSON.parse(localStorage.getItem(key));
+          if (!newPredictions[matchId]) newPredictions[matchId] = {};
+          newPredictions[matchId][currentUid] = {
+            home: localPred.home,
+            away: localPred.away,
+            advances: localPred.advances,
+            timestamp: { toMillis: () => localPred.timestamp }
+          };
+        }
+      }
+    }
+
     prodeState.predictions = newPredictions;
     cachedRankings = null;
     cachedMatchStats = null;
@@ -219,32 +240,79 @@ export async function saveMyPrediction(matchId, home, away, advances = null) {
 
   const userDocRef = doc(db, 'predictions', resolveUid(user.uid));
   
-  if (home === '' || away === '') {
-    await updateDoc(userDocRef, {
-      [matchId]: deleteField()
-    }).catch(async (e) => {
-      // If doc doesn't exist yet, updateDoc fails. We can safely ignore or set empty object.
-    });
-  } else {
-    const data = { home: Number(home), away: Number(away), timestamp: serverTimestamp() };
-    if (advances) data.advances = advances;
-    await setDoc(userDocRef, {
-      [matchId]: data
-    }, { merge: true });
-    
-    if (analytics) {
-      try { 
-        const predicted_outcome = Number(home) > Number(away) ? 'Home Win' : Number(home) < Number(away) ? 'Away Win' : 'Draw';
-        const hours_before_match = (new Date(match.date).getTime() - new Date().getTime()) / (1000 * 60 * 60);
-        logEvent(analytics, 'save_prediction', { 
-          match_id: matchId, 
-          home: home, 
-          away: away,
-          match_stage: match.stage,
-          predicted_outcome: predicted_outcome,
-          hours_before_match: Math.round(hours_before_match * 10) / 10
-        }); 
-      } catch(e) {}
+  try {
+    if (home === '' || away === '') {
+      await updateDoc(userDocRef, {
+        [matchId]: deleteField()
+      });
+      localStorage.removeItem(`backup_pred_${matchId}`);
+    } else {
+      const data = { home: Number(home), away: Number(away), timestamp: serverTimestamp() };
+      if (advances) data.advances = advances;
+      await setDoc(userDocRef, {
+        [matchId]: data
+      }, { merge: true });
+      localStorage.removeItem(`backup_pred_${matchId}`);
+      
+      if (analytics) {
+        try { 
+          const predicted_outcome = Number(home) > Number(away) ? 'Home Win' : Number(home) < Number(away) ? 'Away Win' : 'Draw';
+          const hours_before_match = (new Date(match.date).getTime() - new Date().getTime()) / (1000 * 60 * 60);
+          logEvent(analytics, 'save_prediction', { 
+            match_id: matchId, 
+            home_goals: home, 
+            away_goals: away,
+            predicted_outcome: predicted_outcome,
+            hours_before_match: Math.round(hours_before_match),
+            is_knockout: advances !== null
+          }); 
+        } catch(e) {}
+      }
+    }
+  } catch (err) {
+    if (err.code === 'resource-exhausted' || (err.message && err.message.toLowerCase().includes('quota'))) {
+      if (home === '' || away === '') {
+        localStorage.removeItem(`backup_pred_${matchId}`);
+      } else {
+        localStorage.setItem(`backup_pred_${matchId}`, JSON.stringify({
+          home: Number(home),
+          away: Number(away),
+          advances: advances,
+          timestamp: Date.now()
+        }));
+      }
+      throw new Error("MANTENIMIENTO_LOCAL");
+    }
+    throw err;
+  }
+}
+
+export async function syncLocalPredictions() {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) return;
+  const uid = resolveUid(user.uid);
+  const userRef = doc(db, 'predictions', uid);
+  
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('backup_pred_')) {
+      const matchId = key.replace('backup_pred_', '');
+      const pred = JSON.parse(localStorage.getItem(key));
+      try {
+        const data = { 
+          home: pred.home, 
+          away: pred.away, 
+          timestamp: serverTimestamp() 
+        };
+        if (pred.advances) data.advances = pred.advances;
+        await setDoc(userRef, { [matchId]: data }, { merge: true });
+        localStorage.removeItem(key);
+        i--; // Adjust index since we removed an item
+      } catch (e) {
+        console.warn("Sync local blocked due to quota");
+        break; // Stop trying if we hit quota
+      }
     }
   }
 }
