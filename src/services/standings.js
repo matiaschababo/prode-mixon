@@ -112,7 +112,7 @@ export function getThirdPlacedStandings(groups) {
   return thirds;
 }
 
-export function getProvisionalBracket(groups, bracketData) {
+export function getProvisionalBracket(groups, bracketData, results = {}) {
   const isGroupFinished = (g) => groups[g] && groups[g].length > 0 && groups[g].every(t => t.played === 3);
 
   const thirds = getThirdPlacedStandings(groups);
@@ -163,8 +163,14 @@ export function getProvisionalBracket(groups, bracketData) {
     awayResolved: resolveTeam(slot.away)
   }));
 
+  const lockedTeams = new Set();
+  Object.values(results).forEach(res => {
+    if (res.espnHome && teams[res.espnHome]) lockedTeams.add(teams[res.espnHome].id);
+    if (res.espnAway && teams[res.espnAway]) lockedTeams.add(teams[res.espnAway].id);
+  });
+
   // Assign best 3rd placed teams
-  const availableThirds = [...bestThirds];
+  const availableThirds = bestThirds.filter(t => !lockedTeams.has(t.id));
   const thirdPlaceSlots = [];
   
   parsedRoundOf32.forEach(slot => {

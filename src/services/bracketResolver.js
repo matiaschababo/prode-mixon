@@ -75,7 +75,7 @@ export function getResolvedBracket(customStandings, customResults, customBracket
   const results = customResults || getResults();
   const bData = customBracketData || bracketData;
   
-  const provisionalRoundOf32 = getProvisionalBracket(standings, bData);
+  const provisionalRoundOf32 = getProvisionalBracket(standings, bData, results);
   const resolved = {};
   
   // R32
