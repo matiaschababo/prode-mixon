@@ -209,7 +209,11 @@ export async function saveMyPrediction(matchId, home, away, advances = null) {
   // Verificar que el partido no haya empezado
   const match = matches.find(m => m.id == matchId);
   if (!match) throw new Error("Partido no encontrado");
-  if (new Date() >= new Date(match.date)) {
+  
+  const res = prodeState.results ? prodeState.results[matchId] : null;
+  const matchDate = new Date(res?.actualDate || match.date);
+  
+  if (new Date() >= matchDate) {
     throw new Error("El partido ya comenzó, no se pueden modificar las predicciones.");
   }
 

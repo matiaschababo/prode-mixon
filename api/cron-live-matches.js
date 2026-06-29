@@ -90,14 +90,8 @@ export default async function handler(request, response) {
           if (teamMap[mHome] && teamMap[mAway]) return true;
           
           if (m.stage !== "Group Stage") {
-            // Only allow partial matches if the ESP API event is explicitly a World Cup event
-            // Note: ESPN API for 'fifa.world' includes friendlies. We require both teams to match to avoid false positives.
-            // Wait, what if one team is TBD in our local DB, but ESPN has both? 
-            // In that case, we can't reliably map it unless the date matches exactly, but even then it's risky.
-            // Better to only match if we have BOTH teams, OR if it's explicitly the correct match slot (which we can't easily know).
-            // Let's just return false for partial matches to prevent random friendlies from overwriting our bracket.
-            // It will be matched once the bracket is resolved and both teams are known in our DB.
-            return false;
+            if (teamMap[mHome]) return true;
+            if (teamMap[mAway]) return true;
           }
           return false;
         });
