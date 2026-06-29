@@ -36,8 +36,8 @@ export function initializeFirebaseSync(onUpdateCallback) {
       let res = docSnap.data();
       
       // HARDCODE RESULTADOS DE EMERGENCIA (QUOTA EXCEEDED)
-      res[73] = { home: 1, away: 0, status: 'FINISHED', espnHome: 'CAN', espnAway: 'RSA' }; // Canadá (1) vs Sudáfrica (0) [ESPN: RSA 0 - CAN 1, nosotros mapeamos home/away en data]
-      res[74] = { home: 1, away: 2, status: 'FINISHED', espnHome: 'JPN', espnAway: 'BRA' }; // Japón (1) vs Brasil (2) [ESPN: BRA 2 - JPN 1]
+      res[73] = { home: 1, away: 0, status: 'FINISHED', espnHome: 'CAN', espnAway: 'RSA' }; // Canadá (1) vs Sudáfrica (0) [ESPN: RSA 0 - CAN 1]
+      res[76] = { home: 2, away: 1, status: 'FINISHED', espnHome: 'BRA', espnAway: 'JPN' }; // Brasil (2) vs Japón (1) [ESPN: BRA 2 - JPN 1]
       
       prodeState.results = res;
       cachedRankings = null;
