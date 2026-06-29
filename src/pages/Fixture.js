@@ -165,10 +165,13 @@ export function attachFixtureEvents() {
       }
 
       if (targetEl) {
-        const y = targetEl.getBoundingClientRect().top + window.scrollY - 80;
-        window.scrollTo({ top: y, behavior: 'smooth' });
+        const container = document.querySelector('.main-content') || window;
+        const offset = 80;
+        const targetPosition = targetEl.getBoundingClientRect().top + (container.scrollTop || window.scrollY) - offset;
+        container.scrollTo({ top: targetPosition, behavior: 'smooth' });
       } else {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        const container = document.querySelector('.main-content') || window;
+        container.scrollTo({ top: container.scrollHeight || document.body.scrollHeight, behavior: 'smooth' });
       }
     });
   }
