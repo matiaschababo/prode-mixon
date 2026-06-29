@@ -19,7 +19,11 @@ export function Fixture() {
     return m;
   });
 
-  const sorted = [...mappedMatches].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const sorted = [...mappedMatches].sort((a, b) => {
+    const aRes = getMatchResult(a);
+    const bRes = getMatchResult(b);
+    return new Date(aRes?.actualDate || a.date) - new Date(bRes?.actualDate || b.date);
+  });
   const user = auth.currentUser;
   const allPredictions = getPredictions();
   
@@ -165,10 +169,7 @@ export function attachFixtureEvents() {
       }
 
       if (targetEl) {
-        const container = document.querySelector('.main-content') || window;
-        const offset = 80;
-        const targetPosition = targetEl.getBoundingClientRect().top + (container.scrollTop || window.scrollY) - offset;
-        container.scrollTo({ top: targetPosition, behavior: 'smooth' });
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
         const container = document.querySelector('.main-content') || window;
         container.scrollTo({ top: container.scrollHeight || document.body.scrollHeight, behavior: 'smooth' });
