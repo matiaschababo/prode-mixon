@@ -718,20 +718,8 @@ export async function updateUserDisplayName(newName) {
 let liveEngineInterval = null;
 
 export function startLiveMatchEngine() {
-  console.log("🟢 Live Match Engine polling backend API");
-  
-  const triggerLiveUpdate = async () => {
-    try {
-      await fetch('/api/cron-live-matches');
-    } catch (e) {
-      console.log('Live update skipped');
-    }
-  };
-  
-  // Trigger once immediately, then every 60 seconds
-  triggerLiveUpdate();
-  if (liveEngineInterval) clearInterval(liveEngineInterval);
-  liveEngineInterval = setInterval(triggerLiveUpdate, 60000);
+  console.log("🟢 Live Match Engine initialized (Polling handled by backend cron)");
+  // Removing frontend polling to avoid DDOS and Firebase Quota Exceeded errors.
 }
 
 // ==============================================
