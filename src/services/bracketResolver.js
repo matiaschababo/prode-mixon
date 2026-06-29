@@ -70,11 +70,12 @@ export const resolveSource = (sourceLabel, resolvedMap, results) => {
   }
 };
 
-export function getResolvedBracket() {
-  const standings = calculateGroupStandings();
-  const results = getResults();
+export function getResolvedBracket(customStandings, customResults, customBracketData) {
+  const standings = customStandings || calculateGroupStandings();
+  const results = customResults || getResults();
+  const bData = customBracketData || bracketData;
   
-  const provisionalRoundOf32 = getProvisionalBracket(standings, bracketData);
+  const provisionalRoundOf32 = getProvisionalBracket(standings, bData);
   const resolved = {};
   
   // R32
