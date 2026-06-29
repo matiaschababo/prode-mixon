@@ -39,14 +39,17 @@ export default async function handler(request, response) {
     const todayDate = new Date();
     const pastDate = new Date();
     pastDate.setDate(todayDate.getDate() - 2);
+    
+    const futureDate = new Date();
+    futureDate.setDate(todayDate.getDate() + 30);
 
     const yyyy1 = pastDate.getFullYear();
     const mm1 = String(pastDate.getMonth() + 1).padStart(2, '0');
     const dd1 = String(pastDate.getDate()).padStart(2, '0');
 
-    const yyyy2 = todayDate.getFullYear();
-    const mm2 = String(todayDate.getMonth() + 1).padStart(2, '0');
-    const dd2 = String(todayDate.getDate()).padStart(2, '0');
+    const yyyy2 = futureDate.getFullYear();
+    const mm2 = String(futureDate.getMonth() + 1).padStart(2, '0');
+    const dd2 = String(futureDate.getDate()).padStart(2, '0');
     
     const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${yyyy1}${mm1}${dd1}-${yyyy2}${mm2}${dd2}`;
     console.log(`Cron: Fetching ${url}`);
