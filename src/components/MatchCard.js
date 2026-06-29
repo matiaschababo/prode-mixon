@@ -13,6 +13,9 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
   const dateStr = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
   const timeStr = dateObj.toLocaleTimeString('es-AR', { hour12: false, hour: '2-digit', minute: '2-digit' });
   const isPast = new Date() >= dateObj;
+  const isMatchFinished = match.status === 'finished' || resultOverride?.status === 'FINISHED' || resultOverride?.status === 'FINALIZADO';
+  const isMatchLive = match.status === 'live' || resultOverride?.live || resultOverride?.status === 'PAUSED';
+  const hasStarted = isPast || isMatchFinished || isMatchLive;
 
   let badgeClass = 'badge-scheduled';
   let statusText = 'Programado';
@@ -29,7 +32,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
       }
       statusText = `🔴 EN VIVO${minText}`;
     }
-  } else if (match.status === 'finished' || (isPast && !resultOverride?.live && (resultOverride?.home !== undefined || match.homeScore !== null))) {
+  } else if (isMatchFinished || (isPast && !isMatchLive && (resultOverride?.home !== undefined || match.homeScore !== null))) {
     badgeClass = 'badge-finished';
     statusText = 'Finalizado';
   }
@@ -70,7 +73,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
   let predictionArea = '';
   if (userPred !== null) {
     // User is logged in
-    if (!isPast) {
+    if (!hasStarted) {
       // Match hasn't started — they can predict
       if (hasPrediction) {
         // Already has a prediction saved — show it with a "Cambiar" button
