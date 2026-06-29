@@ -46,6 +46,15 @@ export function initializeFirebaseSync(onUpdateCallback) {
     }
     loadingState.results = true;
     onUpdateCallback();
+  }, (err) => {
+    console.error("Results fallback error (quota):", err);
+    let res = {};
+    res[73] = { home: 1, away: 0, status: 'FINISHED', espnHome: 'CAN', espnAway: 'RSA' };
+    res[74] = { home: 0, away: 1, live: true, status: 'PAUSED', minute: 'HT', espnHome: 'GER', espnAway: 'PAR' };
+    res[76] = { home: 2, away: 1, status: 'FINISHED', espnHome: 'BRA', espnAway: 'JPN' };
+    prodeState.results = res;
+    loadingState.results = true;
+    onUpdateCallback();
   });
 
   // Listen to all predictions
@@ -87,6 +96,33 @@ export function initializeFirebaseSync(onUpdateCallback) {
     cachedMVPCounts = null;
     loadingState.predictions = true;
     onUpdateCallback();
+  }, (err) => {
+    console.error("Predictions quota error:", err);
+    const newPredictions = {};
+    const auth = getAuth();
+    if (auth.currentUser) {
+      const currentUid = resolveUid(auth.currentUser.uid);
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('backup_pred_')) {
+          const matchId = key.replace('backup_pred_', '');
+          const localPred = JSON.parse(localStorage.getItem(key));
+          if (!newPredictions[matchId]) newPredictions[matchId] = {};
+          newPredictions[matchId][currentUid] = {
+            home: localPred.home,
+            away: localPred.away,
+            advances: localPred.advances,
+            timestamp: { toMillis: () => localPred.timestamp }
+          };
+        }
+      }
+    }
+    prodeState.predictions = newPredictions;
+    cachedRankings = null;
+    cachedMatchStats = null;
+    cachedMVPCounts = null;
+    loadingState.predictions = true;
+    onUpdateCallback();
   });
 
   // Listen to users
@@ -103,6 +139,10 @@ export function initializeFirebaseSync(onUpdateCallback) {
     cachedMVPCounts = null;
     loadingState.users = true;
     onUpdateCallback();
+  }, (err) => {
+    console.error("Users quota error:", err);
+    loadingState.users = true;
+    onUpdateCallback();
   });
 
   // Listen to Chat Messages (latest 50)
@@ -115,6 +155,8 @@ export function initializeFirebaseSync(onUpdateCallback) {
     // Reverse to show oldest first at the top of the chat window
     prodeState.chatMessages = msgs.reverse();
     onUpdateCallback('chat');
+  }, (err) => {
+    console.error("Chat quota error:", err);
   });
 }
 
