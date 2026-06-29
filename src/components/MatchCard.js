@@ -44,7 +44,10 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
   const isKnockout = match.stage !== 'Group Stage';
   const multiplier = MULTIPLIERS[match.stage] || 1;
   const maxPts = isKnockout ? 5 * multiplier : 3 * multiplier;
-  const pointsTooltip = `<div style="text-align: center; font-size: 0.75rem; color: var(--color-mixon-light); margin-bottom: 0.5rem; opacity: 0.9;">🎯 Puntos posibles: hasta ${maxPts} pts</div>`;
+  let pointsTooltip = `<div style="text-align: center; font-size: 0.75rem; color: var(--color-mixon-light); margin-bottom: 0.5rem; opacity: 0.9;">🎯 Puntos posibles: hasta ${maxPts} pts</div>`;
+  if (isKnockout) {
+    pointsTooltip += `<div style="text-align: center; font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-bottom: 0.5rem;">💡 En caso de empate, deberás elegir quién avanza (Suma 2 pts extra)</div>`;
+  }
   
   // Advances selector logic (hidden by default unless it's a draw and knockout)
   const isDrawSaved = hasPrediction && userPred.home === userPred.away;

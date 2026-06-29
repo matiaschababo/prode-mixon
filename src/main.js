@@ -350,8 +350,22 @@ function _router() {
             toEl.value = fromEl.value;
           }
         } else if (fromEl.tagName === 'INPUT') {
-          toEl.value = fromEl.value;
+          if (fromEl.type === 'radio' || fromEl.type === 'checkbox') {
+            toEl.checked = fromEl.checked;
+          } else {
+            toEl.value = fromEl.value;
+          }
         }
+        
+        if (fromEl.classList) {
+          if (fromEl.classList.contains('pred-edit-form') || 
+              fromEl.classList.contains('pred-saved') || 
+              fromEl.classList.contains('pred-change-btn') ||
+              fromEl.classList.contains('advances-selector')) {
+            toEl.style.display = fromEl.style.display;
+          }
+        }
+        
         return true;
       }
     });
