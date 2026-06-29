@@ -1,4 +1,7 @@
 import { matches } from '../data/matches.js';
+import { getResolvedMatches } from '../services/bracketResolver.js';
+import { calculateGroupStandings } from '../services/standings.js';
+import { bracketData } from '../data/bracket.js';
 import { getParticipantProgramIds, getParticipantProgramLabel, getPrimaryProgram } from '../data/participants.js';
 import { teams } from '../data/teams.js';
 import { calculatePoints } from '../services/scoring.js';
@@ -24,11 +27,15 @@ export function Perfil(participantId) {
     return d.toISOString().split('T')[0];
   };
 
-  const history = matches.map(match => {
+  const results = getResults();
+  const standings = calculateGroupStandings(results);
+  const resolvedMatches = getResolvedMatches(matches, standings, results, bracketData);
+
+  const history = resolvedMatches.map(match => {
     const prediction = predictions[String(match.id)]?.[participantId];
     const result = getMatchResult(match);
     const points = prediction && result
-      ? calculatePoints(prediction.home, prediction.away, result.home, result.away, match.stage)
+      ? calculatePoints(prediction.home, prediction.away, result.home, result.away, match.stage, prediction.advances, result.winner)
       : null;
     const home = teams[match.homeTeam] || { name: match.homeTeam, flag: '' };
     const away = teams[match.awayTeam] || { name: match.awayTeam, flag: '' };
@@ -63,7 +70,7 @@ export function Perfil(participantId) {
         const d = item.prediction.timestamp.toDate ? item.prediction.timestamp.toDate() : new Date(item.prediction.timestamp);
         if (!isNaN(d)) {
           const dateStr = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
-          const timeStr = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+          const timeStr = d.toLocaleTimeString('es-AR', { hour12: false, hour: '2-digit', minute: '2-digit' });
           tsHtml = `<div style="font-size:0.6rem; color:var(--text-muted); margin-top:2px;" title="${dateStr} ${timeStr}">${dateStr} ${timeStr}</div>`;
         }
       }

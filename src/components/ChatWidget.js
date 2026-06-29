@@ -62,7 +62,7 @@ export function ChatWidget(user, messages = [], unreadCount = 0, isOpen = false,
       let msgDateStr = '';
       if (msg.timestamp) {
         const timeObj = msg.timestamp.toDate ? msg.timestamp.toDate() : new Date(msg.timestamp);
-        timeStr = timeObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        timeStr = timeObj.toLocaleTimeString('es-AR', { hour12: false, hour: '2-digit', minute: '2-digit' });
         msgDateStr = timeObj.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
       }
 

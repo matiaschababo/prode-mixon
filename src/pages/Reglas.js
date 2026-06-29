@@ -3,11 +3,11 @@ import { MULTIPLIERS } from '../services/scoring.js';
 export function Reglas() {
   const phaseTranslations = {
     "Group Stage": "Fase de Grupos",
-    "Round of 32": "16avos de Final",
-    "Round of 16": "Octavos de Final",
-    "Quarterfinals": "Cuartos de Final",
-    "Semifinals": "Semifinales",
-    "Third Place": "Tercer Puesto",
+    "16avos de Final": "16avos de Final",
+    "Octavos de Final": "Octavos de Final",
+    "Cuartos de Final": "Cuartos de Final",
+    "Semifinales": "Semifinales",
+    "Tercer Puesto": "Tercer Puesto",
     "Final": "Final"
   };
 
@@ -56,6 +56,25 @@ export function Reglas() {
           <h2>No acertó</h2>
           <p>El partido fue para otro lado. No suma.</p>
         </article>
+      </section>
+
+      <section class="score-decision glass-card" style="margin-top: 3rem; margin-bottom: 3rem;">
+        <div>
+          <p class="eyebrow">Fases Eliminatorias</p>
+          <h2>Bonus de Clasificación</h2>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem;">
+          <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+            A partir de los 16avos de Final, podés sumar <strong>+2 puntos base extras</strong> si acertás qué equipo clasifica a la siguiente ronda (o sale campeón en la final), sin importar si acertaste el marcador en los 90 minutos o no.
+          </p>
+          <ul style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem; margin-left: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <li>Si pronosticás que un equipo gana en los 90 minutos (ej. 2-1), el sistema asume que ese equipo clasifica. Si efectivamente clasifica, te llevás los +2 puntos base.</li>
+            <li>Si pronosticás un empate en los 90 minutos (ej. 1-1), <strong>podrás elegir explícitamente quién pasa en los penales</strong>. Si acertás, también sumás los +2 puntos base.</li>
+          </ul>
+          <p style="color: var(--color-mixon-light); font-size: 0.85rem; margin-top: 1rem; font-weight: bold;">
+            💡 Importante: ¡Este bonus también se multiplica por el factor de la fase! Es decir, en la Final, adivinar quién levanta la copa te da +8 puntos (2 base × 4 multiplicador).
+          </p>
+        </div>
       </section>
 
       <section class="score-decision glass-card">

@@ -1,15 +1,22 @@
 import { RankingTable } from '../components/RankingTable.js';
-import { getRankedParticipants, ensureUserExists, getDailyMVP, getMatchResult, sendChatMessage } from '../services/prodeStore.js';
+import { getRankedParticipants, ensureUserExists, getDailyMVP, getMatchResult, sendChatMessage, getResults } from '../services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup } from '../services/firebase.js';
 import { getProgramChartHTML } from './Programas.js';
 import { matches } from '../data/matches.js';
 import { teams } from '../data/teams.js';
+import { calculateGroupStandings } from '../services/standings.js';
+import { getResolvedMatches } from '../services/bracketResolver.js';
+import { bracketData } from '../data/bracket.js';
 
 let currentRankingFilter = 'general';
 
 export function Home() {
   const user = auth.currentUser;
-  const mvp = getDailyMVP();
+  
+  const results = getResults();
+  const standings = calculateGroupStandings(results);
+  const resolvedMatches = getResolvedMatches(matches, standings, results, bracketData);
+  const mvp = getDailyMVP(resolvedMatches);
 
   let participants = getRankedParticipants();
   let rankingHtml = '';

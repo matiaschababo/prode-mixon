@@ -2,6 +2,9 @@ import { matches } from '../data/matches.js';
 import { teams } from '../data/teams.js';
 import { programs } from '../data/participants.js';
 import { getResults, getDynamicUsers, updateUserRole, isMasterAdmin } from '../services/prodeStore.js';
+import { calculateGroupStandings } from '../services/standings.js';
+import { getResolvedMatches } from '../services/bracketResolver.js';
+import { bracketData } from '../data/bracket.js';
 import { auth } from '../services/firebase.js';
 
 export function Admin() {
@@ -22,14 +25,17 @@ export function Admin() {
 
   const results = getResults();
   const users = getDynamicUsers();
+  
+  const standings = calculateGroupStandings(results);
+  const resolvedMatches = getResolvedMatches(matches, standings, results, bracketData);
 
-  const matchOptions = matches.map(match => {
+  const matchOptions = resolvedMatches.map(match => {
     const home = teams[match.homeTeam] || { name: match.homeTeam };
     const away = teams[match.awayTeam] || { name: match.awayTeam };
     return `<option value="${match.id}">${match.id}. ${home.name} vs ${away.name} - ${match.round}</option>`;
   }).join('');
 
-  const firstMatch = matches[0];
+  const firstMatch = resolvedMatches[0];
   const firstResult = results[String(firstMatch.id)] || {};
 
   const programOptions = `

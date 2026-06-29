@@ -1,4 +1,8 @@
 import { matches } from '../data/matches.js';
+import { getResults } from '../services/prodeStore.js';
+import { calculateGroupStandings } from '../services/standings.js';
+import { getResolvedMatches } from '../services/bracketResolver.js';
+import { bracketData } from '../data/bracket.js';
 import { teams } from '../data/teams.js';
 import { getMatchResult } from '../services/prodeStore.js';
 
@@ -13,15 +17,19 @@ export function Ticker() {
     return d.toISOString().split('T')[0];
   };
 
-  let tickerMatches = matches.filter(m => getLogicalDate(m.date) === todayLogicalStr);
+  const results = getResults();
+  const standings = calculateGroupStandings(results);
+  const resolvedMatches = getResolvedMatches(matches, standings, results, bracketData);
+
+  let tickerMatches = resolvedMatches.filter(m => getLogicalDate(m.date) === todayLogicalStr);
   if (tickerMatches.length === 0) {
-    const futureMatches = matches.filter(m => new Date(m.date) > new Date());
+    const futureMatches = resolvedMatches.filter(m => new Date(m.date) > new Date());
     if (futureMatches.length > 0) {
       const nextDayStr = getLogicalDate(futureMatches[0].date);
-      tickerMatches = matches.filter(m => getLogicalDate(m.date) === nextDayStr);
+      tickerMatches = resolvedMatches.filter(m => getLogicalDate(m.date) === nextDayStr);
     } else {
-       const lastDayStr = getLogicalDate(matches[matches.length - 1].date);
-       tickerMatches = matches.filter(m => getLogicalDate(m.date) === lastDayStr);
+       const lastDayStr = getLogicalDate(resolvedMatches[resolvedMatches.length - 1].date);
+       tickerMatches = resolvedMatches.filter(m => getLogicalDate(m.date) === lastDayStr);
     }
   }
 
@@ -54,7 +62,7 @@ export function Ticker() {
        }
     } else {
        const d = new Date(m.date);
-       const timeStr = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+       const timeStr = d.toLocaleTimeString('es-AR', { hour12: false, hour: '2-digit', minute: '2-digit' });
        statusText = `<span class="ticker-status-time">HOY ${timeStr}</span>`;
     }
 

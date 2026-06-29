@@ -1,5 +1,9 @@
 // src/pages/Predicciones.js
 import { matches } from '../data/matches.js';
+import { getResults } from '../services/prodeStore.js';
+import { calculateGroupStandings } from '../services/standings.js';
+import { getResolvedMatches } from '../services/bracketResolver.js';
+import { bracketData } from '../data/bracket.js';
 import { teams } from '../data/teams.js';
 import { getParticipantProgramLabel } from '../data/participants.js';
 import { getPredictions, getMatchResult, getDynamicUsers } from '../services/prodeStore.js';
@@ -9,7 +13,10 @@ const escapeJS = (str) => String(str || '').replace(/\\/g, '\\\\').replace(/'/g,
 const escapeHTML = (str) => String(str || '').replace(/"/g, '&quot;');
 
 export function Predicciones(matchId) {
-  const match = matches.find(m => m.id === parseInt(matchId));
+  const results = getResults();
+  const standings = calculateGroupStandings(results);
+  const resolvedMatches = getResolvedMatches(matches, standings, results, bracketData);
+  const match = resolvedMatches.find(m => m.id === parseInt(matchId));
   if (!match) return `<h2>Partido no encontrado</h2>`;
 
   const predictions = getPredictions()[String(match.id)] || {};
@@ -27,7 +34,7 @@ export function Predicciones(matchId) {
       let points = null;
       let hitType = null;
       if (prediction && result) {
-        points = calculatePoints(prediction.home, prediction.away, result.home, result.away, match.stage);
+        points = calculatePoints(prediction.home, prediction.away, result.home, result.away, match.stage, prediction.advances, result.winner);
         hitType = getHitType(prediction.home, prediction.away, result.home, result.away);
       }
       return { ...u, prediction, points, hitType };
@@ -81,7 +88,7 @@ export function Predicciones(matchId) {
                     } else {
                       d = new Date(p.prediction.timestamp);
                     }
-                    if (!isNaN(d)) return `<div style="font-size:0.6rem; color:var(--text-muted); margin-top:4px;">${d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'})} ${d.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'})}</div>`;
+                    if (!isNaN(d)) return `<div style="font-size:0.6rem; color:var(--text-muted); margin-top:4px;">${d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'})} ${d.toLocaleTimeString('es-AR', { hour12: false,hour:'2-digit', minute:'2-digit'})}</div>`;
                   }
                   return '';
                 })()}

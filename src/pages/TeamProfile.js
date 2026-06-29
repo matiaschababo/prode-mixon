@@ -2,6 +2,9 @@ import { teams } from '../data/teams.js';
 import { matches } from '../data/matches.js';
 import { MatchCard } from '../components/MatchCard.js';
 import { calculateGroupStandings } from '../services/standings.js';
+import { getResolvedMatches } from '../services/bracketResolver.js';
+import { getResults } from '../services/prodeStore.js';
+import { bracketData } from '../data/bracket.js';
 
 export function TeamProfile() {
   const path = window.location.pathname;
@@ -19,11 +22,12 @@ export function TeamProfile() {
     `;
   }
 
-  // Get all matches for this team
-  const teamMatches = matches.filter(m => m.homeTeam === team.id || m.awayTeam === team.id);
+  const results = getResults();
+  const standings = calculateGroupStandings(results);
+  const resolvedMatches = getResolvedMatches(matches, standings, results, bracketData);
 
-  // Compute standings to show group position
-  const standings = calculateGroupStandings();
+  // Get all matches for this team
+  const teamMatches = resolvedMatches.filter(m => m.homeTeam === team.id || m.awayTeam === team.id);
   const groupStandings = standings[team.group] || [];
   const teamStats = groupStandings.find(s => s.id === team.id);
   const position = groupStandings.findIndex(s => s.id === team.id) + 1;

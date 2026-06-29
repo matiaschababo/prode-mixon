@@ -3,6 +3,7 @@ import { bracketData, groupsList } from '../data/bracket.js';
 import { calculateGroupStandings, getProvisionalBracket, getThirdPlacedStandings } from '../services/standings.js';
 import { getTopScorersAndAssists } from '../services/stats.js';
 import { getResults } from '../services/prodeStore.js';
+import { getResolvedBracket } from '../services/bracketResolver.js';
 
 function renderGroupMini(group, standings) {
   const groupTeams = standings[group] || [];
@@ -67,72 +68,7 @@ function expandLabel(label) {
     .replace(/^G\\. SF(\\d)$/, 'Ganador SF$1');
 }
 
-const resolveSource = (sourceLabel, resolvedMap, results) => {
-  if (!sourceLabel) return { team: null, label: '', isProvisional: true };
-  
-  let matchId = null;
-  let isWinner = true;
-  
-  const mWinner = sourceLabel.match(/^G\. M(\d+)$/);
-  const mWinnerSF = sourceLabel.match(/^G\. SF(\d)$/);
-  const mLoserSF = sourceLabel.match(/^P\. SF(\d)$/);
 
-  if (mWinner) {
-    matchId = parseInt(mWinner[1]);
-  } else if (mWinnerSF) {
-    matchId = mWinnerSF[1] === '1' ? 101 : 102;
-  } else if (mLoserSF) {
-    matchId = mLoserSF[1] === '1' ? 101 : 102;
-    isWinner = false;
-  }
-
-  if (!matchId) {
-    return { team: null, label: sourceLabel, isProvisional: true };
-  }
-
-  const prevMatch = resolvedMap[matchId];
-  if (!prevMatch) {
-    return { team: null, label: sourceLabel, isProvisional: true };
-  }
-
-  const res = results[String(matchId)];
-  if (res && res.home !== null && res.away !== null) {
-    const hG = parseInt(res.home, 10);
-    const aG = parseInt(res.away, 10);
-    let winner = null;
-    let loser = null;
-
-    if (hG > aG) {
-      winner = prevMatch.home;
-      loser = prevMatch.away;
-    } else if (aG > hG) {
-      winner = prevMatch.away;
-      loser = prevMatch.home;
-    } else {
-      if (res.winner === prevMatch.home?.id) {
-        winner = prevMatch.home;
-        loser = prevMatch.away;
-      } else if (res.winner === prevMatch.away?.id) {
-        winner = prevMatch.away;
-        loser = prevMatch.home;
-      } else {
-        winner = prevMatch.home;
-        loser = prevMatch.away;
-      }
-    }
-
-    const team = isWinner ? winner : loser;
-    const isTeamProvisional = (isWinner ? prevMatch.homeProvisional : prevMatch.awayProvisional) || (hG === aG && !res.winner);
-    return { team, label: team ? team.name : sourceLabel, isProvisional: isTeamProvisional };
-  } else {
-    return { 
-      team: null, 
-      label: sourceLabel, 
-      isProvisional: true, 
-      candidates: null 
-    };
-  }
-};
 
 function renderBracketSlot(matchId, resolvedMap, results) {
   const slot = resolvedMap[matchId];
@@ -325,111 +261,7 @@ export function Llaves() {
   const thirds = getThirdPlacedStandings(standings);
   const groups = groupsList.map(g => renderGroupMini(g, standings)).join('');
 
-  // Resolve the entire bracket tree dynamically
-  const resolved = {};
-  
-  // R32
-  provisionalRoundOf32.forEach(slot => {
-    resolved[slot.matchId] = {
-      matchId: slot.matchId,
-      home: slot.homeResolved?.team || null,
-      away: slot.awayResolved?.team || null,
-      homeLabel: slot.homeResolved?.team ? null : (slot.homeResolved?.originalLabel || slot.home),
-      awayLabel: slot.awayResolved?.team ? null : (slot.awayResolved?.originalLabel || slot.away),
-      homeProvisional: slot.homeResolved?.isProvisional ?? true,
-      awayProvisional: slot.awayResolved?.isProvisional ?? true,
-      feedsTo: slot.feedsTo,
-      side: slot.side
-    };
-  });
-
-  // R16
-  bracketData.roundOf16.forEach(slot => {
-    const homeRes = resolveSource(slot.home, resolved, results);
-    const awayRes = resolveSource(slot.away, resolved, results);
-    resolved[slot.matchId] = {
-      matchId: slot.matchId,
-      home: homeRes.team,
-      away: awayRes.team,
-      homeLabel: homeRes.team ? null : homeRes.label,
-      awayLabel: awayRes.team ? null : awayRes.label,
-      homeProvisional: homeRes.isProvisional,
-      awayProvisional: awayRes.isProvisional,
-      homeCandidates: homeRes.candidates,
-      awayCandidates: awayRes.candidates,
-      feedsTo: slot.feedsTo,
-      side: slot.side
-    };
-  });
-
-  // QF
-  bracketData.quarterFinals.forEach(slot => {
-    const homeRes = resolveSource(slot.home, resolved, results);
-    const awayRes = resolveSource(slot.away, resolved, results);
-    resolved[slot.matchId] = {
-      matchId: slot.matchId,
-      home: homeRes.team,
-      away: awayRes.team,
-      homeLabel: homeRes.team ? null : homeRes.label,
-      awayLabel: awayRes.team ? null : awayRes.label,
-      homeProvisional: homeRes.isProvisional,
-      awayProvisional: awayRes.isProvisional,
-      homeCandidates: homeRes.candidates,
-      awayCandidates: awayRes.candidates,
-      feedsTo: slot.feedsTo,
-      side: slot.side
-    };
-  });
-
-  // SF
-  bracketData.semiFinals.forEach(slot => {
-    const homeRes = resolveSource(slot.home, resolved, results);
-    const awayRes = resolveSource(slot.away, resolved, results);
-    resolved[slot.matchId] = {
-      matchId: slot.matchId,
-      home: homeRes.team,
-      away: awayRes.team,
-      homeLabel: homeRes.team ? null : homeRes.label,
-      awayLabel: awayRes.team ? null : awayRes.label,
-      homeProvisional: homeRes.isProvisional,
-      awayProvisional: awayRes.isProvisional,
-      homeCandidates: homeRes.candidates,
-      awayCandidates: awayRes.candidates,
-      side: slot.side
-    };
-  });
-
-  // Third Place
-  const tpSlot = bracketData.thirdPlace;
-  const tpHomeRes = resolveSource(tpSlot.home, resolved, results);
-  const tpAwayRes = resolveSource(tpSlot.away, resolved, results);
-  resolved[tpSlot.matchId] = {
-    matchId: tpSlot.matchId,
-    home: tpHomeRes.team,
-    away: tpAwayRes.team,
-    homeLabel: tpHomeRes.team ? null : tpHomeRes.label,
-    awayLabel: tpAwayRes.team ? null : tpAwayRes.label,
-    homeProvisional: tpHomeRes.isProvisional,
-    awayProvisional: tpAwayRes.isProvisional,
-    homeCandidates: tpHomeRes.candidates,
-    awayCandidates: tpAwayRes.candidates
-  };
-
-  // Final
-  const fSlot = bracketData.final;
-  const fHomeRes = resolveSource(fSlot.home, resolved, results);
-  const fAwayRes = resolveSource(fSlot.away, resolved, results);
-  resolved[fSlot.matchId] = {
-    matchId: fSlot.matchId,
-    home: fHomeRes.team,
-    away: fAwayRes.team,
-    homeLabel: fHomeRes.team ? null : fHomeRes.label,
-    awayLabel: fAwayRes.team ? null : fAwayRes.label,
-    homeProvisional: fHomeRes.isProvisional,
-    awayProvisional: fAwayRes.isProvisional,
-    homeCandidates: fHomeRes.candidates,
-    awayCandidates: fAwayRes.candidates
-  };
+  const resolved = getResolvedBracket();
 
   // Calculate active phase based on results
   let activePhase = '16avos';

@@ -1,4 +1,7 @@
 import { matches } from '../src/data/matches.js';
+import { bracketData } from '../src/data/bracket.js';
+import { calculateGroupStandings } from '../src/services/standings.js';
+import { getResolvedMatches } from '../src/services/bracketResolver.js';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
@@ -56,6 +59,9 @@ export default async function handler(request, response) {
       const resultsDoc = await resultsRef.get();
       const currentResults = resultsDoc.exists ? resultsDoc.data() : {};
       
+      const standings = calculateGroupStandings(currentResults);
+      const resolvedMatches = getResolvedMatches(matches, standings, currentResults, bracketData);
+      
       let changed = false;
 
       for (const apiMatch of data.events) {
@@ -74,10 +80,17 @@ export default async function handler(request, response) {
           };
         });
 
-        const localMatch = matches.find(m => {
-          const mHome = m.homeTeam.toLowerCase();
-          const mAway = m.awayTeam.toLowerCase();
-          return teamMap[mHome] && teamMap[mAway];
+        const localMatch = resolvedMatches.find(m => {
+          const mHome = (m.homeTeam || '').toLowerCase();
+          const mAway = (m.awayTeam || '').toLowerCase();
+          
+          if (teamMap[mHome] && teamMap[mAway]) return true;
+          
+          if (m.stage !== "Group Stage") {
+            if (teamMap[mHome]) return true;
+            if (teamMap[mAway]) return true;
+          }
+          return false;
         });
 
         if (localMatch) {
@@ -88,12 +101,32 @@ export default async function handler(request, response) {
           const espnStatus = apiMatch.status.type.name; // e.g. STATUS_HALFTIME
           const matchStatus = espnStatus === 'STATUS_HALFTIME' ? 'PAUSED' : null;
 
-          // Map goals by TEAM ABBREVIATION — structurally impossible to swap
-          const homeGoals = teamMap[localMatch.homeTeam.toLowerCase()].score;
-          const awayGoals = teamMap[localMatch.awayTeam.toLowerCase()].score;
-
           let minuteStr = apiMatch.status.displayClock || "0";
           minuteStr = minuteStr.replace("'", "");
+
+          // Identify which team in teamMap corresponds to home/away
+          const mHome = (localMatch.homeTeam || '').toLowerCase();
+          const mAway = (localMatch.awayTeam || '').toLowerCase();
+          
+          let actualHomeTeam = mHome;
+          let actualAwayTeam = mAway;
+          
+          if (!teamMap[mHome] || !teamMap[mAway]) {
+            const espnTeams = Object.keys(teamMap);
+            if (teamMap[mHome]) {
+              actualHomeTeam = mHome;
+              actualAwayTeam = espnTeams.find(t => t !== mHome);
+            } else if (teamMap[mAway]) {
+              actualAwayTeam = mAway;
+              actualHomeTeam = espnTeams.find(t => t !== mAway);
+            } else {
+               actualHomeTeam = espnTeams[0];
+               actualAwayTeam = espnTeams[1];
+            }
+          }
+
+          const homeGoals = teamMap[actualHomeTeam] ? teamMap[actualHomeTeam].score : 0;
+          const awayGoals = teamMap[actualAwayTeam] ? teamMap[actualAwayTeam].score : 0;
 
           // Helper: resolve ESPN team id/displayName to our abbreviation
           const resolveTeamAbbr = (espnTeamId, espnTeamName) => {
@@ -153,16 +186,16 @@ export default async function handler(request, response) {
 
           const saved = currentResults[localMatch.id];
           
-          const newPayloadLive = { home: homeGoals, away: awayGoals, live: true, minute: minuteStr, events: matchEvents, status: matchStatus, updatedAt: new Date().toISOString() };
-          const newPayloadDone = { home: homeGoals, away: awayGoals, events: matchEvents, status: matchStatus, updatedAt: new Date().toISOString() };
+          const newPayloadLive = { home: homeGoals, away: awayGoals, live: true, minute: minuteStr, events: matchEvents, status: matchStatus, actualDate: apiMatch.date, espnHome: actualHomeTeam.toUpperCase(), espnAway: actualAwayTeam.toUpperCase(), updatedAt: new Date().toISOString() };
+          const newPayloadDone = { home: homeGoals, away: awayGoals, live: false, events: matchEvents, status: 'FINISHED', actualDate: apiMatch.date, espnHome: actualHomeTeam.toUpperCase(), espnAway: actualAwayTeam.toUpperCase(), updatedAt: new Date().toISOString() };
           
           if (isLive) {
-            if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.minute !== minuteStr || JSON.stringify(saved.events) !== JSON.stringify(matchEvents)) {
+            if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.minute !== minuteStr || saved.espnHome !== actualHomeTeam.toUpperCase() || JSON.stringify(saved.events) !== JSON.stringify(matchEvents)) {
               currentResults[localMatch.id] = newPayloadLive;
               changed = true;
             }
           } else if (isFinished) {
-            if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.live || JSON.stringify(saved.events) !== JSON.stringify(matchEvents)) {
+            if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.live || saved.espnHome !== actualHomeTeam.toUpperCase() || JSON.stringify(saved.events) !== JSON.stringify(matchEvents)) {
               currentResults[localMatch.id] = newPayloadDone;
               changed = true;
             }

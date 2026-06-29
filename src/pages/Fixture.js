@@ -2,9 +2,24 @@ import { matches } from '../data/matches.js';
 import { MatchCard } from '../components/MatchCard.js';
 import { getMatchResult, getPredictions, saveMyPrediction, ensureUserExists } from '../services/prodeStore.js';
 import { auth, googleProvider, signInWithPopup } from '../services/firebase.js';
+import { getResolvedBracket } from '../services/bracketResolver.js';
 
 export function Fixture() {
-  const sorted = [...matches].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const resolvedBracket = getResolvedBracket();
+  
+  const mappedMatches = matches.map(m => {
+    if (m.stage !== 'Group Stage' && resolvedBracket[m.id]) {
+      const slot = resolvedBracket[m.id];
+      return {
+        ...m,
+        homeTeam: slot.home ? slot.home.id : (slot.homeLabel || m.homeTeam),
+        awayTeam: slot.away ? slot.away.id : (slot.awayLabel || m.awayTeam),
+      };
+    }
+    return m;
+  });
+
+  const sorted = [...mappedMatches].sort((a, b) => new Date(a.date) - new Date(b.date));
   const user = auth.currentUser;
   const allPredictions = getPredictions();
   
@@ -21,9 +36,14 @@ export function Fixture() {
     grouped[dayKey].push(match);
   });
 
+  const getLogicalDate = (dateString) => {
+    const d = new Date(dateString);
+    d.setUTCHours(d.getUTCHours() - 10);
+    return d.toISOString().split('T')[0];
+  };
+
   const matchCards = Object.entries(grouped).map(([day, dayMatches]) => {
-    const firstMatch = new Date(dayMatches[0].date);
-    const dayStart = new Date(firstMatch.getFullYear(), firstMatch.getMonth(), firstMatch.getDate()).getTime();
+    const logicalDateStr = getLogicalDate(dayMatches[0].date);
 
     const cards = dayMatches.map(match => {
       const result = getMatchResult(match);
@@ -32,7 +52,7 @@ export function Fixture() {
     }).join('');
     
     return `
-      <div class="fixture-day" data-timestamp="${dayStart}">
+      <div class="fixture-day" data-date="${logicalDateStr}">
         <div class="fixture-day-header">
           <span class="fixture-day-icon">📅</span>
           <h3 class="fixture-day-title">${day.charAt(0).toUpperCase() + day.slice(1)}</h3>
@@ -129,16 +149,20 @@ export function attachFixtureEvents() {
          btnAll.click();
       }
 
-      const today = new Date();
-      // Match the time zone logic used in the render loop by converting to local midnight
-      const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+      const getLogicalDateStr = (date) => {
+        const d = new Date(date);
+        d.setUTCHours(d.getUTCHours() - 10);
+        return d.toISOString().split('T')[0];
+      };
+
+      const todayLogicalStr = getLogicalDateStr(new Date());
 
       const days = document.querySelectorAll('.fixture-day');
       let targetEl = null;
 
       for (const day of days) {
-        const dayTs = parseInt(day.dataset.timestamp, 10);
-        if (dayTs >= startOfToday) {
+        const dayDate = day.dataset.date;
+        if (dayDate >= todayLogicalStr) {
           targetEl = day;
           break;
         }
@@ -168,6 +192,25 @@ export function attachFixtureEvents() {
     });
   });
 
+  // Listen for input changes to toggle the advances selector if it's a draw
+  document.querySelectorAll('.pred-input').forEach(input => {
+    if (input.dataset.eventsAttached) return;
+    input.dataset.eventsAttached = 'true';
+    input.addEventListener('input', (e) => {
+      const area = e.target.closest('.pred-area');
+      const home = area.querySelector('.my-pred-home').value;
+      const away = area.querySelector('.my-pred-away').value;
+      const selector = area.querySelector('.advances-selector');
+      if (selector) {
+        if (home !== '' && away !== '' && home === away) {
+          selector.style.display = 'block';
+        } else {
+          selector.style.display = 'none';
+        }
+      }
+    });
+  });
+
   // "Guardar" button — save and update the UI
   document.querySelectorAll('.pred-save-btn').forEach(btn => {
     if (btn.dataset.eventsAttached) return;
@@ -183,8 +226,19 @@ export function attachFixtureEvents() {
         return;
       }
 
+      let advances = null;
+      const selector = area.querySelector('.advances-selector');
+      if (selector && selector.style.display === 'block') {
+        const checked = area.querySelector('.advances-radio:checked');
+        if (!checked) {
+          alert('En caso de empate en fase eliminatoria, debés elegir quién clasifica.');
+          return;
+        }
+        advances = checked.value;
+      }
+
       try {
-        await saveMyPrediction(matchId, home, away);
+        await saveMyPrediction(matchId, home, away, advances);
         
         // Update the UI to show saved state
         const form = area.querySelector('.pred-edit-form');

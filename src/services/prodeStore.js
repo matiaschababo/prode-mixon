@@ -10,7 +10,7 @@ export function resolveUid(uid) {
   }
   return uid;
 }
-window.resolveUid = resolveUid;
+if (typeof window !== 'undefined') window.resolveUid = resolveUid;
 
 let prodeState = {
   predictions: {},
@@ -201,7 +201,7 @@ export function getResults() {
 }
 
 // User-facing save function (only saves for the logged-in user)
-export async function saveMyPrediction(matchId, home, away) {
+export async function saveMyPrediction(matchId, home, away, advances = null) {
   const auth = getAuth();
   const user = auth.currentUser;
   if (!user) throw new Error("Debes iniciar sesión para predecir.");
@@ -222,8 +222,10 @@ export async function saveMyPrediction(matchId, home, away) {
       // If doc doesn't exist yet, updateDoc fails. We can safely ignore or set empty object.
     });
   } else {
+    const data = { home: Number(home), away: Number(away), timestamp: serverTimestamp() };
+    if (advances) data.advances = advances;
     await setDoc(userDocRef, {
-      [matchId]: { home: Number(home), away: Number(away), timestamp: serverTimestamp() }
+      [matchId]: data
     }, { merge: true });
     
     if (analytics) {
@@ -243,7 +245,7 @@ export async function saveMyPrediction(matchId, home, away) {
   }
 }
 
-export async function adminSavePrediction(userId, matchId, home, away) {
+export async function adminSavePrediction(userId, matchId, home, away, advances = null) {
   const auth = getAuth();
   const user = auth.currentUser;
   if (!user || !isMasterAdmin(user.email)) throw new Error("Acceso denegado.");
@@ -255,8 +257,10 @@ export async function adminSavePrediction(userId, matchId, home, away) {
       [matchId]: deleteField()
     }).catch(() => {});
   } else {
+    const data = { home: Number(home), away: Number(away), timestamp: serverTimestamp() };
+    if (advances) data.advances = advances;
     await setDoc(userDocRef, {
-      [matchId]: { home: Number(home), away: Number(away), timestamp: serverTimestamp() }
+      [matchId]: data
     }, { merge: true });
   }
 }
@@ -369,7 +373,7 @@ export function getParticipantStats(participantId) {
       return;
     }
 
-    const points = calculatePoints(prediction.home, prediction.away, result.home, result.away, match.stage);
+    const points = calculatePoints(prediction.home, prediction.away, result.home, result.away, match.stage, prediction.advances, result.winner);
     stats.totalPoints += points;
     stats.played += 1;
     
@@ -393,7 +397,7 @@ export function getParticipantStats(participantId) {
       stats.currentStreak = 0;
     }
 
-    if (points === calculatePoints(result.home, result.away, result.home, result.away, match.stage)) {
+    if (points === calculatePoints(result.home, result.away, result.home, result.away, match.stage, result.winner, result.winner)) {
       stats.exacts += 1;
       stats.exactStreak += 1;
     } else {
@@ -451,7 +455,7 @@ export function getRankedParticipants(programId = null) {
   return cachedRankings.filter(participant => !programId || isParticipantInProgram(participant, programId));
 }
 
-export function getDailyMVP() {
+export function getDailyMVP(customMatches = matches) {
   const dynamicUsers = getDynamicUsers();
   const preds = getPredictions();
   
@@ -462,7 +466,7 @@ export function getDailyMVP() {
   };
 
   const matchdays = {};
-  matches.forEach(m => {
+  customMatches.forEach(m => {
     const d = getLogicalDate(m.date);
     if (!matchdays[d]) matchdays[d] = { matches: [], finishedCount: 0 };
     matchdays[d].matches.push(m);
@@ -511,9 +515,9 @@ export function getDailyMVP() {
         let pt = 0;
         let ts = Infinity;
         if (p) {
-          pt = calculatePoints(p.home, p.away, r.home, r.away, match.stage);
+          pt = calculatePoints(p.home, p.away, r.home, r.away, match.stage, p.advances, r.winner);
           pts += pt;
-          if (pt === calculatePoints(r.home, r.away, r.home, r.away, match.stage) && pt > 0) exacts++;
+          if (pt === calculatePoints(r.home, r.away, r.home, r.away, match.stage, r.winner, r.winner) && pt > 0) exacts++;
           ts = p.timestamp ? (p.timestamp.toMillis ? p.timestamp.toMillis() : new Date(p.timestamp).getTime()) : Infinity;
           if (ts > latestTimestamp) latestTimestamp = ts;
         }
@@ -587,9 +591,9 @@ export function getHistoricalMVPCounts() {
         const p = preds[String(match.id)]?.[user.id];
         const r = getMatchResult(match);
         if (p && r) {
-          const pt = calculatePoints(p.home, p.away, r.home, r.away, match.stage);
+          const pt = calculatePoints(p.home, p.away, r.home, r.away, match.stage, p.advances, r.winner);
           pts += pt;
-          if (pt === calculatePoints(r.home, r.away, r.home, r.away, match.stage) && pt > 0) exacts++;
+          if (pt === calculatePoints(r.home, r.away, r.home, r.away, match.stage, r.winner, r.winner) && pt > 0) exacts++;
           const ts = p.timestamp ? (p.timestamp.toMillis ? p.timestamp.toMillis() : new Date(p.timestamp).getTime()) : Infinity;
           if (ts > latestTimestamp) latestTimestamp = ts;
         }

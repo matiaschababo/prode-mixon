@@ -406,45 +406,15 @@ function _router() {
   }
 }
 
-let tickerAnimationFrame;
 function setupTicker() {
   const container = document.querySelector('.global-ticker-container');
   if (!container || container.dataset.init) return;
   container.dataset.init = 'true';
   
   const content1 = container.querySelector('.global-ticker-content');
-  let isUserScrolling = false;
-  let scrollTimeout;
-  let isHovered = false;
-
-  // Listen to native scroll to detect momentum
-  container.addEventListener('scroll', () => {
-    isUserScrolling = true;
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-      isUserScrolling = false;
-    }, 1500);
-  }, { passive: true });
-
-  container.addEventListener('mouseenter', () => isHovered = true);
-  container.addEventListener('mouseleave', () => isHovered = false);
-  container.addEventListener('touchstart', () => isHovered = true, { passive: true });
-  container.addEventListener('touchend', () => {
-    setTimeout(() => isHovered = false, 1500); 
-  }, { passive: true });
-
-  function autoScroll() {
-    if (!isUserScrolling && !isHovered && content1) {
-       container.scrollLeft += 1;
-       if (container.scrollLeft >= content1.offsetWidth) {
-          container.scrollLeft -= content1.offsetWidth;
-       }
-    }
-    tickerAnimationFrame = requestAnimationFrame(autoScroll);
-  }
-  
-  if (tickerAnimationFrame) cancelAnimationFrame(tickerAnimationFrame);
-  autoScroll();
+  // The animation is purely handled by CSS keyframes in components.css
+  // (.global-ticker-track with animation: ticker-scroll 45s linear infinite)
+  // Hover and active pauses are also handled by CSS.
 }
 
 function setupChat() {

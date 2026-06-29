@@ -19,11 +19,11 @@
 
 export const MULTIPLIERS = {
   "Group Stage": 1,
-  "Round of 32": 1.5,
-  "Round of 16": 2,
-  "Quarterfinals": 2.5,
-  "Semifinals": 3,
-  "Third Place": 4,
+  "16avos de Final": 1.5,
+  "Octavos de Final": 2,
+  "Cuartos de Final": 2.5,
+  "Semifinales": 3,
+  "Tercer Puesto": 4,
   "Final": 4
 };
 
@@ -57,13 +57,39 @@ export function getHitType(predictionHome, predictionAway, actualHome, actualAwa
   return "MISS"; // 0 pts
 }
 
-export function calculatePoints(predictionHome, predictionAway, actualHome, actualAway, stage = "Group Stage") {
+export function calculatePoints(predictionHome, predictionAway, actualHome, actualAway, stage = "Group Stage", predAdvances = null, actualAdvances = null) {
   const hitType = getHitType(predictionHome, predictionAway, actualHome, actualAway);
   let basePoints = 0;
   
   if (hitType === "EXACT") basePoints = 3;
   else if (hitType === "DIFF") basePoints = 2;
   else if (hitType === "WINNER") basePoints = 1;
+
+  // Bonus logic for knockout stages
+  if (stage !== "Group Stage") {
+    // Determine implicit or explicit advancing prediction
+    let inferredPredAdvances = predAdvances;
+    const predH = parseInt(predictionHome);
+    const predA = parseInt(predictionAway);
+    if (!inferredPredAdvances) {
+      if (predH > predA) inferredPredAdvances = "H";
+      else if (predH < predA) inferredPredAdvances = "A";
+    }
+
+    // Determine implicit or explicit actual advancing team
+    let inferredActualAdvances = actualAdvances;
+    const actH = parseInt(actualHome);
+    const actA = parseInt(actualAway);
+    if (!inferredActualAdvances) {
+      if (actH > actA) inferredActualAdvances = "H";
+      else if (actH < actA) inferredActualAdvances = "A";
+    }
+
+    // If both are resolved and they match, give +2 base points
+    if (inferredPredAdvances && inferredActualAdvances && inferredPredAdvances === inferredActualAdvances) {
+      basePoints += 2;
+    }
+  }
 
   const multiplier = MULTIPLIERS[stage] || 1;
   return basePoints * multiplier;

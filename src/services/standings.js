@@ -2,7 +2,7 @@ import { matches } from '../data/matches.js';
 import { teams } from '../data/teams.js';
 import { getResults } from './prodeStore.js';
 
-export function calculateGroupStandings() {
+export function calculateGroupStandings(customResults) {
   const standings = {};
 
   // Initialize standings for all real teams
@@ -23,7 +23,7 @@ export function calculateGroupStandings() {
     };
   });
 
-  const results = getResults();
+  const results = customResults || getResults();
 
   // Process all matches with a result
   matches.forEach(m => {

@@ -1,7 +1,7 @@
 // src/components/MatchCard.js
 import { teams } from '../data/teams.js';
 import { getMatchStats } from '../services/prodeStore.js';
-import { calculatePoints } from '../services/scoring.js';
+import { MULTIPLIERS, calculatePoints } from '../services/scoring.js';
 
 const escapeHTML = (str) => String(str || '').replace(/"/g, '&quot;');
 
@@ -11,7 +11,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
   
   const dateObj = new Date(match.date);
   const dateStr = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
-  const timeStr = dateObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  const timeStr = dateObj.toLocaleTimeString('es-AR', { hour12: false, hour: '2-digit', minute: '2-digit' });
   const isPast = new Date() >= dateObj;
 
   let badgeClass = 'badge-scheduled';
@@ -40,6 +40,29 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
 
   const hasPrediction = userPred && userPred.home !== undefined && userPred.home !== null && userPred.home !== '';
 
+  // Points tooltip logic
+  const isKnockout = match.stage !== 'Group Stage';
+  const multiplier = MULTIPLIERS[match.stage] || 1;
+  const maxPts = isKnockout ? 5 * multiplier : 3 * multiplier;
+  const pointsTooltip = `<div style="text-align: center; font-size: 0.75rem; color: var(--color-mixon-light); margin-bottom: 0.5rem; opacity: 0.9;">🎯 Puntos posibles: hasta ${maxPts} pts</div>`;
+  
+  // Advances selector logic (hidden by default unless it's a draw and knockout)
+  const isDrawSaved = hasPrediction && userPred.home === userPred.away;
+  const showAdvances = isKnockout && isDrawSaved;
+  const advancesHtml = isKnockout ? `
+    <div class="advances-selector" style="display: ${showAdvances ? 'block' : 'none'}; margin-top: 8px; margin-bottom: 8px; text-align: center;">
+      <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">¿Quién clasifica en los penales?</span>
+      <div style="display: flex; gap: 0.5rem; justify-content: center;">
+        <label style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 6px; cursor: pointer;">
+          <input type="radio" name="advances_${match.id}" value="${home.id || home.name}" class="advances-radio" ${userPred?.advances === (home.id || home.name) ? 'checked' : ''}> ${home.name}
+        </label>
+        <label style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 6px; cursor: pointer;">
+          <input type="radio" name="advances_${match.id}" value="${away.id || away.name}" class="advances-radio" ${userPred?.advances === (away.id || away.name) ? 'checked' : ''}> ${away.name}
+        </label>
+      </div>
+    </div>
+  ` : '';
+
   // Build the prediction area
   let predictionArea = '';
   if (userPred !== null) {
@@ -55,13 +78,15 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
               <span class="pred-value">${userPred.home} - ${userPred.away}</span>
             </div>
             <button class="btn btn-secondary btn-sm pred-change-btn" data-match="${match.id}">✏️ Cambiar</button>
-            <div class="pred-edit-form" style="display: none;">
+            <div class="pred-edit-form" style="display: none; flex-direction: column;">
+              ${pointsTooltip}
               <div class="pred-inputs-row">
                 <input type="number" min="0" class="pred-input my-pred-home" data-match="${match.id}" value="${userPred.home}" placeholder="-">
                 <span class="pred-dash">-</span>
                 <input type="number" min="0" class="pred-input my-pred-away" data-match="${match.id}" value="${userPred.away}" placeholder="-">
               </div>
-              <button class="btn btn-primary btn-sm pred-save-btn" data-match="${match.id}">Guardar</button>
+              ${advancesHtml}
+              <button class="btn btn-primary btn-sm pred-save-btn" data-match="${match.id}" style="margin-top: 0.5rem;">Guardar</button>
             </div>
           </div>
         `;
@@ -73,13 +98,15 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
               <span style="font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;">⚽</span>
               <span>¡Cargá tu pronóstico!</span>
             </div>
-            <div class="pred-edit-form">
+            <div class="pred-edit-form" style="flex-direction: column;">
+              ${pointsTooltip}
               <div class="pred-inputs-row">
                 <input type="number" min="0" class="pred-input my-pred-home" data-match="${match.id}" value="" placeholder="-">
                 <span class="pred-dash">-</span>
                 <input type="number" min="0" class="pred-input my-pred-away" data-match="${match.id}" value="" placeholder="-">
               </div>
-              <button class="btn btn-primary btn-sm pred-save-btn" data-match="${match.id}">Guardar</button>
+              ${advancesHtml}
+              <button class="btn btn-primary btn-sm pred-save-btn" data-match="${match.id}" style="margin-top: 0.5rem;">Guardar</button>
             </div>
           </div>
         `;
@@ -89,7 +116,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
       if (hasPrediction) {
         let pointsHTML = '';
         if (hasResult) {
-          const pts = calculatePoints(userPred.home, userPred.away, homeScore, awayScore, match.stage);
+          const pts = calculatePoints(userPred.home, userPred.away, homeScore, awayScore, match.stage, userPred.advances, resultOverride?.winner);
           const ptsClass = pts >= 3 ? 'points-exact' : pts === 2 ? 'points-diff' : pts === 1 ? 'points-winner' : 'points-miss';
           const ptsSign = pts > 0 ? '+' : '';
           pointsHTML = `<span class="pred-points ${ptsClass}" style="margin-left: 10px; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; background: rgba(255,255,255,0.1);">${ptsSign}${pts} pts</span>`;
@@ -169,7 +196,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
     }
     if (!isNaN(d)) {
       const formattedDate = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' });
-      const formattedTime = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const formattedTime = d.toLocaleTimeString('es-AR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
       timestampHTML = `<div class="pred-timestamp" style="font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-top: 4px;">Guardado: ${formattedDate} a las ${formattedTime}</div>`;
     }
   }
@@ -191,7 +218,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
       
       <div class="match-teams">
         <div class="team home" onclick="window.router.navigate('/equipo/${match.homeTeam}')" style="cursor: pointer;">
-          <img src="${home.flagUrl}" alt="${escapeHTML(home.name)}" class="flag-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+          <img src="${home.flagUrl}" alt="${escapeHTML(home.name)}" loading="lazy" class="flag-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
           <span class="flag-emoji" style="display:none">${home.flag}</span>
           <span class="name">${escapeHTML(home.name)}</span>
         </div>
@@ -202,7 +229,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
         </div>
         
         <div class="team away" onclick="window.router.navigate('/equipo/${match.awayTeam}')" style="cursor: pointer;">
-          <img src="${away.flagUrl}" alt="${escapeHTML(away.name)}" class="flag-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+          <img src="${away.flagUrl}" alt="${escapeHTML(away.name)}" loading="lazy" class="flag-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
           <span class="flag-emoji" style="display:none">${away.flag}</span>
           <span class="name">${escapeHTML(away.name)}</span>
         </div>
