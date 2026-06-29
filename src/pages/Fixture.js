@@ -144,11 +144,6 @@ export function attachFixtureEvents() {
   if (fabHoy && !fabHoy.dataset.eventsAttached) {
     fabHoy.dataset.eventsAttached = 'true';
     fabHoy.addEventListener('click', () => {
-      const btnAll = document.querySelector('.fixture-filter[data-filter="all"]');
-      if (btnAll && !btnAll.classList.contains('btn-primary')) {
-         btnAll.click();
-      }
-
       const getLogicalDateStr = (date) => {
         const d = new Date(date);
         d.setUTCHours(d.getUTCHours() - 10);
@@ -161,6 +156,7 @@ export function attachFixtureEvents() {
       let targetEl = null;
 
       for (const day of days) {
+        if (day.style.display === 'none') continue;
         const dayDate = day.dataset.date;
         if (dayDate >= todayLogicalStr) {
           targetEl = day;

@@ -61,7 +61,7 @@ export function Ticker() {
           itemClass = 'ticker-item-finished';
        }
     } else {
-       const d = new Date(m.date);
+       const d = new Date(res?.actualDate || m.date);
        const timeStr = d.toLocaleTimeString('es-AR', { hour12: false, hour: '2-digit', minute: '2-digit' });
        statusText = `<span class="ticker-status-time">HOY ${timeStr}</span>`;
     }

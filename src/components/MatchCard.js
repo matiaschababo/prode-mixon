@@ -9,7 +9,7 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
   const home = teams[match.homeTeam] || { name: match.homeTeam, flag: "❓" };
   const away = teams[match.awayTeam] || { name: match.awayTeam, flag: "❓" };
   
-  const dateObj = new Date(match.date);
+  const dateObj = new Date(resultOverride?.actualDate || match.date);
   const dateStr = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
   const timeStr = dateObj.toLocaleTimeString('es-AR', { hour12: false, hour: '2-digit', minute: '2-digit' });
   const isPast = new Date() >= dateObj;
