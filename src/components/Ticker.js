@@ -44,16 +44,18 @@ export function Ticker() {
     let middle = 'vs';
     let itemClass = 'ticker-item-pending';
     
-    if (res) {
+    const hasResult = res && res.home !== null && res.home !== undefined && res.status !== 'SCHEDULED';
+    
+    if (hasResult) {
        middle = `${res.home} - ${res.away}`;
        if (res.live) {
           let isHalftime = res.status === 'PAUSED' || res.minute === 'HT' || String(res.minute).toLowerCase() === 'entretiempo';
           if (isHalftime) {
-            statusText = `<span class="ticker-status-live">ENTRETIEMPO</span>`;
+             statusText = `<span class="ticker-status-live">ENTRETIEMPO</span>`;
           } else {
-            let minText = '';
-            if (res.minute) minText = ` ${res.minute}'`;
-            statusText = `<span class="ticker-status-live">EN VIVO${minText}</span>`;
+             let minText = '';
+             if (res.minute) minText = ` ${res.minute}'`;
+             statusText = `<span class="ticker-status-live">EN VIVO${minText}</span>`;
           }
           itemClass = 'ticker-item-live';
        } else {
@@ -63,7 +65,9 @@ export function Ticker() {
     } else {
        const d = new Date(res?.actualDate || m.date);
        const timeStr = d.toLocaleTimeString('es-AR', { hour12: false, hour: '2-digit', minute: '2-digit' });
-       statusText = `<span class="ticker-status-time">HOY ${timeStr}</span>`;
+       const isToday = getLogicalDate(res?.actualDate || m.date) === todayLogicalStr;
+       const prefix = isToday ? 'HOY' : 'PRÓX';
+       statusText = `<span class="ticker-status-time">${prefix} ${timeStr}</span>`;
     }
 
     return `<a href="/fixture#match-${m.id}" data-link class="ticker-item ${itemClass}" style="text-decoration: none; color: inherit;">
