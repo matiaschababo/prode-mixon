@@ -35,12 +35,6 @@ export function initializeFirebaseSync(onUpdateCallback) {
     if (docSnap.exists()) {
       let res = docSnap.data();
       
-      // HARDCODE RESULTADOS DE EMERGENCIA (QUOTA EXCEEDED)
-      res[73] = { home: 1, away: 0, status: 'FINISHED', espnHome: 'CAN', espnAway: 'RSA' }; // Canadá (1) vs Sudáfrica (0) [ESPN: RSA 0 - CAN 1]
-      res[74] = { home: 1, away: 1, status: 'FINISHED', winner: 'PAR', espnHome: 'GER', espnAway: 'PAR' }; // Alemania (1) vs Paraguay (1) (pen: PAR)
-      res[75] = { home: 1, away: 1, status: 'FINISHED', winner: 'MAR', espnHome: 'NED', espnAway: 'MAR' }; // Países Bajos (1) vs Marruecos (1) (pen: MAR)
-      res[76] = { home: 2, away: 1, status: 'FINISHED', espnHome: 'BRA', espnAway: 'JPN' }; // Brasil (2) vs Japón (1) [ESPN: BRA 2 - JPN 1]
-      
       prodeState.results = res;
       cachedRankings = null;
       cachedMVPCounts = null;
