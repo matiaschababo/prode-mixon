@@ -131,7 +131,8 @@ function renderBracketSlot(matchId, resolvedMap, results) {
   const hasAnyTeam = slot.home !== null || slot.away !== null;
 
   if (hasResult) {
-    const isResultProvisional = isMatchProvisional || (parseInt(res.home) === parseInt(res.away) && !res.winner);
+    const isLive = res.live === true || res.status === 'PAUSED' || res.status === 'LIVE';
+    const isResultProvisional = isMatchProvisional || isLive || (parseInt(res.home) === parseInt(res.away) && !res.winner);
     if (isResultProvisional) {
       badgeHtml = '<span class="status-dot parcial" title="Resultado parcial o en juego"></span>';
       cardClass = 'live-match';

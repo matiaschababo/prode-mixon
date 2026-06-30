@@ -198,8 +198,16 @@ export default async function handler(request, response) {
 
           const saved = currentResults[localMatch.id];
           
+          const winningComp = competitors.find(c => c.winner === true || c.winner === 'true');
+          const winnerAbbr = winningComp ? winningComp.team.abbreviation.toUpperCase() : null;
+
           const newPayloadLive = { home: homeGoals, away: awayGoals, live: true, minute: minuteStr, events: matchEvents, status: matchStatus, actualDate: apiMatch.date, espnHome: actualHomeTeam.toUpperCase(), espnAway: actualAwayTeam.toUpperCase(), updatedAt: new Date().toISOString() };
           const newPayloadDone = { home: homeGoals, away: awayGoals, live: false, events: matchEvents, status: 'FINISHED', actualDate: apiMatch.date, espnHome: actualHomeTeam.toUpperCase(), espnAway: actualAwayTeam.toUpperCase(), updatedAt: new Date().toISOString() };
+          if (winnerAbbr) {
+            newPayloadDone.winner = winnerAbbr;
+          } else if (saved && saved.winner) {
+            newPayloadDone.winner = saved.winner;
+          }
           
           if (isLive) {
             if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.minute !== minuteStr || saved.espnHome !== actualHomeTeam.toUpperCase() || JSON.stringify(saved.events) !== JSON.stringify(matchEvents)) {
@@ -207,7 +215,7 @@ export default async function handler(request, response) {
               changed = true;
             }
           } else if (isFinished) {
-            if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.live || saved.espnHome !== actualHomeTeam.toUpperCase() || JSON.stringify(saved.events) !== JSON.stringify(matchEvents)) {
+            if (!saved || saved.home !== homeGoals || saved.away !== awayGoals || saved.live || saved.winner !== newPayloadDone.winner || saved.espnHome !== actualHomeTeam.toUpperCase() || JSON.stringify(saved.events) !== JSON.stringify(matchEvents)) {
               currentResults[localMatch.id] = newPayloadDone;
               changed = true;
             }

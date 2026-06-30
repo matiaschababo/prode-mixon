@@ -210,7 +210,15 @@ export function MatchCard(match, resultOverride = null, userPred = null) {
   // Main score display (result or time)
   let scoreDisplay;
   if (hasResult) {
-    scoreDisplay = `<div class="match-score">${homeScore} - ${awayScore}</div>`;
+    let winnerText = '';
+    if (isKnockout && isMatchFinished && homeScore === awayScore && resultOverride?.winner) {
+      const winnerTeam = teams[resultOverride.winner] || { name: resultOverride.winner };
+      winnerText = `<div class="match-winner-info" style="font-size: 0.72rem; color: #10B981; font-weight: 700; margin-top: 4px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px;">🏆 Clasifica: ${winnerTeam.name}</div>`;
+    }
+    scoreDisplay = `
+      <div class="match-score">${homeScore} - ${awayScore}</div>
+      ${winnerText}
+    `;
   } else {
     scoreDisplay = `<div class="match-time">${timeStr}</div>`;
   }
