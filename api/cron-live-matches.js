@@ -87,11 +87,20 @@ export default async function handler(request, response) {
           const mHome = (m.homeTeam || '').toLowerCase();
           const mAway = (m.awayTeam || '').toLowerCase();
           
-          if (teamMap[mHome] && teamMap[mAway]) return true;
+          // 1. If both teams are resolved in the database match, require BOTH to match
+          if (mHome !== "tbd" && mAway !== "tbd") {
+            return teamMap[mHome] && teamMap[mAway];
+          }
           
+          // 2. If at least one team is "TBD", only match if the known team matches AND it's scheduled close to the API match time (within 12 hours)
           if (m.stage !== "Group Stage") {
-            if (teamMap[mHome]) return true;
-            if (teamMap[mAway]) return true;
+            const matchDate = new Date(m.date);
+            const apiDate = new Date(apiMatch.date);
+            const hoursDiff = Math.abs(matchDate - apiDate) / (1000 * 60 * 60);
+            if (hoursDiff <= 12) {
+              if (mHome !== "tbd" && teamMap[mHome]) return true;
+              if (mAway !== "tbd" && teamMap[mAway]) return true;
+            }
           }
           return false;
         });
