@@ -341,6 +341,9 @@ function _router() {
         if (fromEl.hasAttribute && fromEl.hasAttribute('data-ignore-morph')) {
           return false;
         }
+        if (fromEl.classList && fromEl.classList.contains('global-ticker-container')) {
+          toEl.scrollLeft = fromEl.scrollLeft;
+        }
         if (fromEl.tagName === 'INPUT' && fromEl.id === 'chat-input') {
           // If we manually cleared it, don't restore old value
           if (fromEl.dataset.cleared === 'true') {
@@ -425,10 +428,34 @@ function setupTicker() {
   if (!container || container.dataset.init) return;
   container.dataset.init = 'true';
   
-  const content1 = container.querySelector('.global-ticker-content');
-  // The animation is purely handled by CSS keyframes in components.css
-  // (.global-ticker-track with animation: ticker-scroll 45s linear infinite)
-  // Hover and active pauses are also handled by CSS.
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+  
+  container.addEventListener('mousedown', (e) => {
+    isDown = true;
+    container.classList.add('ticker-active');
+    startX = e.pageX - container.offsetLeft;
+    scrollLeft = container.scrollLeft;
+  });
+  
+  container.addEventListener('mouseleave', () => {
+    isDown = false;
+    container.classList.remove('ticker-active');
+  });
+  
+  container.addEventListener('mouseup', () => {
+    isDown = false;
+    container.classList.remove('ticker-active');
+  });
+  
+  container.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - container.offsetLeft;
+    const walk = (x - startX) * 2; // scroll-fast multiplier
+    container.scrollLeft = scrollLeft - walk;
+  });
 }
 
 function setupChat() {

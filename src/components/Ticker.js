@@ -81,7 +81,7 @@ export function Ticker() {
   const itemsHtml = renderItems();
 
   return `
-    <div class="global-ticker-container" data-ignore-morph="true">
+    <div class="global-ticker-container">
       <div class="global-ticker-track">
         <div class="global-ticker-content">
           ${itemsHtml}

@@ -5,7 +5,7 @@ import { bracketData } from '../data/bracket.js';
 import { getParticipantProgramIds, getParticipantProgramLabel, getPrimaryProgram } from '../data/participants.js';
 import { teams } from '../data/teams.js';
 import { calculatePoints } from '../services/scoring.js';
-import { getMatchResult, getPredictions, getParticipantStats, getDynamicUsers, isMasterAdmin, adminSavePrediction, updateUserPhoto, updateUserDisplayName } from '../services/prodeStore.js';
+import { getMatchResult, getPredictions, getParticipantStats, getDynamicUsers, isMasterAdmin, adminSavePrediction, updateUserPhoto, updateUserDisplayName, getResults } from '../services/prodeStore.js';
 import { auth } from '../services/firebase.js';
 
 const escapeJS = (str) => String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');

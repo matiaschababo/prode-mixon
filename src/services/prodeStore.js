@@ -23,6 +23,8 @@ let loadingState = { results: false, predictions: false, users: false };
 let cachedRankings = null;
 let cachedMatchStats = null;
 let cachedMVPCounts = null;
+let globalUpdateCallback = null;
+let liveSyncInterval = null;
 
 export function isDataReady() {
   return loadingState.results && loadingState.predictions && loadingState.users;
@@ -30,6 +32,7 @@ export function isDataReady() {
 
 // Start listening to Firebase data
 export function initializeFirebaseSync(onUpdateCallback) {
+  globalUpdateCallback = onUpdateCallback;
   // Poll results from the Edge-cached API to completely avoid direct Firebase read costs for users
   const fetchResultsCached = async () => {
     try {
@@ -37,7 +40,19 @@ export function initializeFirebaseSync(onUpdateCallback) {
       if (response.ok) {
         const data = await response.json();
         if (data.results) {
-          prodeState.results = data.results;
+          // Merge data.results but preserve any active live matches that have newer client-side updates
+          Object.entries(data.results).forEach(([matchId, dbMatch]) => {
+            const localMatch = prodeState.results[matchId];
+            if (localMatch && localMatch.live && dbMatch.live) {
+              const dbTime = dbMatch.updatedAt ? new Date(dbMatch.updatedAt).getTime() : 0;
+              const localTime = localMatch.updatedAt ? new Date(localMatch.updatedAt).getTime() : 0;
+              if (localTime > dbTime) {
+                // Keep local live match data because it's newer than the DB
+                return;
+              }
+            }
+            prodeState.results[matchId] = dbMatch;
+          });
           cachedRankings = null;
           cachedMVPCounts = null;
         }
@@ -840,11 +855,184 @@ export async function updateUserDisplayName(newName) {
   await setDoc(userRef, { displayName: newName.trim() }, { merge: true });
 }
 
-let liveEngineInterval = null;
+async function syncLiveScoresWithESPN() {
+  try {
+    const response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?t=${Date.now()}`);
+    if (!response.ok) return;
+    const data = await response.json();
+    if (!data.events || data.events.length === 0) return;
 
-export function startLiveMatchEngine() {
-  console.log("🟢 Live Match Engine initialized (Polling handled by backend cron)");
-  // Removing frontend polling to avoid DDOS and Firebase Quota Exceeded errors.
+    // Dynamically import required helpers to avoid circular dependencies
+    const { getResolvedMatches } = await import('./bracketResolver.js');
+    const { calculateGroupStandings } = await import('./standings.js');
+    const { bracketData } = await import('../data/bracket.js');
+
+    const standings = calculateGroupStandings(prodeState.results);
+    const resolvedMatches = getResolvedMatches(matches, standings, prodeState.results, bracketData);
+    
+    let changed = false;
+
+    for (const apiMatch of data.events) {
+      const competitors = apiMatch.competitions[0].competitors;
+      if (!competitors || competitors.length < 2) continue;
+
+      const teamMap = {};
+      competitors.forEach(c => {
+        teamMap[c.team.abbreviation.toLowerCase()] = {
+          score: parseInt(c.score) || 0,
+          abbreviation: c.team.abbreviation,
+          displayName: c.team.displayName,
+          id: c.team.id,
+        };
+      });
+
+      const localMatch = resolvedMatches.find(m => {
+        const mHome = (m.homeTeam || '').toLowerCase();
+        const mAway = (m.awayTeam || '').toLowerCase();
+        
+        if (mHome !== "tbd" && mAway !== "tbd") {
+          return teamMap[mHome] && teamMap[mAway];
+        }
+        
+        if (m.stage !== "Group Stage") {
+          const matchDate = new Date(m.date);
+          const apiDate = new Date(apiMatch.date);
+          const hoursDiff = Math.abs(matchDate - apiDate) / (1000 * 60 * 60);
+          if (hoursDiff <= 12) {
+            if (mHome !== "tbd" && teamMap[mHome]) return true;
+            if (mAway !== "tbd" && teamMap[mAway]) return true;
+          }
+        }
+        return false;
+      });
+
+      if (localMatch) {
+        const state = apiMatch.status.type.state; // 'pre', 'in', 'post'
+        const isLive = state === 'in';
+        const isFinished = state === 'post';
+
+        const espnStatus = apiMatch.status.type.name; // e.g. STATUS_HALFTIME
+        const matchStatus = espnStatus === 'STATUS_HALFTIME' ? 'PAUSED' : null;
+
+        let minuteStr = apiMatch.status.displayClock || "0";
+        minuteStr = minuteStr.replace("'", "");
+
+        const mHome = (localMatch.homeTeam || '').toLowerCase();
+        const mAway = (localMatch.awayTeam || '').toLowerCase();
+        
+        let actualHomeTeam = mHome;
+        let actualAwayTeam = mAway;
+        
+        if (!teamMap[mHome] || !teamMap[mAway]) {
+          const espnTeams = Object.keys(teamMap);
+          if (teamMap[mHome]) {
+            actualHomeTeam = mHome;
+            actualAwayTeam = espnTeams.find(t => t !== mHome);
+          } else if (teamMap[mAway]) {
+            actualAwayTeam = mAway;
+            actualHomeTeam = espnTeams.find(t => t !== mAway);
+          } else {
+            actualHomeTeam = espnTeams[0];
+            actualAwayTeam = espnTeams[1];
+          }
+        }
+
+        const homeGoals = teamMap[actualHomeTeam] ? teamMap[actualHomeTeam].score : 0;
+        const awayGoals = teamMap[actualAwayTeam] ? teamMap[actualAwayTeam].score : 0;
+
+        let matchEvents = [];
+        const apiDetails = apiMatch.competitions[0].details || [];
+        
+        const resolveTeamAbbr = (espnTeamId) => {
+          for (const c of competitors) {
+            if (espnTeamId && c.team.id === espnTeamId) {
+              return c.team.abbreviation;
+            }
+          }
+          return '';
+        };
+
+        apiDetails.forEach(detail => {
+          const isGoal = (detail.type && detail.type.text && detail.type.text.toLowerCase().includes('goal')) || detail.scoringPlay;
+          const isRed = (detail.type && detail.type.text && detail.type.text.toLowerCase().includes('red card')) || detail.redCard;
+          
+          if (isGoal || isRed) {
+            const player = detail.athletesInvolved && detail.athletesInvolved.length > 0 ? detail.athletesInvolved[0].shortName : '';
+            const teamAbbr = resolveTeamAbbr(detail.team?.id);
+            
+            matchEvents.push({
+              min: detail.clock ? detail.clock.displayValue : '',
+              type: isGoal ? 'goal' : 'red',
+              team: teamAbbr,
+              player: player
+            });
+          }
+        });
+
+        const currentSaved = prodeState.results[localMatch.id] || {};
+        
+        let shouldUpdate = false;
+        
+        if (isLive) {
+          if (currentSaved.home !== homeGoals || currentSaved.away !== awayGoals || currentSaved.minute !== minuteStr || currentSaved.status !== matchStatus || !currentSaved.live) {
+            shouldUpdate = true;
+          }
+        } else if (isFinished) {
+          if (currentSaved.home !== homeGoals || currentSaved.away !== awayGoals || currentSaved.live) {
+            shouldUpdate = true;
+          }
+        } else if (state === 'pre') {
+          if (currentSaved.espnHome !== actualHomeTeam.toUpperCase() || currentSaved.actualDate !== apiMatch.date) {
+            shouldUpdate = true;
+          }
+        }
+        
+        if (shouldUpdate) {
+          prodeState.results[localMatch.id] = {
+            ...currentSaved,
+            home: homeGoals,
+            away: awayGoals,
+            live: isLive,
+            minute: minuteStr,
+            status: matchStatus || (isFinished ? 'FINISHED' : currentSaved.status),
+            actualDate: apiMatch.date,
+            espnHome: actualHomeTeam.toUpperCase(),
+            espnAway: actualAwayTeam.toUpperCase(),
+            updatedAt: new Date().toISOString()
+          };
+          
+          if (matchEvents.length > 0) {
+            prodeState.results[localMatch.id].events = matchEvents;
+          }
+          
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) {
+      cachedRankings = null;
+      cachedMatchStats = null;
+      cachedMVPCounts = null;
+      if (globalUpdateCallback) {
+        globalUpdateCallback();
+      }
+    }
+  } catch (err) {
+    console.error("Error syncing live scores with ESPN on client:", err);
+  }
+}
+
+export async function startLiveMatchEngine() {
+  if (liveSyncInterval) return;
+
+  console.log("🟢 Live Match Engine initialized (Client-side ESPN Sync Active)");
+
+  // Run immediately
+  await syncLiveScoresWithESPN();
+
+  // Poll every 30 seconds
+  liveSyncInterval = setInterval(syncLiveScoresWithESPN, 30000);
 }
 
 // ==============================================

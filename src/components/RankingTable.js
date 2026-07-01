@@ -28,7 +28,9 @@ export function RankingTable(participantsData) {
     rows += `
       <div class="ranking-row ${topClass} animate-slide-up stagger-${(index % 5) + 1}" style="--target-width: ${Math.max(5, (points / (sorted[0]?.totalPoints || 1)) * 100)}%;">
         <div class="ranking-pos">${medal}</div>
-        <img src="${p.photo}" alt="${escapeHTML(p.name)}" loading="lazy" class="avatar">
+        <a href="/perfil/${p.id}" data-link style="display: contents;">
+          <img src="${p.photo}" alt="${escapeHTML(p.name)}" loading="lazy" class="avatar" style="cursor: pointer;">
+        </a>
         <div class="ranking-info">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <a href="/perfil/${p.id}" class="ranking-name" data-link>${p.name}</a>
