@@ -18,10 +18,13 @@ if (getApps().length === 0) {
 }
 
 export default async function handler(request, response) {
-  // Configuración de CORS por si acaso
+  // Configuración de CORS y prevención estricta de caché
   response.setHeader('Access-Control-Allow-Credentials', true);
   response.setHeader('Access-Control-Allow-Origin', '*');
   response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  response.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  response.setHeader('Pragma', 'no-cache');
+  response.setHeader('Expires', '0');
   
   if (request.method === 'OPTIONS') {
     response.status(200).end();
@@ -54,7 +57,8 @@ export default async function handler(request, response) {
     const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${yyyy1}${mm1}${dd1}-${yyyy2}${mm2}${dd2}`;
     console.log(`Cron: Fetching ${url}`);
     
-    const res = await fetch(url);
+    // Agregamos cache-busting query param y cache: 'no-store' para forzar datos en tiempo real de ESPN
+    const res = await fetch(`${url}&t=${Date.now()}`, { cache: 'no-store' });
     const data = await res.json();
     
     if (data.events && data.events.length > 0) {
@@ -151,7 +155,8 @@ export default async function handler(request, response) {
           };
 
           // Fetch summary for this match
-          const sumRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=${apiMatch.id}`);
+          // Agregamos cache-busting query param y cache: 'no-store' para forzar datos en tiempo real de ESPN
+          const sumRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=${apiMatch.id}&t=${Date.now()}`, { cache: 'no-store' });
           const sumData = await sumRes.json();
           
           let matchEvents = [];
