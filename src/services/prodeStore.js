@@ -30,28 +30,36 @@ export function isDataReady() {
 
 // Start listening to Firebase data
 export function initializeFirebaseSync(onUpdateCallback) {
-  // Listen to results
-  onSnapshot(doc(db, "global", "results"), (docSnap) => {
-    if (docSnap.exists()) {
-      let res = docSnap.data();
-      
+  // Poll results from the Edge-cached API to completely avoid direct Firebase read costs for users
+  const fetchResultsCached = async () => {
+    try {
+      const response = await fetch('/api/results');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.results) {
+          prodeState.results = data.results;
+          cachedRankings = null;
+          cachedMVPCounts = null;
+        }
+      }
+      loadingState.results = true;
+      onUpdateCallback();
+    } catch (err) {
+      console.error("Results fallback error (quota):", err);
+      let res = {};
+      res[73] = { home: 1, away: 0, status: 'FINISHED', espnHome: 'CAN', espnAway: 'RSA' };
+      res[74] = { home: 1, away: 1, status: 'FINISHED', winner: 'PAR', espnHome: 'GER', espnAway: 'PAR' };
+      res[75] = { home: 1, away: 1, status: 'FINISHED', winner: 'MAR', espnHome: 'NED', espnAway: 'MAR' };
+      res[76] = { home: 2, away: 1, status: 'FINISHED', espnHome: 'BRA', espnAway: 'JPN' };
       prodeState.results = res;
-      cachedRankings = null;
-      cachedMVPCounts = null;
+      loadingState.results = true;
+      onUpdateCallback();
     }
-    loadingState.results = true;
-    onUpdateCallback();
-  }, (err) => {
-    console.error("Results fallback error (quota):", err);
-    let res = {};
-    res[73] = { home: 1, away: 0, status: 'FINISHED', espnHome: 'CAN', espnAway: 'RSA' };
-    res[74] = { home: 1, away: 1, status: 'FINISHED', winner: 'PAR', espnHome: 'GER', espnAway: 'PAR' };
-    res[75] = { home: 1, away: 1, status: 'FINISHED', winner: 'MAR', espnHome: 'NED', espnAway: 'MAR' };
-    res[76] = { home: 2, away: 1, status: 'FINISHED', espnHome: 'BRA', espnAway: 'JPN' };
-    prodeState.results = res;
-    loadingState.results = true;
-    onUpdateCallback();
-  });
+  };
+
+  fetchResultsCached();
+  // Poll every 60 seconds. Vercel CDN will cache the response, keeping Firestore reads strictly to 1 per minute in total.
+  setInterval(fetchResultsCached, 60000);
 
   // Listen to all predictions
   onSnapshot(collection(db, "predictions"), (snapshot) => {

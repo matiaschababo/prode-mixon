@@ -1,72 +1,43 @@
-import { matches } from '../src/data/matches.js';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 
-const API_URL = 'https://v3.football.api-sports.io';
-const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN']);
+if (getApps().length === 0) {
+  try {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    initializeApp({
+      credential: cert(serviceAccount)
+    });
+  } catch (error) {
+    console.error("Error inicializando Firebase Admin en api/results.js", error);
+  }
+}
 
 export default async function handler(request, response) {
-  response.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+  // CORS and shared cache headers for Vercel Edge CDN (cache for 60s, stale-while-revalidate for 120s)
+  response.setHeader('Access-Control-Allow-Credentials', true);
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  response.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
 
-  const apiKey = process.env.API_FOOTBALL_KEY;
-  if (!apiKey) {
-    return response.status(200).json({
-      results: {},
-      configured: false,
-      message: 'Falta configurar API_FOOTBALL_KEY en Vercel.'
-    });
+  if (request.method === 'OPTIONS') {
+    return response.status(200).end();
   }
 
-  const trackedMatches = matches.filter(match => match.apiFootballFixtureId);
-  if (!trackedMatches.length) {
-    return response.status(200).json({
-      results: {},
-      configured: true,
-      message: 'Falta mapear apiFootballFixtureId en src/data/matches.js.'
-    });
+  if (getApps().length === 0) {
+    return response.status(500).json({ error: "Firebase Admin no está configurado." });
   }
 
   try {
-    const ids = trackedMatches.map(match => match.apiFootballFixtureId).join('-');
-    const upstream = await fetch(`${API_URL}/fixtures?ids=${ids}`, {
-      headers: {
-        'x-apisports-key': apiKey
-      }
-    });
-
-    if (!upstream.ok) {
-      return response.status(upstream.status).json({
-        results: {},
-        error: 'API-Football no respondió correctamente.'
-      });
-    }
-
-    const data = await upstream.json();
-    const byFixtureId = new Map((data.response || []).map(item => [item.fixture.id, item]));
-    const results = {};
-
-    trackedMatches.forEach(match => {
-      const fixture = byFixtureId.get(match.apiFootballFixtureId);
-      const status = fixture?.fixture?.status?.short;
-      const home = fixture?.goals?.home;
-      const away = fixture?.goals?.away;
-
-      if (FINISHED_STATUSES.has(status) && home !== null && away !== null) {
-        results[String(match.id)] = {
-          home,
-          away,
-          status,
-          source: 'api-football'
-        };
-      }
-    });
+    const db = getFirestore();
+    const resultsDoc = await db.collection('global').doc('results').get();
+    const results = resultsDoc.exists ? resultsDoc.data() : {};
 
     return response.status(200).json({
       results,
-      configured: true,
       syncedAt: new Date().toISOString()
     });
   } catch (error) {
     return response.status(500).json({
-      results: {},
       error: error.message
     });
   }
