@@ -1191,7 +1191,6 @@ window.addEventListener('popstate', (e) => {
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    startLiveMatchEngine();
     syncLocalPredictions();
     
     if (notifUnsubscribe) notifUnsubscribe();
@@ -1228,6 +1227,7 @@ onAuthStateChanged(auth, (user) => {
       }
       router();
     });
+    startLiveMatchEngine();
     isInitialized = true;
   } else {
     router();

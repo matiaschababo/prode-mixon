@@ -43,11 +43,10 @@ export function initializeFirebaseSync(onUpdateCallback) {
           // Merge data.results but preserve any active live matches that have newer client-side updates
           Object.entries(data.results).forEach(([matchId, dbMatch]) => {
             const localMatch = prodeState.results[matchId];
-            if (localMatch && localMatch.live && dbMatch.live) {
+            if (localMatch) {
               const dbTime = dbMatch.updatedAt ? new Date(dbMatch.updatedAt).getTime() : 0;
               const localTime = localMatch.updatedAt ? new Date(localMatch.updatedAt).getTime() : 0;
-              if (localTime > dbTime) {
-                // Keep local live match data because it's newer than the DB
+              if (localTime > dbTime && dbMatch.live) {
                 return;
               }
             }
