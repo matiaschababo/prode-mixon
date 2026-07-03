@@ -6,15 +6,26 @@ import { bracketData } from '../data/bracket.js';
 import { teams } from '../data/teams.js';
 import { getMatchResult } from '../services/prodeStore.js';
 
+export function getLocalDateInArg(dateStringOrObj) {
+  const d = new Date(dateStringOrObj);
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  const parts = formatter.formatToParts(d);
+  const year = parts.find(p => p.type === 'year').value;
+  const month = parts.find(p => p.type === 'month').value;
+  const day = parts.find(p => p.type === 'day').value;
+  return `${year}-${month}-${day}`;
+}
+
 export function Ticker() {
-  const now = new Date();
-  now.setUTCHours(now.getUTCHours() - 10);
-  const todayLogicalStr = now.toISOString().split('T')[0];
+  const todayLogicalStr = getLocalDateInArg(new Date());
   
   const getLogicalDate = (dateString) => {
-    const d = new Date(dateString);
-    d.setUTCHours(d.getUTCHours() - 10);
-    return d.toISOString().split('T')[0];
+    return getLocalDateInArg(dateString);
   };
 
   const results = getResults();

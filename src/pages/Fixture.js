@@ -4,6 +4,21 @@ import { getMatchResult, getPredictions, saveMyPrediction, ensureUserExists } fr
 import { auth, googleProvider, signInWithPopup } from '../services/firebase.js';
 import { getResolvedBracket } from '../services/bracketResolver.js';
 
+export function getLocalDateInArg(dateStringOrObj) {
+  const d = new Date(dateStringOrObj);
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  const parts = formatter.formatToParts(d);
+  const year = parts.find(p => p.type === 'year').value;
+  const month = parts.find(p => p.type === 'month').value;
+  const day = parts.find(p => p.type === 'day').value;
+  return `${year}-${month}-${day}`;
+}
+
 export function Fixture() {
   const resolvedBracket = getResolvedBracket();
   
@@ -41,9 +56,7 @@ export function Fixture() {
   });
 
   const getLogicalDate = (dateString) => {
-    const d = new Date(dateString);
-    d.setUTCHours(d.getUTCHours() - 10);
-    return d.toISOString().split('T')[0];
+    return getLocalDateInArg(dateString);
   };
 
   const matchCards = Object.entries(grouped).map(([day, dayMatches]) => {
@@ -148,13 +161,7 @@ export function attachFixtureEvents() {
   if (fabHoy && !fabHoy.dataset.eventsAttached) {
     fabHoy.dataset.eventsAttached = 'true';
     fabHoy.addEventListener('click', () => {
-      const getLogicalDateStr = (date) => {
-        const d = new Date(date);
-        d.setUTCHours(d.getUTCHours() - 10);
-        return d.toISOString().split('T')[0];
-      };
-
-      const todayLogicalStr = getLogicalDateStr(new Date());
+      const todayLogicalStr = getLocalDateInArg(new Date());
 
       const days = document.querySelectorAll('.fixture-day');
       let targetEl = null;
