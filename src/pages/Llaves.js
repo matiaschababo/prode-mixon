@@ -5,6 +5,22 @@ import { getTopScorersAndAssists } from '../services/stats.js';
 import { getResults } from '../services/prodeStore.js';
 import { getResolvedBracket } from '../services/bracketResolver.js';
 
+export function getLocalDateInArg(dateStringOrObj) {
+  const d = new Date(dateStringOrObj);
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  const parts = formatter.formatToParts(d);
+  const year = parts.find(p => p.type === 'year').value;
+  const month = parts.find(p => p.type === 'month').value;
+  const day = parts.find(p => p.type === 'day').value;
+  return `${year}-${month}-${day}`;
+}
+
+
 function renderGroupMini(group, standings) {
   const groupTeams = standings[group] || [];
   const isFinished = groupTeams.length > 0 && groupTeams.every(t => t.played === 3);
@@ -264,15 +280,17 @@ export function Llaves() {
 
   const resolved = getResolvedBracket();
 
-  // Calculate active phase based on results
+  const todayStr = getLocalDateInArg(new Date());
+
+  // Calculate active phase based on date or results in database
   let activePhase = '16avos';
-  if (results['104'] && results['104'].home != null) {
+  if ((results['104'] && results['104'].home != null) || todayStr >= '2026-07-18') {
     activePhase = 'final';
-  } else if ((results['101'] && results['101'].home != null) || (results['102'] && results['102'].home != null)) {
+  } else if ((results['101'] && results['101'].home != null) || (results['102'] && results['102'].home != null) || todayStr >= '2026-07-14') {
     activePhase = 'semis';
-  } else if (['97', '98', '99', '100'].some(id => results[id] && results[id].home != null)) {
+  } else if (['97', '98', '99', '100'].some(id => results[id] && results[id].home != null) || todayStr >= '2026-07-09') {
     activePhase = 'cuartos';
-  } else if (['89', '90', '91', '92', '93', '94', '95', '96'].some(id => results[id] && results[id].home != null)) {
+  } else if (['89', '90', '91', '92', '93', '94', '95', '96'].some(id => results[id] && results[id].home != null) || todayStr >= '2026-07-04') {
     activePhase = 'octavos';
   }
 
