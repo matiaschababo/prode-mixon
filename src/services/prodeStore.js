@@ -425,7 +425,15 @@ export { adminSaveResult as saveResult };
 
 export function getMatchResult(match) {
   const saved = getResults()[String(match.id)];
-  if (saved) return saved;
+  if (saved) {
+    if (saved.home !== null && saved.away !== null) {
+      return saved;
+    }
+    if (saved.live) {
+      return saved;
+    }
+    return null;
+  }
   if (match.homeScore !== null && match.awayScore !== null) {
     return { home: match.homeScore, away: match.awayScore };
   }
