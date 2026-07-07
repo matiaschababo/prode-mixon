@@ -32,7 +32,10 @@ export const resolveSource = (sourceLabel, resolvedMap, results) => {
   }
 
   const res = results[String(matchId)];
-  if (res && res.home !== null && res.away !== null) {
+  const isLive = res && (res.live === true || res.status === 'LIVE' || res.status === 'IN_PROGRESS' || res.status === 'PAUSED');
+  const isFinished = res && res.home !== null && res.away !== null && !isLive;
+
+  if (isFinished) {
     const hG = parseInt(res.home, 10);
     const aG = parseInt(res.away, 10);
     let winner = null;
@@ -61,11 +64,15 @@ export const resolveSource = (sourceLabel, resolvedMap, results) => {
     const isTeamProvisional = (isWinner ? prevMatch.homeProvisional : prevMatch.awayProvisional) || (hG === aG && !res.winner);
     return { team, label: team ? team.name : sourceLabel, isProvisional: isTeamProvisional };
   } else {
+    let candidates = null;
+    if (prevMatch && prevMatch.home && prevMatch.away) {
+      candidates = [prevMatch.home, prevMatch.away];
+    }
     return { 
       team: null, 
       label: sourceLabel, 
       isProvisional: true, 
-      candidates: null 
+      candidates 
     };
   }
 };
