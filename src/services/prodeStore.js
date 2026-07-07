@@ -617,20 +617,33 @@ export function getDailyMVP(customMatches = matches) {
 
   let latestCompleteDate = null;
   let maxTime = 0;
-  Object.keys(matchdays).forEach(d => {
+  
+  // Encontrar el día completo más reciente (descendente por fecha)
+  const sortedDates = Object.keys(matchdays).sort((a, b) => new Date(b) - new Date(a));
+  
+  for (const d of sortedDates) {
     const day = matchdays[d];
     if (day.finishedCount === day.matches.length && day.matches.length > 0) {
-      let dayMaxTime = 0;
-      day.matches.forEach(m => {
-        const mt = new Date(m.date).getTime();
-        if (mt > dayMaxTime) dayMaxTime = mt;
+      // Simular cálculo rápido para ver si hubo puntos
+      let anyPoints = false;
+      dynamicUsers.forEach(user => {
+        let pts = 0;
+        day.matches.forEach(match => {
+          const p = preds[String(match.id)]?.[user.id];
+          const r = getMatchResult(match);
+          if (p && r) {
+            pts += calculatePoints(p.home, p.away, r.home, r.away, match.stage, p.advances, r.winner);
+          }
+        });
+        if (pts > 0) anyPoints = true;
       });
-      if (dayMaxTime > maxTime) {
-        maxTime = dayMaxTime;
+      
+      if (anyPoints) {
         latestCompleteDate = d;
+        break; // Encontramos un día válido con puntos!
       }
     }
-  });
+  }
 
   if (!latestCompleteDate) return null;
   const dailyMatches = matchdays[latestCompleteDate].matches;
