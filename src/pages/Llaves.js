@@ -347,13 +347,13 @@ export function Llaves() {
         <!-- TAB 1: LLAVES, TERCEROS Y GRUPOS -->
         <div role="tabpanel" id="panel-grupos" class="tab-panel ${currentLlavesTab === 'grupos' ? 'active' : ''}" aria-labelledby="tab-grupos">
           
-          <div class="bracket-top-logo-container animate-fade-in">
-            <img src="/assets/logo-mixon-clear.png" alt="Mix On" class="bracket-top-logo" onerror="this.src='/assets/logo-mixon.png'">
-          </div>
-
           <!-- LLAVES SIMÉTRICAS ARRIBA DE TODO -->
           <h2 class="section-title animate-fade-in">🏆 Cuadro Eliminatorio (En Vivo)</h2>
           <p class="section-desc animate-fade-in">Seguí los cruces en tiempo real. Se muestran candidatos posibles si el rival está por definirse.</p>
+
+          <div class="bracket-top-logo-container animate-fade-in">
+            <img src="/assets/logo-mixon-clear.png" alt="Mix On" class="bracket-top-logo" onerror="this.src='/assets/logo-mixon.png'">
+          </div>
           
           <div class="bracket-scroll-container animate-fade-in">
             <div class="symmetrical-bracket">
