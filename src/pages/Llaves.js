@@ -347,6 +347,10 @@ export function Llaves() {
         <!-- TAB 1: LLAVES, TERCEROS Y GRUPOS -->
         <div role="tabpanel" id="panel-grupos" class="tab-panel ${currentLlavesTab === 'grupos' ? 'active' : ''}" aria-labelledby="tab-grupos">
           
+          <div class="bracket-top-logo-container animate-fade-in">
+            <img src="/assets/logo-mixon-clear.png" alt="Mix On" class="bracket-top-logo" onerror="this.src='/assets/logo-mixon.png'">
+          </div>
+
           <!-- LLAVES SIMÉTRICAS ARRIBA DE TODO -->
           <h2 class="section-title animate-fade-in">🏆 Cuadro Eliminatorio (En Vivo)</h2>
           <p class="section-desc animate-fade-in">Seguí los cruces en tiempo real. Se muestran candidatos posibles si el rival está por definirse.</p>
@@ -390,7 +394,6 @@ export function Llaves() {
               <!-- COLUMNA CENTRAL: FINAL Y TERCER PUESTO (SOBRE LA COPA) -->
               <div class="bracket-center ${activePhase === 'final' ? 'active-phase' : 'inactive-phase'}">
                 <div class="final-slot">
-                  <img src="/assets/logo-mixon-clear.png" alt="Mix On" class="bracket-mixon-logo" onerror="this.src='/assets/logo-mixon.png'">
                   <h3 class="final-main-title">Gran Final</h3>
                   ${renderBracketSlot(104, resolved, results)}
                 </div>
