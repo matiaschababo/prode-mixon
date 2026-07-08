@@ -586,6 +586,14 @@
   align-items: center;
 }
 
+.bracket-mixon-logo {
+  width: 100px;
+  max-width: 60%;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6));
+  z-index: 5;
+}
+
 .third-place-slot {
   width: 100%;
   display: flex;

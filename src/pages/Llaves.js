@@ -390,6 +390,7 @@ export function Llaves() {
               <!-- COLUMNA CENTRAL: FINAL Y TERCER PUESTO (SOBRE LA COPA) -->
               <div class="bracket-center ${activePhase === 'final' ? 'active-phase' : 'inactive-phase'}">
                 <div class="final-slot">
+                  <img src="/assets/logo-mixon-clear.png" alt="Mix On" class="bracket-mixon-logo" onerror="this.src='/assets/logo-mixon.png'">
                   <h3 class="final-main-title">Gran Final</h3>
                   ${renderBracketSlot(104, resolved, results)}
                 </div>
