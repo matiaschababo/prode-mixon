@@ -288,7 +288,7 @@ export function Llaves() {
     activePhase = 'final';
   } else if ((results['101'] && results['101'].home != null) || (results['102'] && results['102'].home != null) || todayStr >= '2026-07-14') {
     activePhase = 'semis';
-  } else if (['97', '98', '99', '100'].some(id => results[id] && results[id].home != null) || todayStr >= '2026-07-09') {
+  } else if (['97', '98', '99', '100'].some(id => results[id] && results[id].home != null) || todayStr >= '2026-07-07') {
     activePhase = 'cuartos';
   } else if (['89', '90', '91', '92', '93', '94', '95', '96'].some(id => results[id] && results[id].home != null) || todayStr >= '2026-07-04') {
     activePhase = 'octavos';
